@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1D780B
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Owin", "Source\LightNode.Owin\LightNode.Owin.csproj", "{CABC7913-F7C9-4E89-8312-F9AE523B9F41}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Server", "Source\LightNode.Server\LightNode.Server.csproj", "{CABC7913-F7C9-4E89-8312-F9AE523B9F41}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Client", "Source\LightNode.Client\LightNode.Client.csproj", "{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}"
 EndProject

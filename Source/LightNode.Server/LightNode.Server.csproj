@@ -7,8 +7,8 @@
     <ProjectGuid>{CABC7913-F7C9-4E89-8312-F9AE523B9F41}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LightNode.Owin</RootNamespace>
-    <AssemblyName>LightNode.Owin</AssemblyName>
+    <RootNamespace>LightNode.Server</RootNamespace>
+    <AssemblyName>LightNode.Server</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
@@ -44,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="LightNodeServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

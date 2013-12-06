@@ -60,9 +60,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Source\LightNode.Owin\LightNode.Owin.csproj">
+    <ProjectReference Include="..\..\Source\LightNode.Server\LightNode.Server.csproj">
       <Project>{cabc7913-f7c9-4e89-8312-f9ae523b9f41}</Project>
-      <Name>LightNode.Owin</Name>
+      <Name>LightNode.Server</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
