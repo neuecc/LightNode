@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Owin.Hosting;
+using Owin;
+using System;
 
 namespace LightNode.Sample.Server.SelfHost
 {
@@ -10,6 +8,19 @@ namespace LightNode.Sample.Server.SelfHost
     {
         static void Main(string[] args)
         {
+            using (WebApp.Start<Startup>("http://localhost:12345"))
+            {
+                Console.ReadLine();
+            }
+        }
+    }
+
+    public class Startup
+    {
+        public void Configuration(Owin.IAppBuilder app)
+        {
+            app.UseErrorPage();
+            app.UseLightNode();
         }
     }
 }
