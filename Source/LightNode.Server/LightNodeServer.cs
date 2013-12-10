@@ -20,7 +20,7 @@ namespace LightNode.Server
 
         public Func<object[], object> MethodFuncBody { get; set; } // 1
 
-        public Func<object[], Task<object>> MethodAsyncFuncBody { get; set; } // 2
+        public Func<object[], Task> MethodAsyncFuncBody { get; set; } // 2
 
         public Action<object[]> MethodActionBody { get; set; } // 3
         public Func<object[], Task> MethodAsyncActionBody { get; set; } // 4
@@ -58,42 +58,75 @@ namespace LightNode.Server
                     contract.Arguments = methodInfo.GetParameters();
                     contract.ReturnType = methodInfo.ReturnType;
 
-                    if (contract.ReturnType == typeof(Task))
+                    if (typeof(Task).IsAssignableFrom(contract.ReturnType))
                     {
-                        contract.MessageContractBodyType = MessageContractBodyType.AsyncAction;
+                        // (object[] args) => new X().M((T1)args[0], (T2)args[1])...
+                        var args = Expression.Parameter(typeof(object[]), "args");
 
-                        var args = methodInfo.GetParameters().Select(x => Expression.Parameter(x.ParameterType, x.Name)).ToArray();
-                        var objectArgs = args.Select(x => Expression.Parameter(typeof(object), x.Name)).ToArray();
-                        var expr = Expression.Lambda<Func<object[], Task>>(
+                        var parameters = methodInfo.GetParameters()
+                            .Select((x, i) => Expression.Convert(Expression.ArrayIndex(args, Expression.Constant(i)), x.ParameterType))
+                            .ToArray();
+
+                        var lambda = Expression.Lambda<Func<object[], Task>>(
                             Expression.Call(
                                 Expression.New(classType),
                                 methodInfo,
-                                objectArgs.Select((x, i) => Expression.Convert(x, args[i].Type)).ToArray()),
-                            objectArgs);
-                        
+                                parameters),
+                            args);
 
-                        var v = expr.Compile();
-
-
-
-                        var _ = v(new object[] { 10 });
-
-                        //contract.MethodAsyncActionBody = expr.Compile();
-
-                        //handlers.Add(Tuple.Create(className, methodName), contract);
+                        if (contract.ReturnType.IsGenericType && contract.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
+                        {
+                            contract.MessageContractBodyType = MessageContractBodyType.AsyncFunc;
+                            contract.MethodAsyncFuncBody = lambda.Compile();
+                        }
+                        else
+                        {
+                            contract.MessageContractBodyType = MessageContractBodyType.AsyncAction;
+                            contract.MethodAsyncActionBody = lambda.Compile();
+                        }
                     }
                     else if (contract.ReturnType == typeof(void))
                     {
+                        // (object[] args) => { new X().M((T1)args[0], (T2)args[1])... }
+                        var args = Expression.Parameter(typeof(object[]), "args");
+
+                        var parameters = methodInfo.GetParameters()
+                            .Select((x, i) => Expression.Convert(Expression.ArrayIndex(args, Expression.Constant(i)), x.ParameterType))
+                            .ToArray();
+
+                        var lambda = Expression.Lambda<Action<object[]>>(
+                            Expression.Call(
+                                Expression.New(classType),
+                                methodInfo,
+                                parameters),
+                            args);
+
                         contract.MessageContractBodyType = MessageContractBodyType.Action;
-                    }
-                    else if (contract.ReturnType.IsGenericType && contract.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
-                    {
-                        contract.MessageContractBodyType = MessageContractBodyType.AsyncFunc;
+                        contract.MethodActionBody = lambda.Compile();
                     }
                     else
                     {
+                        // (object[] args) => (object)new X().M((T1)args[0], (T2)args[1])...
+                        var args = Expression.Parameter(typeof(object[]), "args");
+
+                        var parameters = methodInfo.GetParameters()
+                            .Select((x, i) => Expression.Convert(Expression.ArrayIndex(args, Expression.Constant(i)), x.ParameterType))
+                            .ToArray();
+
+                        var lambda = Expression.Lambda<Func<object[], object>>(
+                            Expression.Convert(
+                                Expression.Call(
+                                    Expression.New(classType),
+                                    methodInfo,
+                                    parameters)
+                            , typeof(object)),
+                            args);
+
                         contract.MessageContractBodyType = MessageContractBodyType.Func;
+                        contract.MethodFuncBody = lambda.Compile();
                     }
+
+                    handlers.Add(Tuple.Create(className, methodName), contract);
                 }
             }
         }

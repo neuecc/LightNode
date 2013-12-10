@@ -28,9 +28,24 @@ namespace LightNode.Sample.Server.SelfHost
 
     public class MyClass : ILightNodeContract
     {
-        public async Task Test(int x)
+        public int Test1(int x, int y)
+        {
+            return x * y;
+        }
+
+        public void Test2(int x, string y, int z)
+        {
+            System.Diagnostics.Debug.WriteLine(x + "*" + y + ":" + z);
+        }
+
+        public async Task Test3()
         {
             await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+        public async Task<int> Test4()
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            return 100;
         }
     }
 }
