@@ -38,12 +38,15 @@ namespace LightNode.Server
     {
         // {Class,Method} => MessageContract
         readonly static Dictionary<Tuple<string, string>, MessageContract> handlers = new Dictionary<Tuple<string, string>, MessageContract>();
+        readonly static ConcurrentDictionary<Type, Func<object, object>> taskResultExtractorCache = new ConcurrentDictionary<Type, Func<object, object>>();
 
         public static void RegisterHandler(Assembly[] hostAssemblies)
         {
             var contractTypes = hostAssemblies
                 .SelectMany(x => x.GetTypes())
                 .Where(x => typeof(ILightNodeContract).IsAssignableFrom(x));
+
+            // TODO:validation, duplicate entry, non support arguments.
 
             foreach (var classType in contractTypes)
             {
@@ -133,28 +136,68 @@ namespace LightNode.Server
 
         public static async Task HandleRequest(IDictionary<string, object> environment)
         {
-            var path = environment["owin.Request...."];
+            // var path = environment["owin.Request...."];
             // URL Trim
 
             // TODO:get path & classname
-            var key = Tuple.Create("MyClass", "Hello");
+            var key = Tuple.Create("MyClass", "Test4");
 
-            Func<object> handler;
-            //if (handlers.TryGetV)
-            //{
-            // get handler
+            MessageContract handler;
+            if (handlers.TryGetValue(key, out handler))
+            {
+                // TODO:get parameters
+                switch (handler.MessageContractBodyType)
+                {
+                    case MessageContractBodyType.Action:
+                        break;
+                    case MessageContractBodyType.Func:
+                        // handler.MethodFuncBody(new object[] { });
 
-            // get parameter
+                        break;
+                    case MessageContractBodyType.AsyncAction:
+                        var actionTask = handler.MethodAsyncActionBody(new object[] { });
+                        await actionTask;
+                        break;
+                    case MessageContractBodyType.AsyncFunc:
+                        var funcTask = handler.MethodAsyncFuncBody(new object[] { });
+                        await funcTask;
+                        var result = ExtractTaskResult(funcTask);
+                        break;
+                    default:
+                        throw new InvalidOperationException("critical:register code is broken");
+                }
 
-            // invoker handler
 
-            // set response
+                // invoke handler
+                // set response
+                // exception handling
+            }
+            else
+            {
+                // TODO:return 404 Message
+            }
 
-            //            }
-            //          else
-            //        {
-            // throw exception
-            //      }
+
+        }
+
+        static object ExtractTaskResult(object targetTaskObject)
+        {
+            var extractor = taskResultExtractorCache.GetOrAdd(targetTaskObject.GetType(), t =>
+            {
+                // (object task) => (object)((Task<>).Result)
+                var taskParameter = Expression.Parameter(typeof(object), "task");
+                var lambda = Expression.Lambda<Func<object, object>>(
+                    Expression.Convert(
+                        Expression.Property(
+                            Expression.Convert(taskParameter, t),
+                            "Result"),
+                        typeof(object)),
+                    taskParameter);
+
+                return lambda.Compile();
+            });
+
+            return extractor(targetTaskObject);
         }
     }
 

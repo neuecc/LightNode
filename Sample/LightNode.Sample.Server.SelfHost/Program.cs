@@ -23,6 +23,11 @@ namespace LightNode.Sample.Server.SelfHost
         {
             app.UseErrorPage();
             app.UseLightNode();
+            app.Run(async _ =>
+            {
+                // TODO:test
+                await LightNodeServer.HandleRequest(_.Environment);
+            });
         }
     }
 
