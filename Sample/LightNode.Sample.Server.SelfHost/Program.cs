@@ -1,6 +1,8 @@
-﻿using Microsoft.Owin.Hosting;
+﻿using LightNode.Server;
+using Microsoft.Owin.Hosting;
 using Owin;
 using System;
+using System.Threading.Tasks;
 
 namespace LightNode.Sample.Server.SelfHost
 {
@@ -21,6 +23,14 @@ namespace LightNode.Sample.Server.SelfHost
         {
             app.UseErrorPage();
             app.UseLightNode();
+        }
+    }
+
+    public class MyClass : ILightNodeContract
+    {
+        public async Task Test(int x)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
         }
     }
 }
