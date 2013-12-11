@@ -33,6 +33,12 @@ namespace LightNode.Server
         AsyncAction = 4
     }
 
+    public class ParameterContract
+    {
+        public Type type { get; set; }
+        public int MyProperty { get; set; }
+    }
+
 
     public static class LightNodeServer
     {
@@ -136,39 +142,55 @@ namespace LightNode.Server
 
         public static async Task HandleRequest(IDictionary<string, object> environment)
         {
-            // var path = environment["owin.Request...."];
-            // URL Trim
+            var path = environment["owin.RequestPath"] as string;
 
-            // TODO:get path & classname
-            var key = Tuple.Create("MyClass", "Test4");
+            // TODO:requestmethod is POST
+            var keyBase = path.Trim('/').Split('/');
+            if (keyBase.Length != 2) throw new InvalidOperationException(); // TODO:Exception Handling
+
+            // {ClassName, MethodName}
+            var key = Tuple.Create(keyBase[0], keyBase[1]);
 
             MessageContract handler;
             if (handlers.TryGetValue(key, out handler))
             {
                 // TODO:get parameters
+                // deserialize from request body
+
+                // Dictionary<
+
+                // TODO:handle optional value
+                // handler.Arguments.Select(x => x.IsOptional
+
+                // d
+
+
+                bool isVoid = true;
+                object result = null;
                 switch (handler.MessageContractBodyType)
                 {
                     case MessageContractBodyType.Action:
+                        handler.MethodActionBody(new object[] { });
                         break;
                     case MessageContractBodyType.Func:
-                        // handler.MethodFuncBody(new object[] { });
-
+                        isVoid = false;
+                        result = handler.MethodFuncBody(new object[] { });
                         break;
                     case MessageContractBodyType.AsyncAction:
                         var actionTask = handler.MethodAsyncActionBody(new object[] { });
                         await actionTask;
                         break;
                     case MessageContractBodyType.AsyncFunc:
+                        isVoid = false;
                         var funcTask = handler.MethodAsyncFuncBody(new object[] { });
                         await funcTask;
-                        var result = ExtractTaskResult(funcTask);
+                        result = ExtractTaskResult(funcTask);
                         break;
                     default:
                         throw new InvalidOperationException("critical:register code is broken");
                 }
 
-
-                // invoke handler
+                // TODO:
                 // set response
                 // exception handling
             }

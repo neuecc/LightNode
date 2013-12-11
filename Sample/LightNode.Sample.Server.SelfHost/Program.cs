@@ -26,7 +26,7 @@ namespace LightNode.Sample.Server.SelfHost
             app.Run(async _ =>
             {
                 // TODO:test
-                await LightNodeServer.HandleRequest(_.Environment);
+                // await LightNodeServer.HandleRequest(_.Environment);
             });
         }
     }
