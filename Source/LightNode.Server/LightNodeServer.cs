@@ -44,7 +44,7 @@ namespace LightNode.Server
     {
         // {Class,Method} => MessageContract
         readonly static Dictionary<Tuple<string, string>, MessageContract> handlers = new Dictionary<Tuple<string, string>, MessageContract>();
-        readonly static ConcurrentDictionary<Type, Func<object, object>> taskResultExtractorCache = new ConcurrentDictionary<Type, Func<object, object>>();
+        readonly static Dictionary<Type, Func<object, object>> taskResultExtractorCache = new Dictionary<Type, Func<object, object>>();
 
         public static void RegisterHandler(Assembly[] hostAssemblies)
         {
@@ -87,6 +87,18 @@ namespace LightNode.Server
                         {
                             contract.MessageContractBodyType = MessageContractBodyType.AsyncFunc;
                             contract.MethodAsyncFuncBody = lambda.Compile();
+
+                            // (object task) => (object)((Task<>).Result)
+                            var taskParameter = Expression.Parameter(typeof(object), "task");
+                            var resultLambda = Expression.Lambda<Func<object, object>>(
+                                Expression.Convert(
+                                    Expression.Property(
+                                        Expression.Convert(taskParameter, contract.ReturnType),
+                                        "Result"),
+                                    typeof(object)),
+                                taskParameter);
+
+                            taskResultExtractorCache[contract.ReturnType] = resultLambda.Compile();
                         }
                         else
                         {
@@ -184,7 +196,8 @@ namespace LightNode.Server
                         isVoid = false;
                         var funcTask = handler.MethodAsyncFuncBody(new object[] { });
                         await funcTask;
-                        result = ExtractTaskResult(funcTask);
+                        var extractor = taskResultExtractorCache[funcTask.GetType()];
+                        result = extractor(funcTask);
                         break;
                     default:
                         throw new InvalidOperationException("critical:register code is broken");
@@ -198,28 +211,6 @@ namespace LightNode.Server
             {
                 // TODO:return 404 Message
             }
-
-
-        }
-
-        static object ExtractTaskResult(object targetTaskObject)
-        {
-            var extractor = taskResultExtractorCache.GetOrAdd(targetTaskObject.GetType(), t =>
-            {
-                // (object task) => (object)((Task<>).Result)
-                var taskParameter = Expression.Parameter(typeof(object), "task");
-                var lambda = Expression.Lambda<Func<object, object>>(
-                    Expression.Convert(
-                        Expression.Property(
-                            Expression.Convert(taskParameter, t),
-                            "Result"),
-                        typeof(object)),
-                    taskParameter);
-
-                return lambda.Compile();
-            });
-
-            return extractor(targetTaskObject);
         }
     }
 
