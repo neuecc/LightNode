@@ -33,13 +33,6 @@ namespace LightNode.Server
         AsyncAction = 4
     }
 
-    public class ParameterContract
-    {
-        public Type type { get; set; }
-        public int MyProperty { get; set; }
-    }
-
-
     public static class LightNodeServer
     {
         // {Class,Method} => MessageContract
@@ -226,7 +219,13 @@ namespace LightNode.Server
     {
         public string Name { get; private set; }
 
+        public AcceptVerbs AcceptVerb { get; set; }
+    }
 
+    [Flags]
+    public enum AcceptVerbs
+    {
+        Get, Post
     }
 
     public interface ISerializer
