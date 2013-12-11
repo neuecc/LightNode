@@ -23,12 +23,9 @@ namespace LightNode.Sample.Server.SelfHost
         public void Configuration(Owin.IAppBuilder app)
         {
             app.UseErrorPage();
-            app.UseLightNode();
-            app.Run(async _ =>
-            {
-                // TODO:test
-                // await LightNodeServer.HandleRequest(_.Environment);
-            });
+            app.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
+                new JavaScriptMediaTypeFormatter(),
+                new XmlMediaTypeFormatter()));
         }
     }
 

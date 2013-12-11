@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Linq.Expressions;
-using System.Linq;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Threading.Tasks;
 using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace LightNode.Server
 {
@@ -14,6 +14,8 @@ namespace LightNode.Server
         // {Class,Method} => MessageContract
         readonly static Dictionary<Tuple<string, string>, OperationHandler> handlers = new Dictionary<Tuple<string, string>, OperationHandler>();
         readonly static Dictionary<Type, Func<object, object>> taskResultExtractorCache = new Dictionary<Type, Func<object, object>>();
+
+        static LightNodeOptions options;
 
         public static void RegisterHandler(Assembly[] hostAssemblies)
         {
@@ -32,24 +34,31 @@ namespace LightNode.Server
 
                     var methodName = methodInfo.Name;
 
+                    if (methodName == "Equals" || methodName == "GetHashCode") continue;
+
                     handler.MethodName = methodName;
                     handler.Arguments = methodInfo.GetParameters();
                     handler.ReturnType = methodInfo.ReturnType;
 
-                    if (handler.Arguments.All(x => AllowRequestType.IsAllowType(x.ParameterType)))
+                    foreach (var argument in handler.Arguments)
                     {
-                        throw new InvalidOperationException(); // TODO:error message, parameter is not allow.
+                        if (!AllowRequestType.IsAllowType(argument.ParameterType))
+                        {
+                            throw new InvalidOperationException(string.Format("parameter is not allow, class:{0} method:{1} paramName:{2} paramType:{3}",
+                                className, methodName, argument.Name, argument.ParameterType.FullName));
+                        }
                     }
 
+                    // prepare lambda paameters
+                    var args = Expression.Parameter(typeof(object[]), "args");
+                    var parameters = methodInfo.GetParameters()
+                        .Select((x, i) => Expression.Convert(Expression.ArrayIndex(args, Expression.Constant(i)), x.ParameterType))
+                        .ToArray();
+
+                    // Task or Task<T>
                     if (typeof(Task).IsAssignableFrom(handler.ReturnType))
                     {
                         // (object[] args) => new X().M((T1)args[0], (T2)args[1])...
-                        var args = Expression.Parameter(typeof(object[]), "args");
-
-                        var parameters = methodInfo.GetParameters()
-                            .Select((x, i) => Expression.Convert(Expression.ArrayIndex(args, Expression.Constant(i)), x.ParameterType))
-                            .ToArray();
-
                         var lambda = Expression.Lambda<Func<object[], Task>>(
                             Expression.Call(
                                 Expression.New(classType),
@@ -85,15 +94,9 @@ namespace LightNode.Server
                             handler.MethodAsyncActionBody = lambda.Compile();
                         }
                     }
-                    else if (handler.ReturnType == typeof(void))
+                    else if (handler.ReturnType == typeof(void)) // of course void
                     {
                         // (object[] args) => { new X().M((T1)args[0], (T2)args[1])... }
-                        var args = Expression.Parameter(typeof(object[]), "args");
-
-                        var parameters = methodInfo.GetParameters()
-                            .Select((x, i) => Expression.Convert(Expression.ArrayIndex(args, Expression.Constant(i)), x.ParameterType))
-                            .ToArray();
-
                         var lambda = Expression.Lambda<Action<object[]>>(
                             Expression.Call(
                                 Expression.New(classType),
@@ -104,15 +107,9 @@ namespace LightNode.Server
                         handler.HandlerBodyType = HandlerBodyType.Action;
                         handler.MethodActionBody = lambda.Compile();
                     }
-                    else
+                    else // return T
                     {
                         // (object[] args) => (object)new X().M((T1)args[0], (T2)args[1])...
-                        var args = Expression.Parameter(typeof(object[]), "args");
-
-                        var parameters = methodInfo.GetParameters()
-                            .Select((x, i) => Expression.Convert(Expression.ArrayIndex(args, Expression.Constant(i)), x.ParameterType))
-                            .ToArray();
-
                         var lambda = Expression.Lambda<Func<object[], object>>(
                             Expression.Convert(
                                 Expression.Call(
@@ -135,6 +132,11 @@ namespace LightNode.Server
             });
         }
 
+        public static void RegisterOptions(LightNodeOptions options)
+        {
+            LightNodeServer.options = options;
+        }
+
         public static async Task HandleRequest(IDictionary<string, object> environment)
         {
             var path = environment["owin.RequestPath"] as string;
@@ -150,11 +152,12 @@ namespace LightNode.Server
             if (handlers.TryGetValue(key, out handler))
             {
                 ILookup<string, string> requestParameter;
-                // TODO:GET is from QueryString
+                var queryString = environment["owin.RequestQueryString"] as string;
                 using (var sr = new StreamReader((environment["owin.RequestBody"] as Stream)))
                 {
                     var str = await sr.ReadToEndAsync();
                     requestParameter = str.Split('&')
+                        .Concat(queryString.Split('&'))
                         .Select(xs => xs.Split('='))
                         .Where(xs => xs.Length == 2)
                         .ToLookup(xs => xs[0], xs => xs[1]);
@@ -217,9 +220,17 @@ namespace LightNode.Server
                         throw new InvalidOperationException("critical:register code is broken");
                 }
 
-                // TODO:
-                // set response
-                // exception handling
+                if (!isVoid)
+                {
+                    var responseStream = environment["owin.ResponseBody"] as Stream;
+
+                    // select formatter
+                    options.DefaultFormatter.Serialize(responseStream, result);
+
+                    // append header
+                }
+
+                // TODO:exception handling
             }
             else
             {
@@ -227,6 +238,8 @@ namespace LightNode.Server
             }
         }
     }
+
+
 
 
 
@@ -238,9 +251,7 @@ namespace LightNode.Server
 
     public class ContractOptionAttribute : Attribute
     {
-        public string Name { get; private set; }
-
-        public AcceptVerbs AcceptVerb { get; set; }
+        public AcceptVerbs AcceptVerb { get; private set; }
     }
 
     [Flags]
@@ -248,12 +259,4 @@ namespace LightNode.Server
     {
         Get, Post
     }
-
-    public interface ISerializer
-    {
-
-    }
-
-
-
 }

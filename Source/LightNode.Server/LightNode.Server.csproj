@@ -37,16 +37,20 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AllowRequestType.cs" />
+    <Compile Include="LightNodeOptions.cs" />
     <Compile Include="LightNodeServer.cs" />
     <Compile Include="LightNodeServerMiddleware.cs" />
+    <Compile Include="MediaTypeFormatter.cs" />
     <Compile Include="OperationHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
