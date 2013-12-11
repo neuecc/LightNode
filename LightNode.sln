@@ -22,6 +22,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Sample.Server.Sel
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Sample.Client", "Sample\LightNode.Sample.Client\LightNode.Sample.Client.csproj", "{7BAEA48D-6A91-490E-9B19-35C2A8F4174B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Performance", "Performance", "{7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfTest.ClientRunner", "Performance\PerfTest.ClientRunner\PerfTest.ClientRunner.csproj", "{EF5DA3BB-CBA7-4FEE-9478-67C3ADAF6E5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,8 +56,15 @@ Global
 		{7BAEA48D-6A91-490E-9B19-35C2A8F4174B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BAEA48D-6A91-490E-9B19-35C2A8F4174B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BAEA48D-6A91-490E-9B19-35C2A8F4174B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF5DA3BB-CBA7-4FEE-9478-67C3ADAF6E5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF5DA3BB-CBA7-4FEE-9478-67C3ADAF6E5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF5DA3BB-CBA7-4FEE-9478-67C3ADAF6E5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF5DA3BB-CBA7-4FEE-9478-67C3ADAF6E5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EF5DA3BB-CBA7-4FEE-9478-67C3ADAF6E5E} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 	EndGlobalSection
 EndGlobal
