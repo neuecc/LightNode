@@ -59,10 +59,6 @@ namespace LightNode.Server
             {
                 return (string x) => (object)Convert.ToUInt16(x);
             }
-            else if (targetType == typeof(UInt16) || targetType == typeof(Nullable<UInt16>))
-            {
-                return (string x) => (object)Convert.ToUInt16(x);
-            }
             else if (targetType == typeof(UInt32) || targetType == typeof(Nullable<UInt32>))
             {
                 return (string x) => (object)Convert.ToUInt32(x);
@@ -74,10 +70,6 @@ namespace LightNode.Server
             else if (targetType == typeof(Single) || targetType == typeof(Nullable<Single>))
             {
                 return (string x) => (object)Convert.ToSingle(x);
-            }
-            else if (targetType == typeof(Double) || targetType == typeof(Nullable<Double>))
-            {
-                return (string x) => (object)Convert.ToDouble(x);
             }
             else if (targetType == typeof(Double) || targetType == typeof(Nullable<Double>))
             {
@@ -144,10 +136,6 @@ namespace LightNode.Server
             {
                 return (IEnumerable<string> xs) => (object)xs.Select(x => Convert.ToUInt16(x)).ToArray();
             }
-            else if (targetType == typeof(UInt16[]) || targetType == typeof(Nullable<UInt16>[]))
-            {
-                return (IEnumerable<string> xs) => (object)xs.Select(x => Convert.ToUInt16(x)).ToArray();
-            }
             else if (targetType == typeof(UInt32[]) || targetType == typeof(Nullable<UInt32>[]))
             {
                 return (IEnumerable<string> xs) => (object)xs.Select(x => Convert.ToUInt32(x)).ToArray();
@@ -164,18 +152,15 @@ namespace LightNode.Server
             {
                 return (IEnumerable<string> xs) => (object)xs.Select(x => Convert.ToDouble(x)).ToArray();
             }
-            else if (targetType == typeof(Double[]) || targetType == typeof(Nullable<Double>[]))
-            {
-                return (IEnumerable<string> xs) => (object)xs.Select(x => Convert.ToDouble(x)).ToArray();
-            }
             else if (targetType == typeof(SByte[]) || targetType == typeof(Nullable<SByte>[]))
             {
                 return (IEnumerable<string> xs) => (object)xs.Select(x => Convert.ToSByte(x)).ToArray();
             }
-            else if (targetType == typeof(Byte[]) || targetType == typeof(Nullable<Byte>[]))
-            {
-                return (IEnumerable<string> xs) => (object)xs.Select(x => Convert.ToByte(x)).ToArray();
-            }
+            // NOTE:unsupport byte[] because request message will be very large. instead of use Base64.
+            //else if (targetType == typeof(Byte[]) || targetType == typeof(Nullable<Byte>[]))
+            //{
+            //    return (IEnumerable<string> xs) => (object)xs.Select(x => Convert.ToByte(x)).ToArray();
+            //}
             else
             {
                 // targetType is not supported
