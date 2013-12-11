@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace LightNode.Server
 {
@@ -47,6 +48,7 @@ namespace LightNode.Server
 
             // TODO:validation, duplicate entry, non support arguments.
 
+            // TODO:faster way, make parallel
             foreach (var classType in contractTypes)
             {
                 var className = classType.Name;
@@ -159,35 +161,66 @@ namespace LightNode.Server
             MessageContract handler;
             if (handlers.TryGetValue(key, out handler))
             {
-                // TODO:get parameters
-                // deserialize from request body
+                ILookup<string, string> requestParameter;
+                // TODO:GET is from QueryString
+                using (var sr = new StreamReader((environment["owin.RequestBody"] as Stream)))
+                {
+                    var str = await sr.ReadToEndAsync();
+                    requestParameter = str.Split('&')
+                        .Select(xs => xs.Split('='))
+                        .Where(xs => xs.Length == 2)
+                        .ToLookup(xs => xs[0], xs => xs[1]);
+                }
 
-                // Dictionary<
-
-                // TODO:handle optional value
-                // handler.Arguments.Select(x => x.IsOptional
-
-                // d
-
+                var methodParameters = handler.Arguments.Select(x =>
+                {
+                    var values = requestParameter[x.Name];
+                    var count = values.Count();
+                    if (count == 0)
+                    {
+                        if (x.IsOptional)
+                        {
+                            return x.DefaultValue;
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException(); // TODO:Exception Handling
+                        }
+                    }
+                    else if (count == 1)
+                    {
+                        var conv = AllowRequestType.GetConverter(x.ParameterType);
+                        if (conv == null) throw new InvalidOperationException(); // TODO:Exception Handling
+                        return conv(values.First());
+                    }
+                    else // Array
+                    {
+                        if (!x.ParameterType.IsArray) throw new InvalidOperationException(); // TODO:Exception Handling
+                        var conv = AllowRequestType.GetArrayConverter(x.ParameterType);
+                        if (conv == null) throw new InvalidOperationException(); // TODO:Exception Handling
+                        return conv(values);
+                    }
+                })
+                .ToArray();
 
                 bool isVoid = true;
                 object result = null;
                 switch (handler.MessageContractBodyType)
                 {
                     case MessageContractBodyType.Action:
-                        handler.MethodActionBody(new object[] { });
+                        handler.MethodActionBody(methodParameters);
                         break;
                     case MessageContractBodyType.Func:
                         isVoid = false;
-                        result = handler.MethodFuncBody(new object[] { });
+                        result = handler.MethodFuncBody(methodParameters);
                         break;
                     case MessageContractBodyType.AsyncAction:
-                        var actionTask = handler.MethodAsyncActionBody(new object[] { });
+                        var actionTask = handler.MethodAsyncActionBody(methodParameters);
                         await actionTask;
                         break;
                     case MessageContractBodyType.AsyncFunc:
                         isVoid = false;
-                        var funcTask = handler.MethodAsyncFuncBody(new object[] { });
+                        var funcTask = handler.MethodAsyncFuncBody(methodParameters);
                         await funcTask;
                         var extractor = taskResultExtractorCache[funcTask.GetType()];
                         result = extractor(funcTask);
@@ -205,6 +238,10 @@ namespace LightNode.Server
                 // TODO:return 404 Message
             }
         }
+
+
+
+        
     }
 
 

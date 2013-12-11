@@ -29,6 +29,7 @@ namespace PerfTest.ClientRunner
                     .ContinueWith((_, state) => ((SemaphoreSlim)state).Release(), semaphore);
                 tasks.Add(task);
             }
+
             await Task.WhenAll(tasks);
         }
 

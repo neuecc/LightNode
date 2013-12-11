@@ -1,4 +1,5 @@
 ﻿using LightNode.Server;
+using System.Linq;
 using Microsoft.Owin.Hosting;
 using Owin;
 using System;
@@ -51,6 +52,10 @@ namespace LightNode.Sample.Server.SelfHost
         {
             await Task.Delay(TimeSpan.FromSeconds(1));
             return 100;
+        }
+        public int Test5(int[] xs)
+        {
+            return xs.Sum();
         }
     }
 }
