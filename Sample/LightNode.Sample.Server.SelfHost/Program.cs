@@ -23,9 +23,7 @@ namespace LightNode.Sample.Server.SelfHost
         public void Configuration(Owin.IAppBuilder app)
         {
             app.UseErrorPage();
-            app.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
-                new JavaScriptMediaTypeFormatter(),
-                new XmlMediaTypeFormatter()));
+            app.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new TextContentTypeFormatter()));
         }
     }
 

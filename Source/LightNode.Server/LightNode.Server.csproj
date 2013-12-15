@@ -50,7 +50,7 @@
     <Compile Include="LightNodeOptions.cs" />
     <Compile Include="LightNodeServer.cs" />
     <Compile Include="LightNodeServerMiddleware.cs" />
-    <Compile Include="MediaTypeFormatter.cs" />
+    <Compile Include="ContentFormatter.cs" />
     <Compile Include="OperationHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

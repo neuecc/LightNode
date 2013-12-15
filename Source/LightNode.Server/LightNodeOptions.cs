@@ -9,10 +9,10 @@ namespace LightNode.Server
     public class LightNodeOptions
     {
         public AcceptVerbs DefaultAcceptVerb { get; private set; }
-        public IMediaTypeFormatter DefaultFormatter { get; private set; }
-        public IMediaTypeFormatter[] SpecifiedFormatters { get; private set; }
+        public IContentFormatter DefaultFormatter { get; private set; }
+        public IContentFormatter[] SpecifiedFormatters { get; private set; }
 
-        public LightNodeOptions(AcceptVerbs defaultAcceptVerb, IMediaTypeFormatter defaultFormatter, params IMediaTypeFormatter[] specifiedFormatters)
+        public LightNodeOptions(AcceptVerbs defaultAcceptVerb, IContentFormatter defaultFormatter, params IContentFormatter[] specifiedFormatters)
         {
             DefaultAcceptVerb = defaultAcceptVerb;
             DefaultFormatter = defaultFormatter;
