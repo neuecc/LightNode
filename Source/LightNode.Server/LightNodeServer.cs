@@ -248,10 +248,22 @@ namespace LightNode.Server
 
     }
 
+    public abstract class LightNodeContract
+    {
+        public IDictionary<string, object> Environment { get; set; }
+    }
+
+    public class IgnoreOperationAttribute : Attribute
+    {
+
+    }
+
 
     public class ContractOptionAttribute : Attribute
     {
         public AcceptVerbs AcceptVerb { get; private set; }
+
+        public IContentFormatter OutputContentFormatter { get; set; }
     }
 
     [Flags]
