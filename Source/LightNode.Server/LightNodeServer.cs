@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LightNode.Server
@@ -17,8 +18,13 @@ namespace LightNode.Server
 
         static LightNodeOptions options;
 
+        static int alreadyRegistered = -1;
+
         public static void RegisterHandler(Assembly[] hostAssemblies)
         {
+            System.Diagnostics.Trace.WriteLine("hoge");
+            if (Interlocked.Increment(ref alreadyRegistered) != 0) return;
+
             var contractTypes = hostAssemblies
                 .SelectMany(x => x.GetTypes())
                 .Where(x => typeof(ILightNodeContract).IsAssignableFrom(x));
@@ -35,7 +41,7 @@ namespace LightNode.Server
                     var methodName = methodInfo.Name;
 
                     // ignore default methods
-                    if (methodName == "Equals" 
+                    if (methodName == "Equals"
                      || methodName == "GetHashCode"
                      || methodName == "GetType"
                      || methodName == "ToString")
@@ -243,6 +249,9 @@ namespace LightNode.Server
             {
                 // TODO:return 404 Message
             }
+
+            environment["owin.ResponseStatusCode"] = 200; // OK
+            await (environment["owin.ResponseBody"] as Stream).FlushAsync().ConfigureAwait(false);
         }
     }
 

@@ -10,6 +10,7 @@ namespace LightNode.Server
 
     public class LightNodeServerMiddleware
     {
+        readonly bool useOtherMiddleware;
         readonly AppFunc next;
 
         public LightNodeServerMiddleware(AppFunc next, LightNodeOptions options)
@@ -20,14 +21,22 @@ namespace LightNode.Server
         public LightNodeServerMiddleware(AppFunc next, LightNodeOptions options, Assembly[] hostAssemblies)
         {
             this.next = next;
+            this.useOtherMiddleware = options.UseOtherMiddleware;
             LightNodeServer.RegisterOptions(options);
             LightNodeServer.RegisterHandler(hostAssemblies);
         }
 
         public async Task Invoke(IDictionary<string, object> environment)
         {
-            await LightNodeServer.HandleRequest(environment);
-            await next(environment);
+            if (useOtherMiddleware)
+            {
+                await LightNodeServer.HandleRequest(environment).ConfigureAwait(true);
+                await next(environment).ConfigureAwait(false);
+            }
+            else
+            {
+                await LightNodeServer.HandleRequest(environment).ConfigureAwait(false);
+            }
         }
     }
 }

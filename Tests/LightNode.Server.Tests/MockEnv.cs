@@ -1,6 +1,7 @@
 ﻿using Microsoft.Owin.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Owin;
+using System.Collections.Generic;
 using System.Net.Http;
 
 namespace LightNode.Server.Tests
@@ -43,13 +44,48 @@ namespace LightNode.Server.Tests
 
     public static class RequestBuilderExtensions
     {
-        public static string GetStringAsync(this RequestBuilder builder)
+        public static string GetString(this RequestBuilder builder)
         {
-            return builder.GetAsync().Result.Content.ReadAsStringAsync().Result;
+            return builder.GetAsync().Result.EnsureSuccessStatusCode().Content.ReadAsStringAsync().Result;
         }
-        public static byte[] GetByteArrayAsync(this RequestBuilder builder)
+
+        public static byte[] GetByteArray(this RequestBuilder builder)
         {
-            return builder.GetAsync().Result.Content.ReadAsByteArrayAsync().Result;
+            return builder.GetAsync().Result.EnsureSuccessStatusCode().Content.ReadAsByteArrayAsync().Result;
+        }
+
+        public static string PostAndGetString(this RequestBuilder builder, StringKeyValuePairCollection nameValueCollection)
+        {
+            var r = builder.And(x => x.Content = new FormUrlEncodedContent(nameValueCollection))
+                .PostAsync().Result;
+            
+            return r.EnsureSuccessStatusCode().Content.ReadAsStringAsync().Result;
+        }
+
+        public static byte[] PostAndGetByteArray(this RequestBuilder builder, StringKeyValuePairCollection nameValueCollection)
+        {
+            return builder.And(x => x.Content = new FormUrlEncodedContent(nameValueCollection))
+                .PostAsync().Result.EnsureSuccessStatusCode().Content.ReadAsByteArrayAsync().Result;
+        }
+    }
+
+    public class StringKeyValuePairCollection : IEnumerable<KeyValuePair<string, string>>
+    {
+        List<KeyValuePair<string, string>> list = new List<KeyValuePair<string, string>>();
+
+        public void Add(string key, string value)
+        {
+            list.Add(new KeyValuePair<string, string>(key, value));
+        }
+
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            return list.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
