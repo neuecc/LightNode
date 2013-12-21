@@ -82,6 +82,17 @@ namespace LightNode.Server.Tests
         {
             MockEnv.CreateRequest("/heLLo/pInG").GetString().Is("\"Pong\"");
         }
+
+        [TestMethod]
+        public void NotFound()
+        {
+            MockEnv.CreateRequest("").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.NotFound);
+            MockEnv.CreateRequest("/hello").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.NotFound);
+            MockEnv.CreateRequest("/hello/").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.NotFound);
+            MockEnv.CreateRequest("/hello/pin").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.NotFound);
+            MockEnv.CreateRequest("/hello/pingoo").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.NotFound);
+            MockEnv.CreateRequest("/hello/ping/oo").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.NotFound);
+        }
     }
 
     public class Hello : ILightNodeContract
