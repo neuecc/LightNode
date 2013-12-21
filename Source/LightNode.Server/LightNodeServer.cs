@@ -34,7 +34,14 @@ namespace LightNode.Server
 
                     var methodName = methodInfo.Name;
 
-                    if (methodName == "Equals" || methodName == "GetHashCode") continue;
+                    // ignore default methods
+                    if (methodName == "Equals" 
+                     || methodName == "GetHashCode"
+                     || methodName == "GetType"
+                     || methodName == "ToString")
+                    {
+                        continue;
+                    }
 
                     handler.MethodName = methodName;
                     handler.Arguments = methodInfo.GetParameters();

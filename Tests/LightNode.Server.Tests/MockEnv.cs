@@ -27,7 +27,9 @@ namespace LightNode.Server.Tests
             TestServer = TestServer.Create(app =>
             {
                 app.UseLightNode(
-                    new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new JavaScriptContentTypeFormatter())
+                    new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
+                        new JavaScriptContentTypeFormatter(),
+                        new TextContentTypeFormatter())
                     , typeof(MockEnv).Assembly);
             });
         }

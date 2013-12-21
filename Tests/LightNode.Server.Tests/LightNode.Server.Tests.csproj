@@ -69,7 +69,7 @@
   <ItemGroup>
     <Compile Include="ChainingAssertion.MSTest.cs" />
     <Compile Include="MockEnv.cs" />
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="BasicOperation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
