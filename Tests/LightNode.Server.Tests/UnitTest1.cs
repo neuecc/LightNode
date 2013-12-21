@@ -13,8 +13,7 @@ namespace LightNode.Server.Tests
         [TestMethod]
         public void TestMethod1()
         {
-            var client = MockEnv.CreateHttpClient();
-            client.GetStringAsync("http://localhost/Moge/Hello").Result.Is("\"Hello\"");
+            MockEnv.CreateRequest("/Moge/Hello").GetStringAsync().Is("\"Hello\"");
         }
     }
 
