@@ -155,7 +155,7 @@ namespace LightNode.Server
             });
         }
 
-        public static async Task HandleRequest(IDictionary<string, object> environment)
+        public static async Task ProcessRequest(IDictionary<string, object> environment)
         {
             var path = environment["owin.RequestPath"] as string;
 

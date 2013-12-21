@@ -30,12 +30,12 @@ namespace LightNode.Server
         {
             if (useOtherMiddleware)
             {
-                await LightNodeServer.HandleRequest(environment).ConfigureAwait(true);
+                await LightNodeServer.ProcessRequest(environment).ConfigureAwait(true);
                 await next(environment).ConfigureAwait(false);
             }
             else
             {
-                await LightNodeServer.HandleRequest(environment).ConfigureAwait(false);
+                await LightNodeServer.ProcessRequest(environment).ConfigureAwait(false);
             }
         }
     }
