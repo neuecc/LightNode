@@ -12,8 +12,7 @@ namespace LightNode.Server
 {
     public static class LightNodeServer
     {
-        // {Class,Method} => MessageContract
-        readonly static Dictionary<Tuple<string, string>, OperationHandler> handlers = new Dictionary<Tuple<string, string>, OperationHandler>();
+        readonly static Dictionary<RequestPath, OperationHandler> handlers = new Dictionary<RequestPath, OperationHandler>();
         readonly static Dictionary<Type, Func<object, object>> taskResultExtractorCache = new Dictionary<Type, Func<object, object>>();
 
         static LightNodeOptions options;
@@ -22,7 +21,6 @@ namespace LightNode.Server
 
         public static void RegisterHandler(Assembly[] hostAssemblies)
         {
-            System.Diagnostics.Trace.WriteLine("hoge");
             if (Interlocked.Increment(ref alreadyRegistered) != 0) return;
 
             var contractTypes = hostAssemblies
@@ -139,7 +137,7 @@ namespace LightNode.Server
                     lock (handlers)
                     {
                         // fail duplicate entry
-                        handlers.Add(Tuple.Create(className, methodName), handler);
+                        handlers.Add(new RequestPath(className, methodName), handler);
                     }
                 }
             });
@@ -156,10 +154,14 @@ namespace LightNode.Server
 
             // TODO:extract "extension" for media type
             var keyBase = path.Trim('/').Split('/');
-            if (keyBase.Length != 2) throw new InvalidOperationException(); // TODO:Exception Handling
+            if (keyBase.Length != 2)
+            {
+                EmitNotFound(environment);
+                return;
+            }
 
             // {ClassName, MethodName}
-            var key = Tuple.Create(keyBase[0], keyBase[1]);
+            var key = new RequestPath(keyBase[0], keyBase[1]);
 
             OperationHandler handler;
             if (handlers.TryGetValue(key, out handler))
@@ -247,11 +249,14 @@ namespace LightNode.Server
             }
             else
             {
-                // TODO:return 404 Message
+                EmitNotFound(environment);
+                return;
             }
+        }
 
-            environment["owin.ResponseStatusCode"] = 200; // OK
-            await (environment["owin.ResponseBody"] as Stream).FlushAsync().ConfigureAwait(false);
+        static void EmitNotFound(IDictionary<string, object> environment)
+        {
+            environment["owin.ResponseStatusCode"] = 404;
         }
     }
 

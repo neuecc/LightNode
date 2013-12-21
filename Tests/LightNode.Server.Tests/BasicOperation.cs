@@ -76,6 +76,12 @@ namespace LightNode.Server.Tests
                 .PostAsync().Result.Dispose();
             TestContract.VoidBeforeAfter[guid].Is("After");
         }
+
+        [TestMethod]
+        public void CaseSensitive()
+        {
+            MockEnv.CreateRequest("/heLLo/pInG").GetString().Is("\"Pong\"");
+        }
     }
 
     public class Hello : ILightNodeContract
@@ -83,6 +89,11 @@ namespace LightNode.Server.Tests
         public string Say()
         {
             return "Hello LightNode";
+        }
+
+        public string Ping()
+        {
+            return "Pong";
         }
     }
 
