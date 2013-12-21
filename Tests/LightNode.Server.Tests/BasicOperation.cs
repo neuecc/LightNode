@@ -95,7 +95,7 @@ namespace LightNode.Server.Tests
         }
     }
 
-    public class Hello : ILightNodeContract
+    public class Hello : LightNodeContract
     {
         public string Say()
         {
@@ -108,35 +108,41 @@ namespace LightNode.Server.Tests
         }
     }
 
-    public class TestContract : ILightNodeContract
+    public class TestContract : LightNodeContract
     {
         public int Add(int x, int y)
         {
+            Environment.IsNotNull();
             return x + y;
         }
 
         public int AddWithDefault(int x, int y, int z = 300)
         {
+            Environment.IsNotNull();
             return x + y + z;
         }
 
         public Task<int> TaskAdd(int x, int y)
         {
+            Environment.IsNotNull();
             return Task.Run(() => x + y);
         }
         public Task<int> TaskAddWithDefault(int x, int y, int z = 300)
         {
+            Environment.IsNotNull();
             return Task.Run(() => x + y + z);
         }
 
         public static ConcurrentDictionary<string, string> VoidBeforeAfter = new ConcurrentDictionary<string, string>();
         public void VoidCheck(string guid, string after)
         {
+            Environment.IsNotNull();
             VoidBeforeAfter[guid] = after;
         }
 
         public async Task TaskVoidCheck(string guid, string after)
         {
+            Environment.IsNotNull();
             await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
             VoidBeforeAfter[guid] = after;
         }

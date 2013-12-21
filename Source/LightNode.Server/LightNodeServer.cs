@@ -19,13 +19,18 @@ namespace LightNode.Server
 
         static int alreadyRegistered = -1;
 
+        public static void RegisterOptions(LightNodeOptions options)
+        {
+            LightNodeServer.options = options;
+        }
+
         public static void RegisterHandler(Assembly[] hostAssemblies)
         {
             if (Interlocked.Increment(ref alreadyRegistered) != 0) return;
 
             var contractTypes = hostAssemblies
                 .SelectMany(x => x.GetTypes())
-                .Where(x => typeof(ILightNodeContract).IsAssignableFrom(x));
+                .Where(x => typeof(LightNodeContract).IsAssignableFrom(x));
 
             // TODO:validation, duplicate entry, non support arguments, append attribute.
 
@@ -34,7 +39,7 @@ namespace LightNode.Server
                 var className = classType.Name;
                 foreach (var methodInfo in classType.GetMethods(BindingFlags.Public | BindingFlags.Instance))
                 {
-                    var handler = new OperationHandler();
+                    if (methodInfo.IsSpecialName && (methodInfo.Name.StartsWith("set_") || methodInfo.Name.StartsWith("get_"))) continue; // as property
 
                     var methodName = methodInfo.Name;
 
@@ -47,6 +52,8 @@ namespace LightNode.Server
                         continue;
                     }
 
+                    var handler = new OperationHandler();
+
                     handler.MethodName = methodName;
                     handler.Arguments = methodInfo.GetParameters();
                     handler.ReturnType = methodInfo.ReturnType;
@@ -55,12 +62,14 @@ namespace LightNode.Server
                     {
                         if (!AllowRequestType.IsAllowType(argument.ParameterType))
                         {
-                            throw new InvalidOperationException(string.Format("parameter is not allow, class:{0} method:{1} paramName:{2} paramType:{3}",
+                            throw new InvalidOperationException(string.Format("parameter is not allowed, class:{0} method:{1} paramName:{2} paramType:{3}",
                                 className, methodName, argument.Name, argument.ParameterType.FullName));
                         }
                     }
 
-                    // prepare lambda paameters
+                    // prepare lambda parameters
+                    var envArg = Expression.Parameter(typeof(IDictionary<string, object>), "Environment");
+                    var envBind = Expression.Bind(typeof(LightNodeContract).GetProperty("Environment"), envArg);
                     var args = Expression.Parameter(typeof(object[]), "args");
                     var parameters = methodInfo.GetParameters()
                         .Select((x, i) => Expression.Convert(Expression.ArrayIndex(args, Expression.Constant(i)), x.ParameterType))
@@ -70,33 +79,36 @@ namespace LightNode.Server
                     if (typeof(Task).IsAssignableFrom(handler.ReturnType))
                     {
                         // (object[] args) => new X().M((T1)args[0], (T2)args[1])...
-                        var lambda = Expression.Lambda<Func<object[], Task>>(
+                        var lambda = Expression.Lambda<Func<IDictionary<string, object>, object[], Task>>(
                             Expression.Call(
-                                Expression.New(classType),
+                                Expression.MemberInit(Expression.New(classType), envBind),
                                 methodInfo,
                                 parameters),
-                            args);
+                            envArg, args);
 
                         if (handler.ReturnType.IsGenericType && handler.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
                         {
                             handler.HandlerBodyType = HandlerBodyType.AsyncFunc;
                             handler.MethodAsyncFuncBody = lambda.Compile();
 
-                            // (object task) => (object)((Task<>).Result)
-                            var taskParameter = Expression.Parameter(typeof(object), "task");
-                            var resultLambda = Expression.Lambda<Func<object, object>>(
-                                Expression.Convert(
-                                    Expression.Property(
-                                        Expression.Convert(taskParameter, handler.ReturnType),
-                                        "Result"),
-                                    typeof(object)),
-                                taskParameter);
-
-                            var compiledResultLambda = resultLambda.Compile();
                             lock (taskResultExtractorCache)
                             {
-                                // safe duplicate entry
-                                taskResultExtractorCache[handler.ReturnType] = compiledResultLambda;
+                                if (!taskResultExtractorCache.ContainsKey(handler.ReturnType))
+                                {
+                                    // (object task) => (object)((Task<>).Result)
+                                    var taskParameter = Expression.Parameter(typeof(object), "task");
+                                    var resultLambda = Expression.Lambda<Func<object, object>>(
+                                        Expression.Convert(
+                                            Expression.Property(
+                                                Expression.Convert(taskParameter, handler.ReturnType),
+                                                "Result"),
+                                            typeof(object)),
+                                        taskParameter);
+
+                                    var compiledResultLambda = resultLambda.Compile();
+
+                                    taskResultExtractorCache[handler.ReturnType] = compiledResultLambda;
+                                }
                             }
                         }
                         else
@@ -108,12 +120,12 @@ namespace LightNode.Server
                     else if (handler.ReturnType == typeof(void)) // of course void
                     {
                         // (object[] args) => { new X().M((T1)args[0], (T2)args[1])... }
-                        var lambda = Expression.Lambda<Action<object[]>>(
+                        var lambda = Expression.Lambda<Action<IDictionary<string, object>, object[]>>(
                             Expression.Call(
-                                Expression.New(classType),
+                                Expression.MemberInit(Expression.New(classType), envBind),
                                 methodInfo,
                                 parameters),
-                            args);
+                            envArg, args);
 
                         handler.HandlerBodyType = HandlerBodyType.Action;
                         handler.MethodActionBody = lambda.Compile();
@@ -121,14 +133,14 @@ namespace LightNode.Server
                     else // return T
                     {
                         // (object[] args) => (object)new X().M((T1)args[0], (T2)args[1])...
-                        var lambda = Expression.Lambda<Func<object[], object>>(
+                        var lambda = Expression.Lambda<Func<IDictionary<string, object>, object[], object>>(
                             Expression.Convert(
                                 Expression.Call(
-                                    Expression.New(classType),
+                                    Expression.MemberInit(Expression.New(classType), envBind),
                                     methodInfo,
                                     parameters)
                             , typeof(object)),
-                            args);
+                            envArg, args);
 
                         handler.HandlerBodyType = HandlerBodyType.Func;
                         handler.MethodFuncBody = lambda.Compile();
@@ -141,11 +153,6 @@ namespace LightNode.Server
                     }
                 }
             });
-        }
-
-        public static void RegisterOptions(LightNodeOptions options)
-        {
-            LightNodeServer.options = options;
         }
 
         public static async Task HandleRequest(IDictionary<string, object> environment)
@@ -214,19 +221,19 @@ namespace LightNode.Server
                 switch (handler.HandlerBodyType)
                 {
                     case HandlerBodyType.Action:
-                        handler.MethodActionBody(methodParameters);
+                        handler.MethodActionBody(environment, methodParameters);
                         break;
                     case HandlerBodyType.Func:
                         isVoid = false;
-                        result = handler.MethodFuncBody(methodParameters);
+                        result = handler.MethodFuncBody(environment, methodParameters);
                         break;
                     case HandlerBodyType.AsyncAction:
-                        var actionTask = handler.MethodAsyncActionBody(methodParameters);
+                        var actionTask = handler.MethodAsyncActionBody(environment, methodParameters);
                         await actionTask;
                         break;
                     case HandlerBodyType.AsyncFunc:
                         isVoid = false;
-                        var funcTask = handler.MethodAsyncFuncBody(methodParameters);
+                        var funcTask = handler.MethodAsyncFuncBody(environment, methodParameters);
                         await funcTask;
                         var extractor = taskResultExtractorCache[funcTask.GetType()];
                         result = extractor(funcTask);
@@ -258,38 +265,5 @@ namespace LightNode.Server
         {
             environment["owin.ResponseStatusCode"] = 404;
         }
-    }
-
-
-
-
-
-    public interface ILightNodeContract
-    {
-
-    }
-
-    public abstract class LightNodeContract
-    {
-        public IDictionary<string, object> Environment { get; set; }
-    }
-
-    public class IgnoreOperationAttribute : Attribute
-    {
-
-    }
-
-
-    public class ContractOptionAttribute : Attribute
-    {
-        public AcceptVerbs AcceptVerb { get; private set; }
-
-        public IContentFormatter OutputContentFormatter { get; set; }
-    }
-
-    [Flags]
-    public enum AcceptVerbs
-    {
-        Get, Post
     }
 }

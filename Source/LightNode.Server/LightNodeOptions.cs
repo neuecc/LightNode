@@ -21,4 +21,26 @@ namespace LightNode.Server
             UseOtherMiddleware = false;
         }
     }
+
+    [Flags]
+    public enum AcceptVerbs
+    {
+        Get, Post
+    }
+
+
+    // TODO:Ignore
+
+    public class IgnoreOperationAttribute : Attribute
+    {
+
+    }
+
+    // TODO:Option?
+    public class ContractOptionAttribute : Attribute
+    {
+        public AcceptVerbs AcceptVerb { get; private set; }
+
+        public IContentFormatter OutputContentFormatter { get; set; }
+    }
 }

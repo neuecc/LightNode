@@ -27,7 +27,7 @@ namespace LightNode.Sample.Server.SelfHost
         }
     }
 
-    public class MyClass : ILightNodeContract
+    public class MyClass : LightNodeContract
     {
         public int Test1(int x, int y)
         {

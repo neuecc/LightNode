@@ -56,10 +56,8 @@ namespace LightNode.Server.Tests
 
         public static string PostAndGetString(this RequestBuilder builder, StringKeyValuePairCollection nameValueCollection)
         {
-            var r = builder.And(x => x.Content = new FormUrlEncodedContent(nameValueCollection))
-                .PostAsync().Result;
-            
-            return r.EnsureSuccessStatusCode().Content.ReadAsStringAsync().Result;
+            return builder.And(x => x.Content = new FormUrlEncodedContent(nameValueCollection))
+                .PostAsync().Result.EnsureSuccessStatusCode().Content.ReadAsStringAsync().Result;
         }
 
         public static byte[] PostAndGetByteArray(this RequestBuilder builder, StringKeyValuePairCollection nameValueCollection)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -14,17 +15,21 @@ namespace LightNode.Server
 
         public HandlerBodyType HandlerBodyType { get; set; }
 
-        public Func<object[], object> MethodFuncBody { get; set; } // 1
+        // MethodCache Delegate => environment, arguments, returnType
 
-        public Func<object[], Task> MethodAsyncFuncBody { get; set; } // 2
+        public Func<IDictionary<string, object>, object[], object> MethodFuncBody { get; set; }
 
-        public Action<object[]> MethodActionBody { get; set; } // 3
+        public Func<IDictionary<string, object>, object[], Task> MethodAsyncFuncBody { get; set; }
 
-        public Func<object[], Task> MethodAsyncActionBody { get; set; } // 4
+        public Action<IDictionary<string, object>, object[]> MethodActionBody { get; set; }
+
+        public Func<IDictionary<string, object>, object[], Task> MethodAsyncActionBody { get; set; }
     }
 
     internal enum HandlerBodyType
     {
+        // 0 is invalid
+
         Func = 1,
         AsyncFunc = 2,
         Action = 3,
