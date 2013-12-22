@@ -10,10 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1D780B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Server", "Source\LightNode.Server\LightNode.Server.csproj", "{CABC7913-F7C9-4E89-8312-F9AE523B9F41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Client", "Source\LightNode.Client\LightNode.Client.csproj", "{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Client.Tests", "Tests\LightNode.Client.Tests\LightNode.Client.Tests.csproj", "{05E9E734-14ED-4FCC-B8D8-E48CD313DEBA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Server.Tests", "Tests\LightNode.Server.Tests\LightNode.Server.Tests.csproj", "{DC0E853F-E732-4DF8-B87A-FE246F851F8E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Sample.Server.SelfHost", "Sample\LightNode.Sample.Server.SelfHost\LightNode.Sample.Server.SelfHost.csproj", "{E6E4EB3F-208F-42FB-8107-4E57BD82347B}"
@@ -26,6 +22,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfTest.ClientRunner", "Pe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Core", "Source\LightNode.Core\LightNode.Core.csproj", "{072D35EF-AF4A-4DA0-849A-6B0B9196C959}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.PCL.T4", "Source\LightNode.PCL.T4\LightNode.PCL.T4.csproj", "{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{05E4C673-1F12-449D-A3A4-F7C6FFD91701}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,14 +36,6 @@ Global
 		{CABC7913-F7C9-4E89-8312-F9AE523B9F41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CABC7913-F7C9-4E89-8312-F9AE523B9F41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CABC7913-F7C9-4E89-8312-F9AE523B9F41}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{05E9E734-14ED-4FCC-B8D8-E48CD313DEBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{05E9E734-14ED-4FCC-B8D8-E48CD313DEBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{05E9E734-14ED-4FCC-B8D8-E48CD313DEBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{05E9E734-14ED-4FCC-B8D8-E48CD313DEBA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DC0E853F-E732-4DF8-B87A-FE246F851F8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DC0E853F-E732-4DF8-B87A-FE246F851F8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC0E853F-E732-4DF8-B87A-FE246F851F8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -64,11 +56,17 @@ Global
 		{072D35EF-AF4A-4DA0-849A-6B0B9196C959}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{072D35EF-AF4A-4DA0-849A-6B0B9196C959}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{072D35EF-AF4A-4DA0-849A-6B0B9196C959}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{EF5DA3BB-CBA7-4FEE-9478-67C3ADAF6E5E} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
+		{7BAEA48D-6A91-490E-9B19-35C2A8F4174B} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
+		{E6E4EB3F-208F-42FB-8107-4E57BD82347B} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
 	EndGlobalSection
 EndGlobal
