@@ -175,6 +175,7 @@ namespace LightNode.Server
                 OperationHandler handler;
                 if (handlers.TryGetValue(key, out handler))
                 {
+                    // Extract parameter
                     ILookup<string, string> requestParameter;
                     var queryString = environment["owin.RequestQueryString"] as string;
                     using (var sr = new StreamReader((environment["owin.RequestBody"] as Stream)))
@@ -187,6 +188,7 @@ namespace LightNode.Server
                             .ToLookup(xs => xs[0], xs => xs[1]);
                     }
 
+                    // Parameter binding
                     var methodParameters = new object[handler.Arguments.Length];
                     for (int i = 0; i < handler.Arguments.Length; i++)
                     {
@@ -213,46 +215,44 @@ namespace LightNode.Server
                                 return;
                             }
                         }
-                        else if (count == 1)
+                        else if (!item.ParameterType.IsArray)
                         {
-                            if (!item.ParameterType.IsArray)
-                            {
-                                var conv = AllowRequestType.GetConverter(item.ParameterType);
-                                if (conv == null) throw new InvalidOperationException("critical:register code is broken");
+                            var conv = AllowRequestType.GetConverter(item.ParameterType);
+                            if (conv == null) throw new InvalidOperationException("critical:register code is broken");
 
-                                object pValue;
-                                if (conv(values.First(), out pValue))
-                                {
-                                    methodParameters[i] = pValue;
-                                    continue;
-                                }
-                                else if (item.ParameterType.IsClass || (item.ParameterType.IsGenericType && item.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>)))
-                                {
-                                    methodParameters[i] = null;
-                                    continue;
-                                }
-                                else
-                                {
-                                    EmitBadRequest(environment);
-                                    await EmitStringMessage(environment, "Mismatch Parameter Type:" + item.Name).ConfigureAwait(false);
-                                    return;
-                                }
+                            object pValue;
+                            if (conv(values.First(), out pValue))
+                            {
+                                methodParameters[i] = pValue;
+                                continue;
+                            }
+                            else if (item.IsOptional)
+                            {
+                                methodParameters[i] = item.DefaultValue;
+                                continue;
+                            }
+                            else if (item.ParameterType.IsClass || (item.ParameterType.IsGenericType && item.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                            {
+                                methodParameters[i] = null;
+                                continue;
+                            }
+                            else
+                            {
+                                EmitBadRequest(environment);
+                                await EmitStringMessage(environment, "Mismatch Parameter Type:" + item.Name).ConfigureAwait(false);
+                                return;
                             }
                         }
 
-                        // Array
-                        if (!item.ParameterType.IsArray)
-                        {
-                            EmitBadRequest(environment);
-                            await EmitStringMessage(environment, "Parameter Type is not array but accepted value is array:" + item.Name).ConfigureAwait(false);
-                            return;
-                        }
+
                         var arrayConv = AllowRequestType.GetArrayConverter(item.ParameterType);
                         if (arrayConv == null) throw new InvalidOperationException("critical:register code is broken");
 
                         methodParameters[i] = arrayConv(values);
+                        continue;
                     }
 
+                    // Operation execute
                     bool isVoid = true;
                     object result = null;
                     switch (handler.HandlerBodyType)
