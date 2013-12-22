@@ -1,4 +1,5 @@
-﻿using Microsoft.Owin.Testing;
+﻿using LightNode.Formatters;
+using Microsoft.Owin.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Owin;
 using System.Collections.Generic;

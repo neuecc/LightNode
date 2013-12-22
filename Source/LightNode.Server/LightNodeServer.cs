@@ -27,7 +27,7 @@ namespace LightNode.Server
         public static void RegisterHandler(Assembly[] hostAssemblies)
         {
             if (Interlocked.Increment(ref alreadyRegistered) != 0) return;
-
+            
             var contractTypes = hostAssemblies
                 .SelectMany(x => x.GetTypes())
                 .Where(x => typeof(LightNodeContract).IsAssignableFrom(x));
@@ -66,7 +66,7 @@ namespace LightNode.Server
                     }
 
                     // prepare lambda parameters
-                    var envArg = Expression.Parameter(typeof(IDictionary<string, object>), "Environment");
+                    var envArg = Expression.Parameter(typeof(IDictionary<string, object>), "environment");
                     var envBind = Expression.Bind(typeof(LightNodeContract).GetProperty("Environment"), envArg);
                     var args = Expression.Parameter(typeof(object[]), "args");
                     var parameters = methodInfo.GetParameters()
