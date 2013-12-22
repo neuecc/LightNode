@@ -24,7 +24,7 @@ namespace LightNode.Sample.Server.SelfHost
         public void Configuration(Owin.IAppBuilder app)
         {
             app.UseErrorPage();
-            app.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new JavaScriptContentTypeFormatter()));
+            app.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new XmlContentTypeFormatter()));
         }
     }
 
@@ -49,6 +49,7 @@ namespace LightNode.Sample.Server.SelfHost
 
         public async Task A(string x = "aaa", string y = null)
         {
+            await Task.Yield();
         }
     }
 }

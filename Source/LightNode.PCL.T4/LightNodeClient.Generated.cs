@@ -9,9 +9,9 @@ using System.Linq;
 
 namespace LightNode.Client
 {
-    public partial class LightNodeClient : _IMyOperations, _IRoomOperations
+    public partial class LightNodeClient : _IMy, _IRoom
     {
-        static IContentFormatter defaultContentFormatter = new LightNode.Formatters.DataContractJsonContentTypeFormatter();
+        static IContentFormatter defaultContentFormatter = new LightNode.Formatters.XmlContentTypeFormatter();
         readonly string rootEndPoint;
         readonly HttpClient httpClient;
 
@@ -34,8 +34,8 @@ namespace LightNode.Client
             set { contentFormatter = value; }
         }
 
-        public _IMyOperations My { get { return this; } }
-        public _IRoomOperations Room { get { return this; } }
+        public _IMy My { get { return this; } }
+        public _IRoom Room { get { return this; } }
 
         public LightNodeClient(string rootEndPoint)
         {
@@ -74,9 +74,9 @@ namespace LightNode.Client
             }
         }
 
-       #region _IMyOperations
+       #region _IMy
 
-        System.Threading.Tasks.Task<System.String> _IMyOperations.Echo(System.String x, System.Threading.CancellationToken cancellationToken)
+        System.Threading.Tasks.Task<System.String> _IMy.Echo(System.String x, System.Threading.CancellationToken cancellationToken)
 		{
 		    return PostAsync<System.String>("/My/Echo", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
             {
@@ -84,7 +84,7 @@ namespace LightNode.Client
             }), cancellationToken);
 		}
 
-        System.Threading.Tasks.Task<System.Int32> _IMyOperations.Sum(System.Int32 x, System.Nullable<System.Int32> y, System.Int32 z, System.Threading.CancellationToken cancellationToken)
+        System.Threading.Tasks.Task<System.Int32> _IMy.Sum(System.Int32 x, System.Nullable<System.Int32> y, System.Int32 z, System.Threading.CancellationToken cancellationToken)
 		{
 		    return PostAsync<System.Int32>("/My/Sum", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
             {
@@ -96,12 +96,21 @@ namespace LightNode.Client
 
 	   #endregion
 
-       #region _IRoomOperations
+       #region _IRoom
 
-        System.Threading.Tasks.Task _IRoomOperations.Create(System.Threading.CancellationToken cancellationToken)
+        System.Threading.Tasks.Task _IRoom.Create(System.Threading.CancellationToken cancellationToken)
 		{
 		    return PostAsync("/Room/Create", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
             {
+            }), cancellationToken);
+		}
+
+        System.Threading.Tasks.Task _IRoom.A(System.String x, System.String y, System.Threading.CancellationToken cancellationToken)
+		{
+		    return PostAsync("/Room/A", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
+            {
+                new KeyValuePair<string, string>("x", x.ToString()),
+                new KeyValuePair<string, string>("y", y.ToString()),
             }), cancellationToken);
 		}
 
@@ -109,15 +118,16 @@ namespace LightNode.Client
 
     }
 
-    public interface _IMyOperations
+    public interface _IMy
     {
         System.Threading.Tasks.Task<System.String> Echo(System.String x, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
         System.Threading.Tasks.Task<System.Int32> Sum(System.Int32 x, System.Nullable<System.Int32> y, System.Int32 z = 1000, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
     }
 
-    public interface _IRoomOperations
+    public interface _IRoom
     {
         System.Threading.Tasks.Task Create(System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+        System.Threading.Tasks.Task A(System.String x = "aaa", System.String y = null, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
     }
 
 }

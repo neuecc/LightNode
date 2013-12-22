@@ -25,7 +25,7 @@
     var assemblyPaths = new string[] { solutionDir + @"Sample\LightNode.Sample.Server.SelfHost\bin\Debug\LightNode.Sample.Server.SelfHost.exe"};
 
 	// 3. Set DefaultContentFormatter Construct String
-	var defaultContentFormatter = "new LightNode.Formatters.DataContractJsonContentTypeFormatter()";
+	var defaultContentFormatter = "new LightNode.Formatters.XmlContentTypeFormatter()";
 
 	// 4. Set Additional using Namespace
 	var usingNamespaces = new [] {"System.Linq"};
@@ -127,7 +127,7 @@
             return new
             {
                 RootName = x.Name,
-                InterfaceName = "_I" + x.Name + "Operations",
+                InterfaceName = "_I" + x.Name,
                 Operations = methods
             };
         })
