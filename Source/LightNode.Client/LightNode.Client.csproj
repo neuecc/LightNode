@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -39,8 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
-    <Compile Include="LightNodeClient.cs">
+    <Compile Include="LightNodeClient.Generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>LightNodeClient.tt</DependentUpon>
@@ -50,11 +50,17 @@
   <ItemGroup>
     <None Include="LightNodeClient.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>LightNodeClient.cs</LastGenOutput>
+      <LastGenOutput>LightNodeClient.Generated.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LightNode.Core\LightNode.Core.csproj">
+      <Project>{072d35ef-af4a-4da0-849a-6b0b9196c959}</Project>
+      <Name>LightNode.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

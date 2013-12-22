@@ -1,11 +1,242 @@
 ﻿<#@ template debug="false" hostspecific="true" language="C#" #>
 <#@ assembly name="System.Core" #>
+<#@ assembly name="EnvDTE" #>
+<#@ import namespace="EnvDTE" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Threading" #>
+<#@ import namespace="System.Threading.Tasks" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ output extension=".cs" #>
+<#@ output extension="Generated.cs" encoding="utf-8" #>
+<#
+    // ------------- T4 Configuration ------------- //
 
-<#+ 
-	// 1. Set LightNodeContract Assemblies Path
+    // 1. Set Namespace & ClientName & Namespace
+    var clientName = "LightNodeClient";
+    var namespaceName = "LightNode.Client";
 
- #>
+	// Note: You can take solutionDirectory path
+	var solutionDir = this.Host.ResolveAssemblyReference("$(SolutionDir)"); 
+
+    // 2. Set LightNodeContract Assemblies Path
+	// Note: Currentry this T4 locks assembly. If need release assembly, please restart Visual Studio.
+    var assemblyPaths = new string[] { solutionDir + @"Sample\LightNode.Sample.Server.SelfHost\bin\Debug\LightNode.Sample.Server.SelfHost.exe"};
+
+	// 3. Set DefaultContentFormatter Construct String
+	var defaultContentFormatter = "new LightNode.Formatters.DataContractJsonContentTypeFormatter()";
+
+	// 4. Set Additional using Namespace
+	var usingNamespaces = new [] {"System.Linq"};
+
+	// ------------- T4 Configuration ------------- //
+
+    Func<Type, string> BeautifyType = null;
+    BeautifyType = (Type t) =>
+    {
+        if (!t.IsGenericType) return t.FullName;
+
+        var innerFormat = string.Join(", ", t.GetGenericArguments().Select(x => BeautifyType(x)));
+        return Regex.Replace(t.GetGenericTypeDefinition().FullName, @"`.+$", "") + "<" + innerFormat + ">";
+    };
+
+	Func<Type, string> UnwrapTask = (Type t) =>
+    {
+		return BeautifyType(t.GetGenericArguments()[0]);
+    };
+
+    var ignoreMethods = new HashSet<string> { "Equals", "GetHashCode", "GetType", "ToString" };
+
+	var typeFromAssemblyLoad = assemblyPaths.SelectMany(asmPath =>
+	{
+		return Assembly.LoadFrom(asmPath).GetTypes();
+	});
+
+    var contracts = typeFromAssemblyLoad
+        .Where(x =>
+        {
+            while (x != typeof(object))
+            {
+                if (x.FullName == "LightNode.Server.LightNodeContract") return true;
+                x = x.BaseType;
+            }
+            return false;
+        })
+        .Select(x =>
+        {
+            var methods = x.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Where(methodInfo => !(methodInfo.IsSpecialName && (methodInfo.Name.StartsWith("set_") || methodInfo.Name.StartsWith("get_"))))
+                .Where(methodInfo => !ignoreMethods.Contains(methodInfo.Name))
+                .Select(methodInfo =>
+                {
+                    var retType = methodInfo.ReturnType;
+                    var returnType =
+                        (retType == typeof(void)) ? typeof(Task)
+                        : (retType == typeof(Task)) ? retType
+                        : (retType.IsGenericType && retType.GetGenericTypeDefinition() == typeof(Task<>)) ? retType
+                        : typeof(Task<>).MakeGenericType(retType);
+
+                    var parameter = methodInfo.GetParameters()
+                        .Select(paramInfo => new
+                        {
+                            paramInfo.Name,
+                            paramInfo.ParameterType,
+                            paramInfo.IsOptional,
+                            paramInfo.DefaultValue,
+                        })
+                        .Concat(new[]{new
+                        {
+                            Name = "cancellationToken",
+                            ParameterType = typeof(CancellationToken),
+                            IsOptional = true,
+                            DefaultValue = (object)default(CancellationToken)
+                        }})
+                        .ToArray();
+
+                    var parameterString = string.Join(", ", parameter.Select(p =>
+                    {
+                        return BeautifyType(p.ParameterType) + " " + p.Name;
+                    }));
+
+                    var parameterStringWithOptional = string.Join(", ", parameter.Select(p =>
+                    {
+                        var @base = BeautifyType(p.ParameterType) + " " + p.Name;
+                        if (p.IsOptional)
+				        {
+							@base += " = " + (
+							    (p.DefaultValue == null) ? "null"
+							  : (p.DefaultValue is string) ? "\"" + p.DefaultValue + "\"" 
+							  : (p.DefaultValue is CancellationToken) ? "default(CancellationToken)"
+							  : p.DefaultValue);
+                        }
+                        return @base;
+                    }));
+
+                    return new
+                    {
+                        OperationName = methodInfo.Name,
+                        ReturnType = returnType,
+                        Parameters = parameter,
+                        ParameterString = parameterString,
+                        ParameterStringWithOptional = parameterStringWithOptional
+                    };
+                })
+                .ToArray();
+
+            return new
+            {
+                RootName = x.Name,
+                InterfaceName = "_I" + x.Name + "Operations",
+                Operations = methods
+            };
+        })
+        .ToArray();
+#>
+using LightNode.Core;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+<#= string.Join("\r\n", usingNamespaces.Select(x => "using " + x + ";")) #>
+
+namespace <#= namespaceName #>
+{
+    public partial class <#= clientName #> : <#= string.Join(", ", contracts.Select(x => x.InterfaceName)) #>
+    {
+        static IContentFormatter defaultContentFormatter = <#= defaultContentFormatter #>;
+        readonly string rootEndPoint;
+        readonly HttpClient httpClient;
+
+        public long MaxResponseContentBufferSize
+        {
+            get { return httpClient.MaxResponseContentBufferSize; }
+            set { httpClient.MaxResponseContentBufferSize = value; }
+        }
+
+        public TimeSpan Timeout
+        {
+            get { return httpClient.Timeout; }
+            set { httpClient.Timeout = value; }
+        }
+
+        IContentFormatter contentFormatter;
+        public IContentFormatter ContentFormatter
+        {
+            get { return contentFormatter = (contentFormatter ?? defaultContentFormatter); }
+            set { contentFormatter = value; }
+        }
+
+<# foreach(var contract in contracts) { #>
+        public <#= contract.InterfaceName #> <#= contract.RootName #> { get { return this; } }
+<# } #>
+
+        public LightNodeClient(string rootEndPoint)
+        {
+            this.httpClient = new HttpClient();
+            this.rootEndPoint = rootEndPoint.TrimEnd('/');
+            this.ContentFormatter = defaultContentFormatter;
+        }
+
+        public LightNodeClient(string rootEndPoint, HttpMessageHandler innerHandler)
+        {
+            this.httpClient = new HttpClient(innerHandler);
+            this.rootEndPoint = rootEndPoint.TrimEnd('/');
+            this.ContentFormatter = defaultContentFormatter;
+        }
+
+        public LightNodeClient(string rootEndPoint, HttpMessageHandler innerHandler, bool disposeHandler)
+        {
+            this.httpClient = new HttpClient(innerHandler, disposeHandler);
+            this.rootEndPoint = rootEndPoint.TrimEnd('/');
+            this.ContentFormatter = defaultContentFormatter;
+        }
+
+        protected virtual async Task PostAsync(string method, FormUrlEncodedContent content, CancellationToken cancellationToken)
+        {
+            var response = await httpClient.PostAsync(rootEndPoint + method, content, cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+        }
+
+        protected virtual async Task<T> PostAsync<T>(string method, FormUrlEncodedContent content, CancellationToken cancellationToken)
+        {
+            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(ContentFormatter.MediaType);
+            var response = await httpClient.PostAsync(rootEndPoint + method, content, cancellationToken).ConfigureAwait(false);
+            using (var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync().ConfigureAwait(false))
+            {
+                return (T)ContentFormatter.Deserialize(typeof(T), stream);
+            }
+        }
+
+<# foreach(var contract in contracts) { #>
+       #region <#= contract.InterfaceName #>
+
+<# foreach(var operation in contract.Operations) { #>
+        <#= BeautifyType(operation.ReturnType) #> <#= contract.InterfaceName #>.<#= operation.OperationName #>(<#= operation.ParameterString #>)
+		{
+		    return PostAsync<#= operation.ReturnType == typeof(Task) ? "" : "<" + UnwrapTask(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
+            {
+<# foreach(var parameter in operation.Parameters.Where(x => x.Name != "cancellationToken")) { #>
+                new KeyValuePair<string, string>("<#= parameter.Name #>", <#= parameter.Name #>.ToString()),
+<# } #>
+            }), cancellationToken);
+		}
+
+<# } #>
+	   #endregion
+
+<# } #>
+    }
+
+<# foreach(var contract in contracts) { #>
+    public interface <#= contract.InterfaceName #>
+    {
+<# foreach(var operation in contract.Operations) { #>
+        <#= BeautifyType(operation.ReturnType) #> <#= operation.OperationName #>(<#= operation.ParameterStringWithOptional #>);
+<# } #>
+    }
+
+<# } #>
+}

@@ -34,5 +34,21 @@ namespace LightNode.Sample.Server.SelfHost
         {
             return x;
         }
+
+        public Task<int> Sum(int x, int? y, int z = 1000)
+        {
+            return Task.FromResult(x + y.Value + z);
+        }
+    }
+
+    public class Room : LightNodeContract
+    {
+        public void Create()
+        {
+        }
+
+        public async Task A(string x = "aaa", string y = null)
+        {
+        }
     }
 }
