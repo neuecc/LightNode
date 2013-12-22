@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Owin.Testing;
 using Owin;
@@ -93,6 +94,16 @@ namespace LightNode.Server.Tests
             MockEnv.CreateRequest("/hello/pingoo").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.NotFound);
             MockEnv.CreateRequest("/hello/ping/oo").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.NotFound);
         }
+
+        [TestMethod]
+        public void Array()
+        {
+            MockEnv.CreateRequest("/ArrayContract/Sum?xs=1&xs=2&xs=3").GetString().Is("6");
+            MockEnv.CreateRequest("/ArrayContract/Sum?xs=1000").GetString().Is("1000"); // single arg
+
+            MockEnv.CreateRequest("/ArrayContract/Sum2?x=2&xs=1&xs=2&xs=3&y=30&ys=40&ys=50").GetString().Is("128");
+            MockEnv.CreateRequest("/ArrayContract/Sum2?x=2&xs=1&y=30&ys=50").GetString().Is("83");
+        }
     }
 
     public class Hello : LightNodeContract
@@ -145,6 +156,19 @@ namespace LightNode.Server.Tests
             Environment.IsNotNull();
             await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
             VoidBeforeAfter[guid] = after;
+        }
+    }
+
+    public class ArrayContract : LightNodeContract
+    {
+        public int Sum(int[] xs)
+        {
+            return xs.Sum();
+        }
+
+        public int Sum2(int x, int[] xs, int y, int[] ys)
+        {
+            return x + xs.Sum() + y + ys.Sum();
         }
     }
 }

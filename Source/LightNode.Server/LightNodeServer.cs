@@ -202,17 +202,19 @@ namespace LightNode.Server
                     }
                     else if (count == 1)
                     {
-                        var conv = AllowRequestType.GetConverter(x.ParameterType);
-                        if (conv == null) throw new InvalidOperationException(); // TODO:Exception Handling
-                        return conv(values.First());
+                        if (!x.ParameterType.IsArray)
+                        {
+                            var conv = AllowRequestType.GetConverter(x.ParameterType);
+                            if (conv == null) throw new InvalidOperationException(); // TODO:Exception Handling
+                            return conv(values.First());
+                        }
                     }
-                    else // Array
-                    {
-                        if (!x.ParameterType.IsArray) throw new InvalidOperationException(); // TODO:Exception Handling
-                        var conv = AllowRequestType.GetArrayConverter(x.ParameterType);
-                        if (conv == null) throw new InvalidOperationException(); // TODO:Exception Handling
-                        return conv(values);
-                    }
+
+                    // Array
+                    if (!x.ParameterType.IsArray) throw new InvalidOperationException(); // TODO:Exception Handling
+                    var arrayConv = AllowRequestType.GetArrayConverter(x.ParameterType);
+                    if (arrayConv == null) throw new InvalidOperationException(); // TODO:Exception Handling
+                    return arrayConv(values);
                 })
                 .ToArray();
 
