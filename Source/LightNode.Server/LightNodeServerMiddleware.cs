@@ -14,7 +14,7 @@ namespace LightNode.Server
         readonly AppFunc next;
 
         public LightNodeServerMiddleware(AppFunc next, LightNodeOptions options)
-            : this(next, options, new[] { Assembly.GetEntryAssembly() })
+            : this(next, options, AppDomain.CurrentDomain.GetAssemblies())
         {
         }
 
