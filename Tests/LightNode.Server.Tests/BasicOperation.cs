@@ -104,6 +104,14 @@ namespace LightNode.Server.Tests
             MockEnv.CreateRequest("/ArrayContract/Sum2?x=2&xs=1&xs=2&xs=3&y=30&ys=40&ys=50").GetString().Is("128");
             MockEnv.CreateRequest("/ArrayContract/Sum2?x=2&xs=1&y=30&ys=50").GetString().Is("83");
         }
+
+        [TestMethod]
+        public void ParameterMismatch()
+        {
+            MockEnv.CreateRequest("/TestContract/Add").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.BadRequest);
+            MockEnv.CreateRequest("/TestContract/Add?x=10").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.BadRequest);
+            MockEnv.CreateRequest("/TestContract/Add?x=10&x=20").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.BadRequest);
+        }
     }
 
     public class Hello : LightNodeContract

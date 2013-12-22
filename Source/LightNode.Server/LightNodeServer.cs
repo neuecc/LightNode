@@ -157,115 +157,171 @@ namespace LightNode.Server
 
         public static async Task ProcessRequest(IDictionary<string, object> environment)
         {
-            var path = environment["owin.RequestPath"] as string;
-
-            // TODO:extract "extension" for media type
-            var keyBase = path.Trim('/').Split('/');
-            if (keyBase.Length != 2)
+            try
             {
-                EmitNotFound(environment);
-                return;
+                var path = environment["owin.RequestPath"] as string;
+
+                // TODO:extract "extension" for media type
+                var keyBase = path.Trim('/').Split('/');
+                if (keyBase.Length != 2)
+                {
+                    EmitNotFound(environment);
+                    return;
+                }
+
+                // {ClassName, MethodName}
+                var key = new RequestPath(keyBase[0], keyBase[1]);
+
+                OperationHandler handler;
+                if (handlers.TryGetValue(key, out handler))
+                {
+                    ILookup<string, string> requestParameter;
+                    var queryString = environment["owin.RequestQueryString"] as string;
+                    using (var sr = new StreamReader((environment["owin.RequestBody"] as Stream)))
+                    {
+                        var str = sr.ReadToEnd();
+                        requestParameter = str.Split('&')
+                            .Concat(queryString.Split('&'))
+                            .Select(xs => xs.Split('='))
+                            .Where(xs => xs.Length == 2)
+                            .ToLookup(xs => xs[0], xs => xs[1]);
+                    }
+
+                    var methodParameters = new object[handler.Arguments.Length];
+                    for (int i = 0; i < handler.Arguments.Length; i++)
+                    {
+                        var item = handler.Arguments[i];
+
+                        var values = requestParameter[item.Name];
+                        var count = values.Count();
+                        if (count == 0)
+                        {
+                            if (item.IsOptional)
+                            {
+                                methodParameters[i] = item.DefaultValue;
+                                continue;
+                            }
+                            else
+                            {
+                                EmitBadRequest(environment);
+                                await EmitStringMessage(environment, "Lack of Parameter:" + item.Name).ConfigureAwait(false);
+                                return;
+                            }
+                        }
+                        else if (count == 1)
+                        {
+                            if (!item.ParameterType.IsArray)
+                            {
+                                var conv = AllowRequestType.GetConverter(item.ParameterType);
+                                if (conv == null)
+                                {
+                                    EmitBadRequest(environment);
+                                    await EmitStringMessage(environment, "Mismatch Parameter Type:" + item.Name).ConfigureAwait(false);
+                                    return;
+                                }
+                                methodParameters[i] = conv(values.First());
+                                continue;
+                            }
+                        }
+
+                        // Array
+                        if (!item.ParameterType.IsArray)
+                        {
+                            EmitBadRequest(environment);
+                            await EmitStringMessage(environment, "Parameter Type is not array but accepted value is array:" + item.Name).ConfigureAwait(false);
+                            return;
+                        }
+                        var arrayConv = AllowRequestType.GetArrayConverter(item.ParameterType);
+                        if (arrayConv == null)
+                        {
+                            EmitBadRequest(environment);
+                            await EmitStringMessage(environment, "Mismatch Parameter Type:" + item.Name).ConfigureAwait(false);
+                            return;
+                        }
+                        methodParameters[i] = arrayConv(values);
+                    }
+
+                    bool isVoid = true;
+                    object result = null;
+                    switch (handler.HandlerBodyType)
+                    {
+                        case HandlerBodyType.Action:
+                            handler.MethodActionBody(environment, methodParameters);
+                            break;
+                        case HandlerBodyType.Func:
+                            isVoid = false;
+                            result = handler.MethodFuncBody(environment, methodParameters);
+                            break;
+                        case HandlerBodyType.AsyncAction:
+                            var actionTask = handler.MethodAsyncActionBody(environment, methodParameters);
+                            await actionTask.ConfigureAwait(false);
+                            break;
+                        case HandlerBodyType.AsyncFunc:
+                            isVoid = false;
+                            var funcTask = handler.MethodAsyncFuncBody(environment, methodParameters);
+                            await funcTask.ConfigureAwait(false);
+                            var extractor = taskResultExtractorCache[funcTask.GetType()];
+                            result = extractor(funcTask);
+                            break;
+                        default:
+                            throw new InvalidOperationException("critical:register code is broken");
+                    }
+
+                    if (!isVoid)
+                    {
+                        var responseStream = environment["owin.ResponseBody"] as Stream;
+
+                        // select formatter
+                        options.DefaultFormatter.Serialize(responseStream, result);
+
+                        // append header
+                    }
+
+                    EmitOK(environment);
+                    return;
+                }
+                else
+                {
+                    EmitNotFound(environment);
+                    return;
+                }
             }
-
-            // {ClassName, MethodName}
-            var key = new RequestPath(keyBase[0], keyBase[1]);
-
-            OperationHandler handler;
-            if (handlers.TryGetValue(key, out handler))
+            catch
             {
-                ILookup<string, string> requestParameter;
-                var queryString = environment["owin.RequestQueryString"] as string;
-                using (var sr = new StreamReader((environment["owin.RequestBody"] as Stream)))
-                {
-                    var str = await sr.ReadToEndAsync();
-                    requestParameter = str.Split('&')
-                        .Concat(queryString.Split('&'))
-                        .Select(xs => xs.Split('='))
-                        .Where(xs => xs.Length == 2)
-                        .ToLookup(xs => xs[0], xs => xs[1]);
-                }
-
-                var methodParameters = handler.Arguments.Select(x =>
-                {
-                    var values = requestParameter[x.Name];
-                    var count = values.Count();
-                    if (count == 0)
-                    {
-                        if (x.IsOptional)
-                        {
-                            return x.DefaultValue;
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException(); // TODO:Exception Handling
-                        }
-                    }
-                    else if (count == 1)
-                    {
-                        if (!x.ParameterType.IsArray)
-                        {
-                            var conv = AllowRequestType.GetConverter(x.ParameterType);
-                            if (conv == null) throw new InvalidOperationException(); // TODO:Exception Handling
-                            return conv(values.First());
-                        }
-                    }
-
-                    // Array
-                    if (!x.ParameterType.IsArray) throw new InvalidOperationException(); // TODO:Exception Handling
-                    var arrayConv = AllowRequestType.GetArrayConverter(x.ParameterType);
-                    if (arrayConv == null) throw new InvalidOperationException(); // TODO:Exception Handling
-                    return arrayConv(values);
-                })
-                .ToArray();
-
-                bool isVoid = true;
-                object result = null;
-                switch (handler.HandlerBodyType)
-                {
-                    case HandlerBodyType.Action:
-                        handler.MethodActionBody(environment, methodParameters);
-                        break;
-                    case HandlerBodyType.Func:
-                        isVoid = false;
-                        result = handler.MethodFuncBody(environment, methodParameters);
-                        break;
-                    case HandlerBodyType.AsyncAction:
-                        var actionTask = handler.MethodAsyncActionBody(environment, methodParameters);
-                        await actionTask;
-                        break;
-                    case HandlerBodyType.AsyncFunc:
-                        isVoid = false;
-                        var funcTask = handler.MethodAsyncFuncBody(environment, methodParameters);
-                        await funcTask;
-                        var extractor = taskResultExtractorCache[funcTask.GetType()];
-                        result = extractor(funcTask);
-                        break;
-                    default:
-                        throw new InvalidOperationException("critical:register code is broken");
-                }
-
-                if (!isVoid)
-                {
-                    var responseStream = environment["owin.ResponseBody"] as Stream;
-
-                    // select formatter
-                    options.DefaultFormatter.Serialize(responseStream, result);
-
-                    // append header
-                }
-
                 // TODO:exception handling
+                throw;
             }
-            else
-            {
-                EmitNotFound(environment);
-                return;
-            }
+        }
+
+        static Task EmitStringMessage(IDictionary<string, object> environment, string message)
+        {
+            var bytes = Encoding.UTF8.GetBytes(message);
+            return (environment["owin.ResponseBody"] as Stream).WriteAsync(bytes, 0, bytes.Length);
+        }
+
+        static void EmitOK(IDictionary<string, object> environment)
+        {
+            environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.OK; // 200
+        }
+
+        static void EmitBadRequest(IDictionary<string, object> environment)
+        {
+            environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.BadRequest; // 400
         }
 
         static void EmitNotFound(IDictionary<string, object> environment)
         {
-            environment["owin.ResponseStatusCode"] = 404;
+            environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.NotFound; // 404
+        }
+
+        static void EmitNotAcceptable(IDictionary<string, object> environment)
+        {
+            environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.NotAcceptable; // 406
+        }
+
+        static void EmitUnsupportedMediaType(IDictionary<string, object> environment)
+        {
+            environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.UnsupportedMediaType; // 415
         }
     }
 }
