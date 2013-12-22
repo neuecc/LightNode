@@ -201,6 +201,11 @@ namespace LightNode.Server
                                 methodParameters[i] = item.DefaultValue;
                                 continue;
                             }
+                            else if (item.ParameterType.IsClass || (item.ParameterType.IsGenericType && item.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                            {
+                                methodParameters[i] = null;
+                                continue;
+                            }
                             else
                             {
                                 EmitBadRequest(environment);
@@ -213,14 +218,25 @@ namespace LightNode.Server
                             if (!item.ParameterType.IsArray)
                             {
                                 var conv = AllowRequestType.GetConverter(item.ParameterType);
-                                if (conv == null)
+                                if (conv == null) throw new InvalidOperationException("critical:register code is broken");
+
+                                object pValue;
+                                if (conv(values.First(), out pValue))
+                                {
+                                    methodParameters[i] = pValue;
+                                    continue;
+                                }
+                                else if (item.ParameterType.IsClass || (item.ParameterType.IsGenericType && item.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                                {
+                                    methodParameters[i] = null;
+                                    continue;
+                                }
+                                else
                                 {
                                     EmitBadRequest(environment);
                                     await EmitStringMessage(environment, "Mismatch Parameter Type:" + item.Name).ConfigureAwait(false);
                                     return;
                                 }
-                                methodParameters[i] = conv(values.First());
-                                continue;
                             }
                         }
 
@@ -232,12 +248,8 @@ namespace LightNode.Server
                             return;
                         }
                         var arrayConv = AllowRequestType.GetArrayConverter(item.ParameterType);
-                        if (arrayConv == null)
-                        {
-                            EmitBadRequest(environment);
-                            await EmitStringMessage(environment, "Mismatch Parameter Type:" + item.Name).ConfigureAwait(false);
-                            return;
-                        }
+                        if (arrayConv == null) throw new InvalidOperationException("critical:register code is broken");
+
                         methodParameters[i] = arrayConv(values);
                     }
 

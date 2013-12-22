@@ -112,6 +112,12 @@ namespace LightNode.Server.Tests
             MockEnv.CreateRequest("/TestContract/Add?x=10").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.BadRequest);
             MockEnv.CreateRequest("/TestContract/Add?x=10&x=20").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.BadRequest);
         }
+
+        [TestMethod]
+        public void InvalidTypeParameter()
+        {
+            var v = MockEnv.CreateRequest("/TestContract/Add?x=hoge&y=huga").GetAsync().Result.StatusCode;
+        }
     }
 
     public class Hello : LightNodeContract

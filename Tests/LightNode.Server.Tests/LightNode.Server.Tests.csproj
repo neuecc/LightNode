@@ -71,6 +71,7 @@
     <Compile Include="MockEnv.cs" />
     <Compile Include="BasicOperation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ParameterCheckTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
