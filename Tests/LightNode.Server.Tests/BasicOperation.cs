@@ -114,9 +114,11 @@ namespace LightNode.Server.Tests
         }
 
         [TestMethod]
-        public void InvalidTypeParameter()
+        public void UrlEncode()
         {
-            var v = MockEnv.CreateRequest("/TestContract/Add?x=hoge&y=huga").GetAsync().Result.StatusCode;
+            MockEnv.CreateRequest("/Hello/Echo?x=あいうえお").GetString().Is("\"あいうえお\"");
+            MockEnv.CreateRequest("/Hello/Echo").PostAndGetString(new StringKeyValuePairCollection { { "x", "あいうえお" } })
+                .Is("\"あいうえお\"");
         }
     }
 
@@ -130,6 +132,11 @@ namespace LightNode.Server.Tests
         public string Ping()
         {
             return "Pong";
+        }
+
+        public string Echo(string x)
+        {
+            return x;
         }
     }
 

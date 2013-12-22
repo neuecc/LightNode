@@ -221,7 +221,7 @@ namespace LightNode.Server
                             .Concat(queryString.Split('&'))
                             .Select(xs => xs.Split('='))
                             .Where(xs => xs.Length == 2)
-                            .ToLookup(xs => xs[0], xs => xs[1], StringComparer.OrdinalIgnoreCase);
+                            .ToLookup(xs => Uri.UnescapeDataString(xs[0]), xs => Uri.UnescapeDataString(xs[1]), StringComparer.OrdinalIgnoreCase);
                     }
 
                     // Parameter binding
