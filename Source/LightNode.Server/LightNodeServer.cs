@@ -13,7 +13,7 @@ namespace LightNode.Server
     public static class LightNodeServer
     {
         readonly static Dictionary<RequestPath, OperationHandler> handlers = new Dictionary<RequestPath, OperationHandler>();
-        readonly static Dictionary<Type, Func<object, object>> taskResultExtractorCache = new Dictionary<Type, Func<object, object>>();
+        readonly static Dictionary<Type, Func<object, object>> taskResultExtractors = new Dictionary<Type, Func<object, object>>();
 
         static LightNodeOptions options;
 
@@ -31,8 +31,6 @@ namespace LightNode.Server
             var contractTypes = hostAssemblies
                 .SelectMany(x => x.GetTypes())
                 .Where(x => typeof(LightNodeContract).IsAssignableFrom(x));
-
-            // TODO:validation, duplicate entry, non support arguments, append attribute.
 
             Parallel.ForEach(contractTypes, classType =>
             {
@@ -91,9 +89,9 @@ namespace LightNode.Server
                             handler.HandlerBodyType = HandlerBodyType.AsyncFunc;
                             handler.MethodAsyncFuncBody = lambda.Compile();
 
-                            lock (taskResultExtractorCache)
+                            lock (taskResultExtractors)
                             {
-                                if (!taskResultExtractorCache.ContainsKey(handler.ReturnType))
+                                if (!taskResultExtractors.ContainsKey(handler.ReturnType))
                                 {
                                     // (object task) => (object)((Task<>).Result)
                                     var taskParameter = Expression.Parameter(typeof(object), "task");
@@ -107,7 +105,7 @@ namespace LightNode.Server
 
                                     var compiledResultLambda = resultLambda.Compile();
 
-                                    taskResultExtractorCache[handler.ReturnType] = compiledResultLambda;
+                                    taskResultExtractors[handler.ReturnType] = compiledResultLambda;
                                 }
                             }
                         }
@@ -149,24 +147,55 @@ namespace LightNode.Server
                     lock (handlers)
                     {
                         // fail duplicate entry
-                        handlers.Add(new RequestPath(className, methodName), handler);
+                        var path = new RequestPath(className, methodName);
+                        if (handlers.ContainsKey(path))
+                        {
+                            throw new InvalidOperationException(string.Format("same class and method is not allowed, class:{0} method:{1}", className, methodName));
+                        }
+                        handlers.Add(path, handler);
                     }
                 }
             });
         }
 
+        // TODO:very long method, refactoring...
         public static async Task ProcessRequest(IDictionary<string, object> environment)
         {
             try
             {
                 var path = environment["owin.RequestPath"] as string;
 
-                // TODO:extract "extension" for media type
+                // verb check
+                var method = environment["owin.RequestMethod"];
+                var verb = AcceptVerbs.Get;
+                if (StringComparer.OrdinalIgnoreCase.Equals(method, "GET"))
+                {
+                    verb = AcceptVerbs.Get;
+                }
+                else if (StringComparer.OrdinalIgnoreCase.Equals(method, "POST"))
+                {
+                    verb = AcceptVerbs.Post;
+                }
+                else
+                {
+                    EmitMethodNotAllowed(environment);
+                    return;
+                }
+
                 var keyBase = path.Trim('/').Split('/');
                 if (keyBase.Length != 2)
                 {
                     EmitNotFound(environment);
                     return;
+                }
+
+                // extract "extension" for media type
+                var extStart = keyBase[1].LastIndexOf(".");
+                var ext = "";
+                if (extStart != -1)
+                {
+                    ext = keyBase[1].Substring(extStart + 1);
+                    keyBase[1] = keyBase[1].Substring(0, keyBase[1].Length - ext.Length - 1);
                 }
 
                 // {ClassName, MethodName}
@@ -175,6 +204,13 @@ namespace LightNode.Server
                 OperationHandler handler;
                 if (handlers.TryGetValue(key, out handler))
                 {
+                    // verb check
+                    if (!options.DefaultAcceptVerb.HasFlag(verb))
+                    {
+                        EmitMethodNotAllowed(environment);
+                        return;
+                    }
+
                     // Extract parameter
                     ILookup<string, string> requestParameter;
                     var queryString = environment["owin.RequestQueryString"] as string;
@@ -185,7 +221,7 @@ namespace LightNode.Server
                             .Concat(queryString.Split('&'))
                             .Select(xs => xs.Split('='))
                             .Where(xs => xs.Length == 2)
-                            .ToLookup(xs => xs[0], xs => xs[1]);
+                            .ToLookup(xs => xs[0], xs => xs[1], StringComparer.OrdinalIgnoreCase);
                     }
 
                     // Parameter binding
@@ -272,7 +308,7 @@ namespace LightNode.Server
                             isVoid = false;
                             var funcTask = handler.MethodAsyncFuncBody(environment, methodParameters);
                             await funcTask.ConfigureAwait(false);
-                            var extractor = taskResultExtractorCache[funcTask.GetType()];
+                            var extractor = taskResultExtractors[funcTask.GetType()];
                             result = extractor(funcTask);
                             break;
                         default:
@@ -281,12 +317,40 @@ namespace LightNode.Server
 
                     if (!isVoid)
                     {
-                        var responseStream = environment["owin.ResponseBody"] as Stream;
+                        var requestHeader = environment["owin.RequestHeaders"] as IDictionary<string, string[]>;
+                        string[] accepts;
 
                         // select formatter
-                        options.DefaultFormatter.Serialize(responseStream, result);
+                        var formatter = options.DefaultFormatter;
+                        if (ext != "")
+                        {
+                            formatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
+                                .FirstOrDefault(x => x.Ext == ext);
+
+                            if (formatter == null)
+                            {
+                                EmitNotAcceptable(environment);
+                            }
+                        }
+                        else if (requestHeader.TryGetValue("Accept", out accepts))
+                        {
+                            // TODO:parse accept header q, */*, etc...
+                            var contentType = accepts[0];
+                            formatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
+                                .FirstOrDefault(x => x.MediaType == contentType);
+
+                            if (formatter == null)
+                            {
+                                EmitNotAcceptable(environment);
+                            }
+                        }
+
+                        var responseStream = environment["owin.ResponseBody"] as Stream;
+                        formatter.Serialize(responseStream, result);
 
                         // append header
+                        var responseHeader = environment["owin.ResponseHeaders"] as IDictionary<string, string[]>;
+                        responseHeader["Content-Type"] = new[] { formatter.MediaType };
                     }
 
                     EmitOK(environment);
@@ -300,7 +364,7 @@ namespace LightNode.Server
             }
             catch
             {
-                // TODO:exception handling
+                EmitInternalServerError(environment);
                 throw;
             }
         }
@@ -326,6 +390,11 @@ namespace LightNode.Server
             environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.NotFound; // 404
         }
 
+        static void EmitMethodNotAllowed(IDictionary<string, object> environment)
+        {
+            environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.MethodNotAllowed; // 405
+        }
+
         static void EmitNotAcceptable(IDictionary<string, object> environment)
         {
             environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.NotAcceptable; // 406
@@ -334,6 +403,11 @@ namespace LightNode.Server
         static void EmitUnsupportedMediaType(IDictionary<string, object> environment)
         {
             environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.UnsupportedMediaType; // 415
+        }
+
+        static void EmitInternalServerError(IDictionary<string, object> environment)
+        {
+            environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.InternalServerError; // 500
         }
     }
 }

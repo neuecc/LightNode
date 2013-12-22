@@ -25,22 +25,22 @@ namespace LightNode.Server
     [Flags]
     public enum AcceptVerbs
     {
-        Get, Post
+        Get = 1,
+        Post = 2
     }
 
+    // TODO:Attribute Configuration?
 
-    // TODO:Ignore
+    //public class IgnoreOperationAttribute : Attribute
+    //{
 
-    public class IgnoreOperationAttribute : Attribute
-    {
+    //}
 
-    }
+    //// TODO:Option?
+    //public class ContractOptionAttribute : Attribute
+    //{
+    //    public AcceptVerbs AcceptVerb { get; private set; }
 
-    // TODO:Option?
-    public class ContractOptionAttribute : Attribute
-    {
-        public AcceptVerbs AcceptVerb { get; private set; }
-
-        public IContentFormatter OutputContentFormatter { get; set; }
-    }
+    //    public IContentFormatter OutputContentFormatter { get; set; }
+    //}
 }

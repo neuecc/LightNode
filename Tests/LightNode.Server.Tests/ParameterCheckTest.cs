@@ -56,6 +56,8 @@ namespace LightNode.Server.Tests
             MockEnv.CreateRequest("/ParameterContract/Array?x=100").GetString().Trim('\"').Is("100");
             MockEnv.CreateRequest("/ParameterContract/Array?x=1&x=2").GetString().Trim('\"').Is("3");
             MockEnv.CreateRequest("/ParameterContract/Array?x=1&x=hoge").GetString().Trim('\"').Is("0");
+
+            MockEnv.CreateRequest("/ParameterContract/Array2?x=&y=10").GetString().Trim('\"').Is("10");
         }
 
         [TestMethod]
@@ -106,7 +108,7 @@ namespace LightNode.Server.Tests
             var dict2 = typeof(AllowRequestType).GetField("convertArrayTypeDictionary", System.Reflection.BindingFlags.GetField | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
                 .GetValue(null);
             var count2 = ((Dictionary<Type, Func<IEnumerable<string>, object>>)dict2).Count;
-            count2.Is(33);
+            count2.Is(16);
         }
     }
 
@@ -142,6 +144,13 @@ namespace LightNode.Server.Tests
             x.IsNotNull();
 
             return x.Sum();
+        }
+
+        public int Array2(int[] x, int y)
+        {
+            x.IsNotNull();
+
+            return x.Sum() + y;
         }
 
         public string Enum(Fruit fruit)
