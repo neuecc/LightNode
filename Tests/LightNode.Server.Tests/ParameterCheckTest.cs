@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Net;
+using System.Collections.Generic;
 
 namespace LightNode.Server.Tests
 {
@@ -46,6 +48,66 @@ namespace LightNode.Server.Tests
             MockEnv.CreateRequest("/ParameterContract/StringDefaultValue?x=hoge").GetString().Trim('\"').Is("hoge");
             MockEnv.CreateRequest("/ParameterContract/StringDefaultValue?x=hoge&x=huga").GetString().Trim('\"').Is("hoge");
         }
+
+        [TestMethod]
+        public void Array()
+        {
+            MockEnv.CreateRequest("/ParameterContract/Array").GetString().Trim('\"').Is("0");
+            MockEnv.CreateRequest("/ParameterContract/Array?x=100").GetString().Trim('\"').Is("100");
+            MockEnv.CreateRequest("/ParameterContract/Array?x=1&x=2").GetString().Trim('\"').Is("3");
+            MockEnv.CreateRequest("/ParameterContract/Array?x=1&x=hoge").GetString().Trim('\"').Is("0");
+        }
+
+        [TestMethod]
+        public void Enum()
+        {
+            MockEnv.CreateRequest("/ParameterContract/Enum").GetAsync().Result.StatusCode.Is(HttpStatusCode.BadRequest);
+            MockEnv.CreateRequest("/ParameterContract/Enum?fruit=2").GetString().Trim('\"').Is("Orange");
+            MockEnv.CreateRequest("/ParameterContract/Enum?fruit=oRange").GetString().Trim('\"').Is("Orange");
+            MockEnv.CreateRequest("/ParameterContract/Enum?fruit=hogemoge").GetAsync().Result.StatusCode.Is(HttpStatusCode.BadRequest);
+        }
+
+        [TestMethod]
+        public void EnumNullable()
+        {
+            MockEnv.CreateRequest("/ParameterContract/EnumNullable").GetString().Trim('\"').Is("null");
+            MockEnv.CreateRequest("/ParameterContract/EnumNullable?fruit=2").GetString().Trim('\"').Is("Orange");
+            MockEnv.CreateRequest("/ParameterContract/EnumNullable?fruit=oRange").GetString().Trim('\"').Is("Orange");
+            MockEnv.CreateRequest("/ParameterContract/EnumNullable?fruit=hogemoge").GetString().Trim('\"').Is("null");
+        }
+
+        [TestMethod]
+        public void EnumDefaultValue()
+        {
+            MockEnv.CreateRequest("/ParameterContract/EnumDefaultValue").GetString().Trim('\"').Is("Apple");
+            MockEnv.CreateRequest("/ParameterContract/EnumDefaultValue?fruit=2").GetString().Trim('\"').Is("Orange");
+            MockEnv.CreateRequest("/ParameterContract/EnumDefaultValue?fruit=oRange").GetString().Trim('\"').Is("Orange");
+            MockEnv.CreateRequest("/ParameterContract/EnumDefaultValue?fruit=hogemoge").GetString().Trim('\"').Is("Apple");
+        }
+
+        [TestMethod]
+        public void EnumArray()
+        {
+            MockEnv.CreateRequest("/ParameterContract/EnumArray").GetString().Trim('\"').Is("Empty");
+            MockEnv.CreateRequest("/ParameterContract/EnumArray?fruit=2").GetString().Trim('\"').Is("Orange");
+            MockEnv.CreateRequest("/ParameterContract/EnumArray?fruit=oRange&fruit=3").GetString().Trim('\"').Is("Orange,Apple");
+            MockEnv.CreateRequest("/ParameterContract/EnumArray?fruit=oRange&fruit=hogemoge").GetString().Trim('\"').Is("Empty");
+        }
+
+        [TestMethod]
+        public void CacheSize()
+        {
+            var dict = typeof(AllowRequestType).GetField("convertTypeDictionary", System.Reflection.BindingFlags.GetField | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                .GetValue(null);
+
+            var count = ((Dictionary<Type, LightNode.Server.AllowRequestType.TryParse>)dict).Count;
+            count.Is(33);
+
+            var dict2 = typeof(AllowRequestType).GetField("convertArrayTypeDictionary", System.Reflection.BindingFlags.GetField | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                .GetValue(null);
+            var count2 = ((Dictionary<Type, Func<IEnumerable<string>, object>>)dict2).Count;
+            count2.Is(33);
+        }
     }
 
     public class ParameterContract : LightNodeContract
@@ -77,16 +139,37 @@ namespace LightNode.Server.Tests
 
         public int Array(int[] x)
         {
-            return x.Length;
+            x.IsNotNull();
+
+            return x.Sum();
         }
 
-        // TODO:string, enum types
+        public string Enum(Fruit fruit)
+        {
+            return fruit.ToString();
+        }
+
+        public string EnumNullable(Fruit? fruit)
+        {
+            return (fruit == null) ? null : fruit.ToString();
+        }
+
+        public string EnumDefaultValue(Fruit fruit = Fruit.Apple)
+        {
+            return fruit.ToString();
+        }
+
+        public string EnumArray(Fruit[] fruit)
+        {
+            if (fruit.Length == 0) return "Empty";
+            return string.Join(",", fruit);
+        }
     }
 
     public enum Fruit
     {
-        Grape = 0,
-        Orange = 1,
-        Apple = 2
+        Grape = 1,
+        Orange = 2,
+        Apple = 3
     }
 }

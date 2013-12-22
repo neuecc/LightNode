@@ -45,7 +45,7 @@ namespace LightNode.Server
             {typeof(Nullable<Byte>),(string x, out object result) => { Byte @out; result =  Byte.TryParse(x, out @out)? (object)@out:null; return true; }},
         };
 
-        static readonly Dictionary<Type, Func<IEnumerable<string>, object>> convertArrayTypeDictionary = new Dictionary<Type, Func<IEnumerable<string>, object>>(31) // TODO:fix number
+        static readonly Dictionary<Type, Func<IEnumerable<string>, object>> convertArrayTypeDictionary = new Dictionary<Type, Func<IEnumerable<string>, object>>(16)
         {
             // NOTE:unsupport byte[] because request message will be very large. instead of use Base64.
             {typeof(string[]), (IEnumerable<string> xs) => (object)xs.ToArray()},
@@ -218,23 +218,95 @@ namespace LightNode.Server
 
         internal static bool IsAllowType(Type targetType)
         {
-            return GetConverter(targetType) != null || GetArrayConverter(targetType) != null;
+            return GetConverter(targetType) != null
+                || GetArrayConverter(targetType) != null
+                || targetType.IsEnum
+                || (targetType.IsNullable() && targetType.GetGenericArguments().First().IsEnum);
         }
 
         internal static TryParse GetConverter(Type targetType)
         {
             TryParse f;
-            return convertTypeDictionary.TryGetValue(targetType, out f)
+            var result = convertTypeDictionary.TryGetValue(targetType, out f)
                 ? f
                 : null;
+            if (result != null) return result;
+
+
+            if (targetType.IsEnum)
+            {
+                return new TryParse((string x, out object o) => AllowRequestType.TryParseEnum(targetType, x, out o));
+            }
+            else if (targetType.IsNullable())
+            {
+                var genArg = targetType.GetGenericArguments().First();
+                if (genArg.IsEnum)
+                {
+                    return new TryParse((string x, out object o) => AllowRequestType.TryParseEnum(genArg, x, out o));
+                }
+            }
+
+            return result;
         }
 
         internal static Func<IEnumerable<string>, object> GetArrayConverter(Type targetType)
         {
             Func<IEnumerable<string>, object> f;
-            return convertArrayTypeDictionary.TryGetValue(targetType, out f)
+            var result = convertArrayTypeDictionary.TryGetValue(targetType, out f)
                 ? f
                 : null;
+            if (result != null) return result;
+
+            var elemType = targetType.GetElementType();
+            if (elemType.IsEnum)
+            {
+                // TODO:perforamnce improvement 
+                return new Func<IEnumerable<string>, object>((IEnumerable<string> xs) =>
+                {
+                    var success = true;
+                    var array = xs.Select(x =>
+                    {
+                        object @out;
+                        if (!TryParseEnum(elemType, x, out @out))
+                        {
+                            success = false;
+                        }
+
+                        return (success)
+                            ? Convert.ChangeType(@out, elemType)
+                            : null;
+                    })
+                    .ToArray();
+
+                    if (success)
+                    {
+                        var resultArray = Array.CreateInstance(elemType, array.Length);
+                        Array.Copy(array, resultArray, resultArray.Length);
+                        return resultArray;
+                    }
+                    else
+                    {
+                        return Array.CreateInstance(elemType, 0);
+                    }
+                });
+            }
+
+            return result;
+        }
+
+        static bool TryParseEnum(Type targetType, string value, out object result)
+        {
+            try
+            {
+                // TODO:very ugly way, must be perf improvement
+                result = Enum.Parse(targetType, value, ignoreCase: true);
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
         }
     }
 }

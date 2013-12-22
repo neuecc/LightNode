@@ -196,14 +196,14 @@ namespace LightNode.Server
 
                         var values = requestParameter[item.Name];
                         var count = values.Count();
-                        if (count == 0)
+                        if (count == 0 && !item.ParameterType.IsArray)
                         {
                             if (item.IsOptional)
                             {
                                 methodParameters[i] = item.DefaultValue;
                                 continue;
                             }
-                            else if (item.ParameterType.IsClass || (item.ParameterType.IsGenericType && item.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                            else if (item.ParameterType.IsClass || item.ParameterType.IsNullable())
                             {
                                 methodParameters[i] = null;
                                 continue;
@@ -231,7 +231,7 @@ namespace LightNode.Server
                                 methodParameters[i] = item.DefaultValue;
                                 continue;
                             }
-                            else if (item.ParameterType.IsClass || (item.ParameterType.IsGenericType && item.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                            else if (item.ParameterType.IsClass || item.ParameterType.IsNullable())
                             {
                                 methodParameters[i] = null;
                                 continue;
