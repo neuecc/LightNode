@@ -117,3 +117,8 @@ LightNode is very fast, nearly raw HttpHandler.
 ![lightnode_performance](https://f.cloud.github.com/assets/46207/1799212/32d94e5e-6b8d-11e3-9e58-cd8f89c62131.jpg)
 
 ASP.NET Web API, LightNode, app.Run are Hosted on OWIN and IIS(System.Web). HttpHandler is hosted on IIS(System.Web).
+
+ReleaseNote
+---
+0.1.1 - 2013-12-23  
+* First Release

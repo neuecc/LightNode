@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>LightNode.Server</id>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <title>LightNode.Server</title>
     <authors>neuecc</authors>
     <owners>neuecc</owners>
@@ -13,10 +13,11 @@
     <projectUrl>https://github.com/neuecc/LightNode</projectUrl>
     <tags>Owin Rest RPC</tags>
     <dependencies>
-      <dependency id="LightNode.Core" version="0.0.1" />
+      <dependency id="LightNode.Core" version="0.1.1" />
+      <dependency id="Owin" version="1.0.0" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\Source\LightNode.Server\bin\Release\LightNode.Server.dll" target="bin" />
+    <file src="..\Source\LightNode.Server\bin\Release\LightNode.Server.dll" target="lib" />
   </files>
 </package>
