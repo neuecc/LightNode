@@ -2,10 +2,25 @@ LightNode
 =========
 LightNode is Micro RPC/REST Framework built on OWIN provides both server and client. Server is lightweight and performant implementation. Client is code generation(T4) based auto generated RPC Client based on HttpClient, of course everything return Task. And client code generation will provide for Unity3D and TypeScript. 
 
-Install
+Installation
 ---
-using with NuGet
+binary from NuGet, [LightNode.Server](https://nuget.org/packages/LightNode.Server/)
 
+```
+PM> Install-Package LightNode.Server
+```
+
+and Client is [LightNode.Client.PCL.T4](https://nuget.org/packages/LightNode.Client.PCL.T4/)
+
+```
+PM> Install-Package LightNode.Client.PCL.T4
+```
+and ContentFormatters(for JsonNet, ProtoBuf, MsgPack)
+```
+PM> Install-Package LightNode.Formatter.JsonNet
+PM> Install-Package LightNode.Formatter.ProtoBuf
+PM> Install-Package LightNode.Formatter.MsgPack
+```
 
 Lightweight Server
 ---
