@@ -12,6 +12,8 @@ namespace LightNode.Sample.Client
     {
         static void Main(string[] args)
         {
+            // not yet...
+
             var client = new LightNodeClient("http://localhost:12345") { ContentFormatter = new LightNode.Formatter.JavaScriptContentTypeFormatter() };
 
         

@@ -47,7 +47,7 @@ namespace LightNode.Server
 
         static readonly Dictionary<Type, Func<IEnumerable<string>, object>> convertArrayTypeDictionary = new Dictionary<Type, Func<IEnumerable<string>, object>>(16)
         {
-            // NOTE:unsupport byte[] because request message will be very large. instead of use Base64.
+            // NOTE:unsupport byte[] because request message will be very large. use Base64 instead of byte[].
             {typeof(string[]), (IEnumerable<string> xs) => (object)xs.ToArray()},
             {typeof(DateTime[]), (IEnumerable<string> xs) =>
             {

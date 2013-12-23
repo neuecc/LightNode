@@ -24,7 +24,9 @@ namespace LightNode.Sample.Server.SelfHost
         public void Configuration(Owin.IAppBuilder app)
         {
             app.UseErrorPage();
-            app.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new XmlContentTypeFormatter()));
+            app.UseLightNode(
+                new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
+                new JavaScriptContentTypeFormatter()));
         }
     }
 
@@ -37,7 +39,7 @@ namespace LightNode.Sample.Server.SelfHost
 
         public Task<int> Sum(int x, int? y, int z = 1000)
         {
-            return Task.FromResult(x + y.Value + z);
+            return Task.Run(() => x + y.Value + z);
         }
     }
 
