@@ -27,7 +27,7 @@ namespace LightNode.Server
         public static void RegisterHandler(Assembly[] hostAssemblies)
         {
             if (Interlocked.Increment(ref alreadyRegistered) != 0) return;
-            
+
             var contractTypes = hostAssemblies
                 .SelectMany(x => x.GetTypes())
                 .Where(x => typeof(LightNodeContract).IsAssignableFrom(x));
@@ -330,6 +330,7 @@ namespace LightNode.Server
                             if (formatter == null)
                             {
                                 EmitNotAcceptable(environment);
+                                return;
                             }
                         }
                         else if (requestHeader.TryGetValue("Accept", out accepts))
@@ -337,20 +338,20 @@ namespace LightNode.Server
                             // TODO:parse accept header q, */*, etc...
                             var contentType = accepts[0];
                             formatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
-                                .FirstOrDefault(x => x.MediaType == contentType);
+                                .FirstOrDefault(x => contentType.Contains(x.MediaType));
 
                             if (formatter == null)
                             {
-                                EmitNotAcceptable(environment);
+                                formatter = options.DefaultFormatter; // through...
                             }
                         }
-
-                        var responseStream = environment["owin.ResponseBody"] as Stream;
-                        formatter.Serialize(responseStream, result);
 
                         // append header
                         var responseHeader = environment["owin.ResponseHeaders"] as IDictionary<string, string[]>;
                         responseHeader["Content-Type"] = new[] { formatter.MediaType };
+
+                        var responseStream = environment["owin.ResponseBody"] as Stream;
+                        formatter.Serialize(responseStream, result);
                     }
 
                     EmitOK(environment);

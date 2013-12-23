@@ -13,14 +13,9 @@ namespace LightNode.Formatter
 
         public override void Serialize(System.IO.Stream stream, object obj)
         {
-            using (var sw = new StreamWriter(stream))
-            using (var jw = new JsonTextWriter(sw))
-            {
-                jw.Formatting = Formatting.None;
-
-                var serializer = new JsonSerializer();
-                serializer.Serialize(jw, obj);
-            }
+            var json = JsonConvert.SerializeObject(obj);
+            var enc = System.Text.Encoding.UTF8.GetBytes(json);
+            stream.Write(enc, 0, enc.Length);
         }
 
         public override object Deserialize(Type type, System.IO.Stream stream)
