@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace LightNode.Formatters
+namespace LightNode.Formatter
 {
     public class JavaScriptContentTypeFormatter : ContentFormatterBase
     {

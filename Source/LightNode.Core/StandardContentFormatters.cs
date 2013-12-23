@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace LightNode.Formatters
+namespace LightNode.Formatter
 {
     public abstract class ContentFormatterBase : IContentFormatter
     {

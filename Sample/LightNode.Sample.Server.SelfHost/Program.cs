@@ -4,7 +4,7 @@ using Microsoft.Owin.Hosting;
 using Owin;
 using System;
 using System.Threading.Tasks;
-using LightNode.Formatters;
+using LightNode.Formatter;
 
 namespace LightNode.Sample.Server.SelfHost
 {

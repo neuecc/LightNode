@@ -17,20 +17,20 @@
     var clientName = "LightNodeClient";
     var namespaceName = "LightNode.Client";
 
-	// Note: You can take solutionDirectory path
-	var solutionDir = this.Host.ResolveAssemblyReference("$(SolutionDir)"); 
+    // Note: You can take solutionDirectory path
+    var solutionDir = this.Host.ResolveAssemblyReference("$(SolutionDir)"); 
 
     // 2. Set LightNodeContract Assemblies Path
-	// Note: Currentry this T4 locks assembly. If need release assembly, please restart Visual Studio.
+    // Note: Currentry this T4 locks assembly. If need release assembly, please restart Visual Studio.
     var assemblyPaths = new string[] { solutionDir + @"Sample\LightNode.Sample.Server.SelfHost\bin\Debug\LightNode.Sample.Server.SelfHost.exe"};
 
-	// 3. Set DefaultContentFormatter Construct String
-	var defaultContentFormatter = "new LightNode.Formatters.XmlContentTypeFormatter()";
+    // 3. Set DefaultContentFormatter Construct String
+    var defaultContentFormatter = "new LightNode.Formatter.XmlContentTypeFormatter()";
 
-	// 4. Set Additional using Namespace
-	var usingNamespaces = new [] {"System.Linq"};
+    // 4. Set Additional using Namespace
+    var usingNamespaces = new [] {"System.Linq"};
 
-	// ------------- T4 Configuration ------------- //
+    // ----------End T4 Configuration ------------- //
 
     Func<Type, string> BeautifyType = null;
     BeautifyType = (Type t) =>
@@ -41,17 +41,17 @@
         return Regex.Replace(t.GetGenericTypeDefinition().FullName, @"`.+$", "") + "<" + innerFormat + ">";
     };
 
-	Func<Type, string> UnwrapTask = (Type t) =>
+    Func<Type, string> UnwrapTask = (Type t) =>
     {
-		return BeautifyType(t.GetGenericArguments()[0]);
+        return BeautifyType(t.GetGenericArguments()[0]);
     };
 
     var ignoreMethods = new HashSet<string> { "Equals", "GetHashCode", "GetType", "ToString" };
 
-	var typeFromAssemblyLoad = assemblyPaths.SelectMany(asmPath =>
-	{
-		return Assembly.LoadFrom(asmPath).GetTypes();
-	});
+    var typeFromAssemblyLoad = assemblyPaths.SelectMany(asmPath =>
+    {
+        return Assembly.LoadFrom(asmPath).GetTypes();
+    });
 
     var contracts = typeFromAssemblyLoad
         .Where(x =>
@@ -103,12 +103,12 @@
                     {
                         var @base = BeautifyType(p.ParameterType) + " " + p.Name;
                         if (p.IsOptional)
-				        {
-							@base += " = " + (
-							    (p.DefaultValue == null) ? "null"
-							  : (p.DefaultValue is string) ? "\"" + p.DefaultValue + "\"" 
-							  : (p.DefaultValue is CancellationToken) ? "default(CancellationToken)"
-							  : p.DefaultValue);
+                        {
+                            @base += " = " + (
+                                (p.DefaultValue == null) ? "null"
+                              : (p.DefaultValue is string) ? "\"" + p.DefaultValue + "\"" 
+                              : (p.DefaultValue is CancellationToken) ? "default(CancellationToken)"
+                              : p.DefaultValue);
                         }
                         return @base;
                     }));
@@ -214,18 +214,18 @@ namespace <#= namespaceName #>
        #region <#= contract.InterfaceName #>
 
 <# foreach(var operation in contract.Operations) { #>
-        <#= BeautifyType(operation.ReturnType) #> <#= contract.InterfaceName #>.<#= operation.OperationName #>(<#= operation.ParameterString #>)
-		{
-		    return PostAsync<#= operation.ReturnType == typeof(Task) ? "" : "<" + UnwrapTask(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
+        <#= BeautifyType(operation.ReturnType) #> <#= contract.InterfaceName #>.<#= operation.OperationName #>Async(<#= operation.ParameterString #>)
+        {
+            return PostAsync<#= operation.ReturnType == typeof(Task) ? "" : "<" + UnwrapTask(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
             {
 <# foreach(var parameter in operation.Parameters.Where(x => x.Name != "cancellationToken")) { #>
                 new KeyValuePair<string, string>("<#= parameter.Name #>", <#= parameter.Name #>.ToString()),
 <# } #>
             }), cancellationToken);
-		}
+        }
 
 <# } #>
-	   #endregion
+       #endregion
 
 <# } #>
     }
@@ -234,7 +234,7 @@ namespace <#= namespaceName #>
     public interface <#= contract.InterfaceName #>
     {
 <# foreach(var operation in contract.Operations) { #>
-        <#= BeautifyType(operation.ReturnType) #> <#= operation.OperationName #>(<#= operation.ParameterStringWithOptional #>);
+        <#= BeautifyType(operation.ReturnType) #> <#= operation.OperationName #>Async(<#= operation.ParameterStringWithOptional #>);
 <# } #>
     }
 

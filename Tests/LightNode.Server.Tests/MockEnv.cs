@@ -1,4 +1,4 @@
-﻿using LightNode.Formatters;
+﻿using LightNode.Formatter;
 using Microsoft.Owin.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Owin;

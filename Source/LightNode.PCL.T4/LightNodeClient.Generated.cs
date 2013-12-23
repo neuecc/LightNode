@@ -11,7 +11,7 @@ namespace LightNode.Client
 {
     public partial class LightNodeClient : _IMy, _IRoom
     {
-        static IContentFormatter defaultContentFormatter = new LightNode.Formatters.XmlContentTypeFormatter();
+        static IContentFormatter defaultContentFormatter = new LightNode.Formatter.XmlContentTypeFormatter();
         readonly string rootEndPoint;
         readonly HttpClient httpClient;
 
@@ -76,58 +76,58 @@ namespace LightNode.Client
 
        #region _IMy
 
-        System.Threading.Tasks.Task<System.String> _IMy.Echo(System.String x, System.Threading.CancellationToken cancellationToken)
-		{
-		    return PostAsync<System.String>("/My/Echo", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
+        System.Threading.Tasks.Task<System.String> _IMy.EchoAsync(System.String x, System.Threading.CancellationToken cancellationToken)
+        {
+            return PostAsync<System.String>("/My/Echo", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
             {
                 new KeyValuePair<string, string>("x", x.ToString()),
             }), cancellationToken);
-		}
+        }
 
-        System.Threading.Tasks.Task<System.Int32> _IMy.Sum(System.Int32 x, System.Nullable<System.Int32> y, System.Int32 z, System.Threading.CancellationToken cancellationToken)
-		{
-		    return PostAsync<System.Int32>("/My/Sum", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
+        System.Threading.Tasks.Task<System.Int32> _IMy.SumAsync(System.Int32 x, System.Nullable<System.Int32> y, System.Int32 z, System.Threading.CancellationToken cancellationToken)
+        {
+            return PostAsync<System.Int32>("/My/Sum", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
             {
                 new KeyValuePair<string, string>("x", x.ToString()),
                 new KeyValuePair<string, string>("y", y.ToString()),
                 new KeyValuePair<string, string>("z", z.ToString()),
             }), cancellationToken);
-		}
+        }
 
-	   #endregion
+       #endregion
 
        #region _IRoom
 
-        System.Threading.Tasks.Task _IRoom.Create(System.Threading.CancellationToken cancellationToken)
-		{
-		    return PostAsync("/Room/Create", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
+        System.Threading.Tasks.Task _IRoom.CreateAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            return PostAsync("/Room/Create", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
             {
             }), cancellationToken);
-		}
+        }
 
-        System.Threading.Tasks.Task _IRoom.A(System.String x, System.String y, System.Threading.CancellationToken cancellationToken)
-		{
-		    return PostAsync("/Room/A", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
+        System.Threading.Tasks.Task _IRoom.AAsync(System.String x, System.String y, System.Threading.CancellationToken cancellationToken)
+        {
+            return PostAsync("/Room/A", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
             {
                 new KeyValuePair<string, string>("x", x.ToString()),
                 new KeyValuePair<string, string>("y", y.ToString()),
             }), cancellationToken);
-		}
+        }
 
-	   #endregion
+       #endregion
 
     }
 
     public interface _IMy
     {
-        System.Threading.Tasks.Task<System.String> Echo(System.String x, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
-        System.Threading.Tasks.Task<System.Int32> Sum(System.Int32 x, System.Nullable<System.Int32> y, System.Int32 z = 1000, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+        System.Threading.Tasks.Task<System.String> EchoAsync(System.String x, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+        System.Threading.Tasks.Task<System.Int32> SumAsync(System.Int32 x, System.Nullable<System.Int32> y, System.Int32 z = 1000, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
     }
 
     public interface _IRoom
     {
-        System.Threading.Tasks.Task Create(System.Threading.CancellationToken cancellationToken = default(CancellationToken));
-        System.Threading.Tasks.Task A(System.String x = "aaa", System.String y = null, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+        System.Threading.Tasks.Task CreateAsync(System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+        System.Threading.Tasks.Task AAsync(System.String x = "aaa", System.String y = null, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
     }
 
 }

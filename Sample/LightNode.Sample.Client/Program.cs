@@ -12,11 +12,11 @@ namespace LightNode.Sample.Client
     {
         static void Main(string[] args)
         {
-            var client = new LightNodeClient("http://localhost:12345") { ContentFormatter = new LightNode.Formatters.JavaScriptContentTypeFormatter() };
+            var client = new LightNodeClient("http://localhost:12345") { ContentFormatter = new LightNode.Formatter.JavaScriptContentTypeFormatter() };
 
         
 
-            var v = client.My.Echo("hogehoge").Result;
+            var v = client.My.EchoAsync("hogehoge").Result;
             Console.WriteLine(v);
         }
     }
