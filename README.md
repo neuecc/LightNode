@@ -54,7 +54,7 @@ Implementation of the REST API is often painful. LightNode solves by T4 code gen
 
 
 ```csharp
-Open .tt file and configure four steps.
+// Open .tt file and configure four steps.
 
 // ------------- T4 Configuration ------------- //
 
@@ -89,7 +89,7 @@ var sum = await client.Me.Sum(1, 10, 100);
 
 Client is very simple, too.
 
-> Currently provides only for Portable Class Library. But we plan for Unity 3D and TypeScript.
+> Currently provides only for Portable Class Library. But we plan for Unity3D and TypeScript.
 
 Language Interoperability
 ---

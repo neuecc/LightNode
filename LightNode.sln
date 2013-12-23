@@ -22,7 +22,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfTest.ClientRunner", "Pe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Core", "Source\LightNode.Core\LightNode.Core.csproj", "{072D35EF-AF4A-4DA0-849A-6B0B9196C959}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.PCL.T4", "Source\LightNode.PCL.T4\LightNode.PCL.T4.csproj", "{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Client.PCL.T4", "Source\LightNode.Client.PCL.T4\LightNode.Client.PCL.T4.csproj", "{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{05E4C673-1F12-449D-A3A4-F7C6FFD91701}"
 EndProject
@@ -43,6 +43,20 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nancy", "Performance\Nancy\Nancy.csproj", "{C08367A5-3E04-4FFF-AAD2-F0D6021D8046}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceStack", "Performance\ServiceStack\ServiceStack.csproj", "{64E7BD45-C57B-40D6-BC85-65CA9903A775}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{52DEAA6E-C4C7-4F7A-99A4-DF8FDE08736E}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		NuGet\LightNode.Client.PCL.T4.nuspec = NuGet\LightNode.Client.PCL.T4.nuspec
+		NuGet\LightNode.Core.nuspec = NuGet\LightNode.Core.nuspec
+		NuGet\LightNode.Formatter.JsonNet.nuspec = NuGet\LightNode.Formatter.JsonNet.nuspec
+		NuGet\LightNode.Formatter.MsgPack.nuspec = NuGet\LightNode.Formatter.MsgPack.nuspec
+		NuGet\LightNode.Formatter.ProtoBuf.nuspec = NuGet\LightNode.Formatter.ProtoBuf.nuspec
+		NuGet\LightNode.Server.nuspec = NuGet\LightNode.Server.nuspec
+		NuGet\pack.bat = NuGet\pack.bat
+		NuGet\push.bat = NuGet\push.bat
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

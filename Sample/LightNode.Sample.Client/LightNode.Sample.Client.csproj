@@ -52,9 +52,9 @@
       <Project>{072d35ef-af4a-4da0-849a-6b0b9196c959}</Project>
       <Name>LightNode.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Source\LightNode.PCL.T4\LightNode.PCL.T4.csproj">
+    <ProjectReference Include="..\..\Source\LightNode.Client.PCL.T4\LightNode.Client.PCL.T4.csproj">
       <Project>{8b8399ae-d7fa-404b-956a-acf6b7f2a98b}</Project>
-      <Name>LightNode.PCL.T4</Name>
+      <Name>LightNode.Client.PCL.T4</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Source\LightNode.Server\LightNode.Server.csproj">
       <Project>{cabc7913-f7c9-4e89-8312-f9ae523b9f41}</Project>
