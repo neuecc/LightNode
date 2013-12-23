@@ -98,8 +98,8 @@ var usingNamespaces = new [] {"System.Linq"};
 // {ClassName}.{MethodName}({Parameters}) 
 
 var client = new LightNodeClient("http://localhost");
-await client.Me.Echo("test");
-var sum = await client.Me.Sum(1, 10, 100);
+await client.Me.EchoAsync("test");
+var sum = await client.Me.SumAsync(1, 10, 100);
 ```
 
 Client is very simple, too.
