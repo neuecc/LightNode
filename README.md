@@ -63,6 +63,8 @@ Server API rule is very simple.
 
 > Parameter model bindings supports only basic pattern, can't use complex type. allow types are "string, DateTime, DateTimeOffset, Boolean, Decimal, Char, TimeSpan, Int16, Int32, Int64, UInt16, UInt32, UInt64, Single, Double, SByte, Byte and each Nullable types and array(except byte[]. If you want to use byte[], use Base64 string instead of byte[])
 
+Return type allows all serializable(ContentFormatter support) type.
+
 Lightweight Client
 --- 
 Implementation of the REST API is often painful. LightNode solves by T4 code generation.
