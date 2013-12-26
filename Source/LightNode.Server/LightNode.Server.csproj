@@ -52,6 +52,7 @@
     <Compile Include="LightNodeServer.cs" />
     <Compile Include="LightNodeServerMiddleware.cs" />
     <Compile Include="ContentFormatter.cs" />
+    <Compile Include="MetaEnum.cs" />
     <Compile Include="OperationHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestPath.cs" />
