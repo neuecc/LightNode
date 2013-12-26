@@ -6,11 +6,12 @@ namespace LightNode.Server
     {
         readonly string className;
         readonly string methodName;
+        readonly static StringComparer comparer = StringComparer.OrdinalIgnoreCase;
 
         public RequestPath(string className, string methodName)
         {
-            this.className = className.ToLowerInvariant();
-            this.methodName = methodName.ToLowerInvariant();
+            this.className = className;
+            this.methodName = methodName;
         }
 
         public override bool Equals(object obj)
@@ -25,12 +26,12 @@ namespace LightNode.Server
         {
             if (other == null) return false;
 
-            return (this.className == other.className) && (this.methodName == other.methodName);
+            return comparer.Equals(this.className, other.className) && comparer.Equals(this.methodName, other.methodName);
         }
 
         public override int GetHashCode()
         {
-            return CombineHashCodes(className.GetHashCode(), methodName.GetHashCode());
+            return CombineHashCodes(comparer.GetHashCode(className), comparer.GetHashCode(methodName));
         }
 
         public override string ToString()

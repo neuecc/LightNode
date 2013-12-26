@@ -1,4 +1,4 @@
-﻿using LightNode.Client;
+﻿// using LightNode.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,12 +14,12 @@ namespace LightNode.Sample.Client
         {
             // not yet...
 
-            var client = new LightNodeClient("http://localhost:12345") { ContentFormatter = new LightNode.Formatter.JavaScriptContentTypeFormatter() };
+            // var client = new LightNodeClient("http://localhost:12345") { ContentFormatter = new LightNode.Formatter.JavaScriptContentTypeFormatter() };
 
         
 
-            var v = client.My.EchoAsync("hogehoge").Result;
-            Console.WriteLine(v);
+            // var v = client.My.EchoAsync("hogehoge").Result;
+            // Console.WriteLine(v);
         }
     }
 }
