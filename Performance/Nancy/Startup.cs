@@ -1,16 +1,13 @@
-﻿using Owin;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using Nancy;
+using Owin;
 
-namespace Nancy
+namespace Nancyfx
 {
     public class Startup
     {
         public void Configuration(IAppBuilder app)
         {
-            app.UseNancy(new Owin.NancyOptions
+            app.UseNancy(new Nancy.Owin.NancyOptions
             {
                 Bootstrapper = new DefaultNancyBootstrapper()
             });
@@ -23,7 +20,7 @@ namespace Nancy
         {
             Get["/{name}/{x}/{y}"] = (x) =>
             {
-                return new MyClass { Name = x.name, Sum = x.x + x.y };
+                return Response.AsJson(new MyClass { Name = x.name, Sum = (int) x.x + (int) x.y });
             };
         }
     }
