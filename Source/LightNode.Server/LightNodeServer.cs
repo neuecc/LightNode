@@ -352,7 +352,7 @@ namespace LightNode.Server
                         EmitOK(environment);
 
                         var responseStream = environment["owin.ResponseBody"] as Stream;
-                        formatter.Serialize(responseStream, result);
+                        formatter.Serialize(new UnflushableStream(responseStream), result);
                     }
 
                     return;
