@@ -349,12 +349,12 @@ namespace LightNode.Server
                         // append header
                         var responseHeader = environment["owin.ResponseHeaders"] as IDictionary<string, string[]>;
                         responseHeader["Content-Type"] = new[] { formatter.MediaType };
+                        EmitOK(environment);
 
                         var responseStream = environment["owin.ResponseBody"] as Stream;
                         formatter.Serialize(responseStream, result);
                     }
 
-                    EmitOK(environment);
                     return;
                 }
                 else

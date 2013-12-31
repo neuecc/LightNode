@@ -6,25 +6,31 @@ namespace LightNode.Formatter
 {
     public class JsonNetContentFormatter : LightNode.Formatter.ContentFormatterBase
     {
+        readonly JsonSerializer serializer;
+
         public JsonNetContentFormatter(string mediaType = "application/json", string ext = "json")
+            : this(new JsonSerializer(), mediaType, ext)
+        {
+        }
+        public JsonNetContentFormatter(JsonSerializer serializer, string mediaType = "application/json", string ext = "json")
             : base(mediaType, ext)
         {
+            this.serializer = serializer;
         }
 
         public override void Serialize(System.IO.Stream stream, object obj)
         {
-            var json = JsonConvert.SerializeObject(obj);
-            var enc = System.Text.Encoding.UTF8.GetBytes(json);
-            stream.Write(enc, 0, enc.Length);
+            using (var sw = new StreamWriter(stream))
+            {
+                serializer.Serialize(sw, obj);
+            }
         }
 
         public override object Deserialize(Type type, System.IO.Stream stream)
         {
             using (var sr = new StreamReader(stream))
-            using (var jr = new JsonTextReader(sr))
             {
-                var serializer = new JsonSerializer();
-                return serializer.Deserialize(jr, type);
+                return serializer.Deserialize(sr, type);
             }
         }
     }
