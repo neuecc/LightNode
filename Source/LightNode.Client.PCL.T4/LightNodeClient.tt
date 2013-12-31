@@ -10,8 +10,8 @@
 <#@ import namespace="System.Threading.Tasks" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension="Generated.cs" encoding="utf-8" #>
-<#@ assembly name="$(SolutionDir)\bin\LightNode.Server.dll" #>
-<#@ assembly name="$(SolutionDir)\bin\Service.dll" #>
+<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Server.dll" #>
+<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Performance.dll" #>
 <#
     // ------------- T4 Configuration ------------- //
     
@@ -26,6 +26,9 @@
 
     // 4. Set Additional using Namespace
     var usingNamespaces = new [] {"System.Linq"};
+
+	// 5. Set append "Async" suffix to method name(ex: CalcAsync or Calc)
+	var addAsyncSuffix = true;
 
     // ----------End T4 Configuration ------------- //
 
@@ -45,13 +48,13 @@
 
     var ignoreMethods = new HashSet<string> { "Equals", "GetHashCode", "GetType", "ToString" };
 
-    var typeFromAssemblyLoad = System.AppDomain.CurrentDomain
+    var typeFromAssemblies = System.AppDomain.CurrentDomain
         .GetAssemblies()
         .Where(x => !Regex.IsMatch(x.GetName().Name, "^(mscorlib|System|Sytem.Web|EnvDTE)$"))
         .SelectMany(x => x.GetTypes())
-        .Where(x => x != null);
+        .Where(x => x != null && x.FullName != "LightNode.Server.LightNodeContract");
 
-    var contracts = typeFromAssemblyLoad
+    var contracts = typeFromAssemblies
         .Where(x =>
         {
             while (x != typeof(object) && x != null)
@@ -212,7 +215,7 @@ namespace <#= namespaceName #>
        #region <#= contract.InterfaceName #>
 
 <# foreach(var operation in contract.Operations) { #>
-        <#= BeautifyType(operation.ReturnType) #> <#= contract.InterfaceName #>.<#= operation.OperationName #>Async(<#= operation.ParameterString #>)
+        <#= BeautifyType(operation.ReturnType) #> <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #>)
         {
             return PostAsync<#= operation.ReturnType == typeof(Task) ? "" : "<" + UnwrapTask(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
             {
@@ -232,7 +235,7 @@ namespace <#= namespaceName #>
     public interface <#= contract.InterfaceName #>
     {
 <# foreach(var operation in contract.Operations) { #>
-        <#= BeautifyType(operation.ReturnType) #> <#= operation.OperationName #>Async(<#= operation.ParameterStringWithOptional #>);
+        <#= BeautifyType(operation.ReturnType) #> <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #>);
 <# } #>
     }
 
