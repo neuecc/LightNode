@@ -17,9 +17,9 @@ namespace LightNode.Performance
 
     public class Perf : LightNode.Server.LightNodeContract
     {
-        public MyClass Echo(string name, int x, int y)
+        public MyClass Echo(string name, int x, int y, MyEnum e)
         {
-            return new MyClass { Name = name, Sum = x + y };
+            return new MyClass { Name = name, Sum = x + y * (int)e };
         }
     }
 
@@ -27,5 +27,12 @@ namespace LightNode.Performance
     {
         public string Name { get; set; }
         public int Sum { get; set; }
+    }
+
+    public enum MyEnum
+    {
+        A = 2,
+        B = 3,
+        C = 4
     }
 }
