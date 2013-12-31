@@ -1,1 +1,1 @@
-ab.exe -n 40000 -c 20 "http://localhost:58385/Get/hogehoge/10/20"
+ab.exe -n 40000 -c 20 "http://localhost:58385/Get/hoge/10/2/3"

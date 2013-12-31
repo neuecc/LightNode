@@ -14,8 +14,9 @@ namespace RawHttpHandler
             var name = context.Request.QueryString.Get("name");
             var x = int.Parse(context.Request.QueryString.Get("x"));
             var y = int.Parse(context.Request.QueryString.Get("y"));
+            var e = Enum.Parse(typeof(MyEnum), context.Request.QueryString.Get("e"));
 
-            var mc = new MyClass { Name = name, Sum = x + y };
+            var mc = new MyClass { Name = name, Sum = (x + y) * (int)e };
 
             context.Response.ContentType = "application/json";
 
@@ -40,4 +41,12 @@ namespace RawHttpHandler
         public string Name { get; set; }
         public int Sum { get; set; }
     }
+
+    public enum MyEnum
+    {
+        A = 2,
+        B = 3,
+        C = 4
+    }
+
 }

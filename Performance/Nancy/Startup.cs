@@ -18,9 +18,9 @@ namespace Nancyfx
     {
         public HomeModule()
         {
-            Get["/{name}/{x}/{y}"] = (x) =>
+            Get["/{name}/{x}/{y}/{e}"] = (x) =>
             {
-                return Response.AsJson(new MyClass { Name = x.name, Sum = (int) x.x + (int) x.y });
+                return Response.AsJson(new MyClass { Name = x.name, Sum = ((int)x.x + (int)x.y) * (int)x.e });
             };
         }
     }
@@ -29,5 +29,12 @@ namespace Nancyfx
     {
         public string Name { get; set; }
         public int Sum { get; set; }
+    }
+
+    public enum MyEnum
+    {
+        A = 2,
+        B = 3,
+        C = 4
     }
 }

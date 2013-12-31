@@ -19,7 +19,7 @@ namespace LightNode.Performance
     {
         public MyClass Echo(string name, int x, int y, MyEnum e)
         {
-            return new MyClass { Name = name, Sum = x + y * (int)e };
+            return new MyClass { Name = name, Sum = (x + y) * (int)e };
         }
     }
 

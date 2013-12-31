@@ -21,10 +21,10 @@ namespace WebAPI
     public class PerfController : ApiController
     {
         [HttpGet]
-        [Route("Get/{name}/{x}/{y}")]
-        public MyClass Get(string name, int x, int y)
+        [Route("Get/{name}/{x}/{y}/{e}")]
+        public MyClass Get(string name, int x, int y, MyEnum e)
         {
-            return new MyClass { Name = name, Sum = x + y };
+            return new MyClass { Name = name, Sum = (x + y) * (int)e };
         }
     }
 
@@ -32,5 +32,11 @@ namespace WebAPI
     {
         public string Name { get; set; }
         public int Sum { get; set; }
+    }
+    public enum MyEnum
+    {
+        A = 2,
+        B = 3,
+        C = 4
     }
 }

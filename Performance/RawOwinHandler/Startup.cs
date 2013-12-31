@@ -18,8 +18,9 @@ namespace RawOwinHandler
                 var name = context.Request.Query.Get("name");
                 var x = int.Parse(context.Request.Query.Get("x"));
                 var y = int.Parse(context.Request.Query.Get("y"));
+                var e = Enum.Parse(typeof(MyEnum), context.Request.Query.Get("e"));
 
-                var mc = new MyClass { Name = name, Sum = x + y };
+                var mc = new MyClass { Name = name, Sum = (x + y) * (int)e };
 
                 var json = JsonConvert.SerializeObject(mc);
                 var enc = System.Text.Encoding.UTF8.GetBytes(json);
@@ -33,5 +34,12 @@ namespace RawOwinHandler
     {
         public string Name { get; set; }
         public int Sum { get; set; }
+    }
+
+    public enum MyEnum
+    {
+        A = 2,
+        B = 3,
+        C = 4
     }
 }
