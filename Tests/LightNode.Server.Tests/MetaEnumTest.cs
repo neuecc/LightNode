@@ -51,5 +51,17 @@ namespace LightNode.Server.Tests
             meta.TryParse("a", true, out result).IsTrue();
             result.Is(MyEnum.A);
         }
+
+        [TestMethod]
+        public void FlagParse()
+        {
+            var meta = new MetaEnum(typeof(MyFlagEnum));
+
+            object result;
+            meta.TryParse("3", out result).IsTrue();
+            meta.TryParse(3, out result).IsTrue();
+            meta.TryParse(MyFlagEnum.B | MyFlagEnum.C, out result).IsTrue();
+
+        }
     }
 }
