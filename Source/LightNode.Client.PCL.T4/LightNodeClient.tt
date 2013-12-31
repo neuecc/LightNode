@@ -22,7 +22,7 @@
     var namespaceName = "LightNode.Client";
 
     // 3. Set DefaultContentFormatter Construct String
-    var defaultContentFormatter = "new LightNode.Formatter.XmlContentTypeFormatter()";
+    var defaultContentFormatter = "new LightNode.Formatter.XmlContentFormatter()";
 
     // 4. Set Additional using Namespace
     var usingNamespaces = new [] {"System.Linq"};

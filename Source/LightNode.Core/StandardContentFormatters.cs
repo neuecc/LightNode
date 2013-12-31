@@ -33,17 +33,17 @@ namespace LightNode.Formatter
         public abstract object Deserialize(Type type, Stream stream);
     }
 
-    public class TextContentTypeFormatter : ContentFormatterBase
+    public class TextContentFormatter : ContentFormatterBase
     {
         public Encoding Encoding { get; protected set; }
 
-        public TextContentTypeFormatter(string mediaType = "text/plain", string ext = "txt")
+        public TextContentFormatter(string mediaType = "text/plain", string ext = "txt")
             : this(Encoding.UTF8, mediaType, ext)
         {
 
         }
 
-        public TextContentTypeFormatter(Encoding encoding, string mediaType = "text/plain", string ext = "txt")
+        public TextContentFormatter(Encoding encoding, string mediaType = "text/plain", string ext = "txt")
             : base(mediaType, ext)
         {
             this.Encoding = encoding;
@@ -70,24 +70,24 @@ namespace LightNode.Formatter
         }
     }
 
-    public class HtmlContentTypeFormatter : TextContentTypeFormatter
+    public class HtmlContentFormatter : TextContentFormatter
     {
-        public HtmlContentTypeFormatter(string mediaType = "text/html", string ext = "html")
+        public HtmlContentFormatter(string mediaType = "text/html", string ext = "html")
             : this(Encoding.UTF8, mediaType, ext)
         {
 
         }
 
-        public HtmlContentTypeFormatter(Encoding encoding, string mediaType = "text/html", string ext = "html")
+        public HtmlContentFormatter(Encoding encoding, string mediaType = "text/html", string ext = "html")
             : base(mediaType, ext)
         {
             this.Encoding = encoding;
         }
     }
 
-    public class RawOctetStreamContentTypeFormatter : ContentFormatterBase
+    public class RawOctetStreamContentFormatter : ContentFormatterBase
     {
-        public RawOctetStreamContentTypeFormatter(string mediaType = "application/octet-stream", string ext = "")
+        public RawOctetStreamContentFormatter(string mediaType = "application/octet-stream", string ext = "")
             : base(mediaType, ext)
         {
 
@@ -114,9 +114,9 @@ namespace LightNode.Formatter
         }
     }
 
-    public class XmlContentTypeFormatter : ContentFormatterBase
+    public class XmlContentFormatter : ContentFormatterBase
     {
-        public XmlContentTypeFormatter(string mediaType = "application/xml", string ext = "xml")
+        public XmlContentFormatter(string mediaType = "application/xml", string ext = "xml")
             : base(mediaType, ext)
         {
 
@@ -133,9 +133,9 @@ namespace LightNode.Formatter
         }
     }
 
-    public class DataContractContentTypeFormatter : ContentFormatterBase
+    public class DataContractContentFormatter : ContentFormatterBase
     {
-        public DataContractContentTypeFormatter(string mediaType = "application/xml", string ext = "xml")
+        public DataContractContentFormatter(string mediaType = "application/xml", string ext = "xml")
             : base(mediaType, ext)
         {
 
@@ -154,9 +154,9 @@ namespace LightNode.Formatter
         }
     }
 
-    public class DataContractJsonContentTypeFormatter : ContentFormatterBase
+    public class DataContractJsonContentFormatter : ContentFormatterBase
     {
-        public DataContractJsonContentTypeFormatter(string mediaType = "application/json", string ext = "json")
+        public DataContractJsonContentFormatter(string mediaType = "application/json", string ext = "json")
             : base(mediaType, ext)
         {
 
