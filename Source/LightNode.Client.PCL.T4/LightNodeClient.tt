@@ -27,8 +27,8 @@
     // 4. Set Additional using Namespace
     var usingNamespaces = new [] {"System.Linq"};
 
-	// 5. Set append "Async" suffix to method name(ex: CalcAsync or Calc)
-	var addAsyncSuffix = true;
+    // 5. Set append "Async" suffix to method name(ex: CalcAsync or Calc)
+    var addAsyncSuffix = true;
 
     // ----------End T4 Configuration ------------- //
 
@@ -212,21 +212,21 @@ namespace <#= namespaceName #>
         }
 
 <# foreach(var contract in contracts) { #>
-       #region <#= contract.InterfaceName #>
+        #region <#= contract.InterfaceName #>
 
 <# foreach(var operation in contract.Operations) { #>
         <#= BeautifyType(operation.ReturnType) #> <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #>)
         {
-            return PostAsync<#= operation.ReturnType == typeof(Task) ? "" : "<" + UnwrapTask(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", new FormUrlEncodedContent(new KeyValuePair<string, string>[]
-            {
+            var list = new List<KeyValuePair<string, string>>(<#= operation.Parameters.Length - 1 #>);
 <# foreach(var parameter in operation.Parameters.Where(x => x.Name != "cancellationToken")) { #>
-                new KeyValuePair<string, string>("<#= parameter.Name #>", <#= parameter.Name #>.ToString()),
+            if (<#= parameter.Name #> != null) list.Add(new KeyValuePair<string, string>("<#= parameter.Name #>", <#= parameter.Name #>.ToString()));
 <# } #>
-            }), cancellationToken);
+
+            return PostAsync<#= operation.ReturnType == typeof(Task) ? "" : "<" + UnwrapTask(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", new FormUrlEncodedContent(list), cancellationToken);
         }
 
 <# } #>
-       #endregion
+        #endregion
 
 <# } #>
     }

@@ -21,6 +21,15 @@ namespace LightNode.Performance
         {
             return new MyClass { Name = name, Sum = (x + y) * (int)e };
         }
+
+        public void Test(string a = null, int? x = null)
+        {
+        }
+
+        public System.Threading.Tasks.Task Te()
+        {
+            return System.Threading.Tasks.Task.FromResult(1);
+        }
     }
 
     public class MyClass
