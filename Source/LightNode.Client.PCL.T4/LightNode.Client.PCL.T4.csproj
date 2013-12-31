@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{8B8399AE-D7FA-404B-956A-ACF6B7F2A98B}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LightNode.Client</RootNamespace>
     <AssemblyName>LightNode.Client</AssemblyName>
@@ -29,6 +29,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -40,16 +43,36 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LightNodeClient.Generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LightNodeClient.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Performance\LightNode.Performance\LightNode.Performance.csproj">
+      <Project>{eb2d7853-3c75-49a4-a250-912d4e5488b4}</Project>
+      <Name>LightNode.Performance</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LightNode.Core\LightNode.Core.csproj">
       <Project>{072d35ef-af4a-4da0-849a-6b0b9196c959}</Project>
       <Name>LightNode.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\LightNode.Formatter.JsonNet\LightNode.Formatter.JsonNet.csproj">
+      <Project>{80ea8854-2596-4eed-9d59-dc13cc55bbd9}</Project>
+      <Name>LightNode.Formatter.JsonNet</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LightNodeClient.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightNodeClient.Generated.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
