@@ -12,7 +12,7 @@ namespace LightNode.Server.Tests
         A = 0,
         B = 1,
         C = 2,
-        D = 3,
+        D = 300,
     }
 
     [Flags]
@@ -21,46 +21,79 @@ namespace LightNode.Server.Tests
         A = 0,
         B = 1,
         C = 2,
-        D = 4
+        D = 4,
+        // = 8
+        E = 16
     }
 
     [TestClass]
     public class MetaEnumTest
     {
-        [TestMethod]
-        public void IsDefined()
-        {
-            var meta = new MetaEnum(typeof(MyEnum));
+        public TestContext TestContext { get; set; }
 
-            meta.IsDefined(MyEnum.A).IsTrue();
-            meta.IsDefined(MyEnum.C).IsTrue();
-            meta.IsDefined(MyFlagEnum.A).IsFalse();
-
-            meta.IsDefined((int)MyEnum.A).IsTrue();
-            meta.IsDefined((uint)MyEnum.A).IsFalse();
-
-            meta.IsDefined("a").IsTrue();
-        }
+        // parse pattern, string | string value | value | mismatchtype value | enum
 
         [TestMethod]
+        [TestCase("B", false, true, MyEnum.B)] // parse, ignoreCase, parseSuccess, result
+        [TestCase("b", false, false, null)]
+        [TestCase("b", true, true, MyEnum.B)]
+        [TestCase("bb", true, false, null)]
+        [TestCase("3", false, false, null)]
+        [TestCase("2", false, true, MyEnum.C)]
+        [TestCase(null, false, false, null)]
+        [TestCase("", false, false, null)]
+        [TestCase("34hoge", false, false, null)]
+        [TestCase(3, false, false, null)]
+        [TestCase(2, false, true, MyEnum.C)]
+        [TestCase(3u, false, false, null)]
+        [TestCase(2u, false, false, null)]
+        [TestCase(MyEnum.B, false, true, MyEnum.B)]
+        [TestCase((MyEnum)100, false, false, null)]
+
         public void TryParse()
         {
             var meta = new MetaEnum(typeof(MyEnum));
 
-            object result;
-            meta.TryParse("a", true, out result).IsTrue();
-            result.Is(MyEnum.A);
+            TestContext.Run((object parse, bool ignoreCase, bool success, object result) =>
+            {
+                object r;
+                meta.TryParse(parse, ignoreCase, out r).Is(success);
+                if (success)
+                {
+                    r.Is(result);
+                }
+            });
         }
 
         [TestMethod]
+        [TestCase("B", false, true, MyFlagEnum.B)] // parse, ignoreCase, parseSuccess, result
+        [TestCase("b", false, false, null)]
+        [TestCase("b", true, true, MyFlagEnum.B)]
+        [TestCase("10", false, false, null)]
+        [TestCase("2", false, true, MyFlagEnum.C)]
+        [TestCase("3", false, true, MyFlagEnum.B | MyFlagEnum.C)]
+        [TestCase("20", false, true, MyFlagEnum.D | MyFlagEnum.E)]
+        [TestCase(3, false, true, MyFlagEnum.B | MyFlagEnum.C)]
+        [TestCase(2, false, true, MyFlagEnum.C)]
+        [TestCase(10, false, false, null)]
+        [TestCase(3u, false, false, null)]
+        [TestCase(2u, false, false, null)]
+        [TestCase(MyFlagEnum.B, false, true, MyFlagEnum.B)]
+        [TestCase(MyFlagEnum.B | MyFlagEnum.C, false, true, MyFlagEnum.B | MyFlagEnum.C)]
+        [TestCase((MyFlagEnum)100, false, false, null)]
         public void FlagParse()
         {
             var meta = new MetaEnum(typeof(MyFlagEnum));
 
-            object result;
-            meta.TryParse("3", out result).IsTrue();
-            meta.TryParse(3, out result).IsTrue();
-            meta.TryParse(MyFlagEnum.B | MyFlagEnum.C, out result).IsTrue();
+            TestContext.Run((object parse, bool ignoreCase, bool success, object result) =>
+            {
+                object r;
+                meta.TryParse(parse, ignoreCase, out r).Is(success);
+                if (success)
+                {
+                    r.Is(result);
+                }
+            });
 
         }
     }

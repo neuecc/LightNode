@@ -40,7 +40,7 @@ namespace LightNode.Server
         readonly object unusedBits;
         readonly Func<object, object, object> or;
         readonly Func<object, object, object> and;
-        readonly Func<object, object, object> xor;
+        // readonly Func<object, object, object> xor;
         readonly Func<object, object> not;
 
         internal MetaEnum(Type enumType)
@@ -73,7 +73,7 @@ namespace LightNode.Server
 
             or = Expression.Lambda<Func<object, object, object>>(Expression.Convert(Expression.Or(unboxX, unboxY), typeof(object)), objectX, objectY).Compile();
             and = Expression.Lambda<Func<object, object, object>>(Expression.Convert(Expression.And(unboxX, unboxY), typeof(object)), objectX, objectY).Compile();
-            xor = Expression.Lambda<Func<object, object, object>>(Expression.Convert(Expression.ExclusiveOr(unboxX, unboxY), typeof(object)), objectX, objectY).Compile();
+            // xor = Expression.Lambda<Func<object, object, object>>(Expression.Convert(Expression.ExclusiveOr(unboxX, unboxY), typeof(object)), objectX, objectY).Compile();
             not = Expression.Lambda<Func<object, object>>(Expression.Convert(Expression.Not(unboxX), typeof(object)), objectX).Compile();
 
             defaultConst = Activator.CreateInstance(underlyingType);
@@ -91,13 +91,15 @@ namespace LightNode.Server
 
         bool IsValidFlag(object flags)
         {
-            return and(flags, unusedBits).Equals(defaultConst);
-        }
-
-        public bool IsDefined(object o, bool ignoreCase = false)
-        {
-            object result;
-            return TryParse(o, ignoreCase, out result);
+            var t = flags.GetType();
+            if (t == EnumUnderlyingType || t == EnumType)
+            {
+                return and(flags, unusedBits).Equals(defaultConst);
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public bool TryParse(object value, out object result)
@@ -105,6 +107,9 @@ namespace LightNode.Server
             return TryParse(value, false, out result);
         }
 
+        /// <summary>
+        /// TryParse is mixed Enum.ToObject and Enum.TryParse and bitflag check.
+        /// </summary>
         public bool TryParse(object value, bool ignoreCase, out object result)
         {
             if (value == null)
