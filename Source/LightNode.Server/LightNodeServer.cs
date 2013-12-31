@@ -53,7 +53,18 @@ namespace LightNode.Server
                     var handler = new OperationHandler();
 
                     handler.MethodName = methodName;
-                    handler.Arguments = methodInfo.GetParameters();
+                    handler.Arguments = methodInfo.GetParameters()
+                        .Select(x => new ParameterInfoSlim
+                        {
+                            Name = x.Name,
+                            DefaultValue = x.DefaultValue,
+                            IsOptional = x.IsOptional,
+                            ParameterType = x.ParameterType,
+                            ParameterTypeIsArray = x.ParameterType.IsArray,
+                            ParameterTypeIsClass = x.ParameterType.IsClass,
+                            ParameterTypeIsNullable = x.ParameterType.IsNullable()
+                        })
+                        .ToArray();
                     handler.ReturnType = methodInfo.ReturnType;
 
                     foreach (var argument in handler.Arguments)
@@ -232,14 +243,14 @@ namespace LightNode.Server
 
                         var values = requestParameter[item.Name];
                         var count = values.Count();
-                        if (count == 0 && !item.ParameterType.IsArray)
+                        if (count == 0 && !item.ParameterTypeIsArray)
                         {
                             if (item.IsOptional)
                             {
                                 methodParameters[i] = item.DefaultValue;
                                 continue;
                             }
-                            else if (item.ParameterType.IsClass || item.ParameterType.IsNullable())
+                            else if (item.ParameterTypeIsClass || item.ParameterTypeIsNullable)
                             {
                                 methodParameters[i] = null;
                                 continue;
@@ -251,7 +262,7 @@ namespace LightNode.Server
                                 return;
                             }
                         }
-                        else if (!item.ParameterType.IsArray)
+                        else if (!item.ParameterTypeIsArray)
                         {
                             var conv = AllowRequestType.GetConverter(item.ParameterType);
                             if (conv == null) throw new InvalidOperationException("critical:register code is broken");
@@ -267,7 +278,7 @@ namespace LightNode.Server
                                 methodParameters[i] = item.DefaultValue;
                                 continue;
                             }
-                            else if (item.ParameterType.IsClass || item.ParameterType.IsNullable())
+                            else if (item.ParameterTypeIsClass || item.ParameterTypeIsNullable)
                             {
                                 methodParameters[i] = null;
                                 continue;
@@ -279,7 +290,6 @@ namespace LightNode.Server
                                 return;
                             }
                         }
-
 
                         var arrayConv = AllowRequestType.GetArrayConverter(item.ParameterType);
                         if (arrayConv == null) throw new InvalidOperationException("critical:register code is broken");

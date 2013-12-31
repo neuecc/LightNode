@@ -9,7 +9,7 @@ namespace LightNode.Server
     {
         public string MethodName { get; set; }
 
-        public ParameterInfo[] Arguments { get; set; }
+        public ParameterInfoSlim[] Arguments { get; set; }
 
         public Type ReturnType { get; set; }
 
@@ -24,6 +24,18 @@ namespace LightNode.Server
         public Action<IDictionary<string, object>, object[]> MethodActionBody { get; set; }
 
         public Func<IDictionary<string, object>, object[], Task> MethodAsyncActionBody { get; set; }
+    }
+
+    internal class ParameterInfoSlim
+    {
+        public Type ParameterType { get; set; }
+        public bool ParameterTypeIsArray { get; set; }
+        public bool ParameterTypeIsClass { get; set; }
+        public bool ParameterTypeIsNullable { get; set; }
+
+        public string Name { get; set; }
+        public bool IsOptional { get; set; }
+        public object DefaultValue { get; set; }
     }
 
     internal enum HandlerBodyType
