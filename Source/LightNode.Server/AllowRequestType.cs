@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace LightNode.Server
 {
     internal class AllowRequestType
     {
         public delegate bool TryParse(string x, out object result);
+
+        readonly static ConcurrentDictionary<Type, MetaEnum> metaEnumCache = new ConcurrentDictionary<Type, MetaEnum>();
+        readonly static ConcurrentDictionary<Type, Func<int, Array>> arrayInitCache = new ConcurrentDictionary<Type, Func<int, Array>>();
 
         static readonly Dictionary<Type, TryParse> convertTypeDictionary = new Dictionary<Type, TryParse>(33)
         {
@@ -219,9 +224,7 @@ namespace LightNode.Server
         internal static bool IsAllowType(Type targetType)
         {
             return GetConverter(targetType) != null
-                || GetArrayConverter(targetType) != null
-                || targetType.IsEnum
-                || (targetType.IsNullable() && targetType.GetGenericArguments().First().IsEnum);
+                || GetArrayConverter(targetType) != null;
         }
 
         internal static TryParse GetConverter(Type targetType)
@@ -232,17 +235,18 @@ namespace LightNode.Server
                 : null;
             if (result != null) return result;
 
-
             if (targetType.IsEnum)
             {
-                return new TryParse((string x, out object o) => AllowRequestType.TryParseEnum(targetType, x, out o));
+                var meta = metaEnumCache.GetOrAdd(targetType, x => new MetaEnum(x));
+                return new TryParse((string x, out object o) => meta.TryParse(x, true, out o));
             }
             else if (targetType.IsNullable())
             {
                 var genArg = targetType.GetGenericArguments().First();
                 if (genArg.IsEnum)
                 {
-                    return new TryParse((string x, out object o) => AllowRequestType.TryParseEnum(genArg, x, out o));
+                    var meta = metaEnumCache.GetOrAdd(genArg, x => new MetaEnum(x));
+                    return new TryParse((string x, out object o) => meta.TryParse(x, true, out o));
                 }
             }
 
@@ -260,53 +264,43 @@ namespace LightNode.Server
             var elemType = targetType.GetElementType();
             if (elemType.IsEnum)
             {
-                // TODO:perforamnce improvement 
+                var tryParse = GetConverter(elemType);
+
                 return new Func<IEnumerable<string>, object>((IEnumerable<string> xs) =>
                 {
                     var success = true;
                     var array = xs.Select(x =>
                     {
                         object @out;
-                        if (!TryParseEnum(elemType, x, out @out))
+                        if (!tryParse(x, out @out))
                         {
                             success = false;
                         }
 
-                        return (success)
-                            ? Convert.ChangeType(@out, elemType)
-                            : null;
+                        return (success) ? @out : null;
                     })
                     .ToArray();
 
+                    var arrayInitializer = arrayInitCache.GetOrAdd(elemType, _type =>
+                    {
+                        var length = Expression.Parameter(typeof(int), "length");
+                        return Expression.Lambda<Func<int, Array>>(Expression.NewArrayBounds(_type, length), length).Compile();
+                    });
+
                     if (success)
                     {
-                        var resultArray = Array.CreateInstance(elemType, array.Length);
-                        Array.Copy(array, resultArray, resultArray.Length);
+                        var resultArray = arrayInitializer(array.Length);
+                        Array.Copy(array, resultArray, array.Length);
                         return resultArray;
                     }
                     else
                     {
-                        return Array.CreateInstance(elemType, 0);
+                        return arrayInitializer(0);
                     }
                 });
             }
 
             return result;
-        }
-
-        static bool TryParseEnum(Type targetType, string value, out object result)
-        {
-            try
-            {
-                // TODO:very ugly way, must be perf improvement
-                result = Enum.Parse(targetType, value, ignoreCase: true);
-                return true;
-            }
-            catch
-            {
-                result = null;
-                return false;
-            }
         }
     }
 }
