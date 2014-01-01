@@ -363,9 +363,14 @@ namespace LightNode.Server
 
                         var responseStream = environment["owin.ResponseBody"] as Stream;
                         formatter.Serialize(new UnflushableStream(responseStream), result);
-                    }
 
-                    return;
+                        return;
+                    }
+                    else
+                    {
+                        EmitNoContent(environment);
+                        return;
+                    }
                 }
                 else
                 {
@@ -389,6 +394,11 @@ namespace LightNode.Server
         static void EmitOK(IDictionary<string, object> environment)
         {
             environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.OK; // 200
+        }
+
+        static void EmitNoContent(IDictionary<string, object> environment)
+        {
+            environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.NoContent; // 204
         }
 
         static void EmitBadRequest(IDictionary<string, object> environment)
