@@ -378,6 +378,11 @@ namespace LightNode.Server
                     return;
                 }
             }
+            catch (ReturnStatusCodeException statusException)
+            {
+                statusException.EmitCode(environment);
+                return;
+            }
             catch
             {
                 EmitInternalServerError(environment);
