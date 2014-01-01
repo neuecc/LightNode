@@ -10,9 +10,11 @@ namespace LightNode.Server
     public class LightNodeOptions
     {
         public AcceptVerbs DefaultAcceptVerb { get; private set; }
-        public bool UseOtherMiddleware { get; private set; }
         public IContentFormatter DefaultFormatter { get; private set; }
         public IContentFormatter[] SpecifiedFormatters { get; private set; }
+
+        public bool UseOtherMiddleware { get; set; }
+        public bool ParameterStringAllowsNull { get; set; }
 
         public LightNodeOptions(AcceptVerbs defaultAcceptVerb, IContentFormatter defaultFormatter, params IContentFormatter[] specifiedFormatters)
         {
@@ -20,6 +22,7 @@ namespace LightNode.Server
             DefaultFormatter = defaultFormatter;
             SpecifiedFormatters = specifiedFormatters;
             UseOtherMiddleware = false;
+            ParameterStringAllowsNull = false;
         }
     }
 

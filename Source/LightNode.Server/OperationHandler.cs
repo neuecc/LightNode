@@ -31,6 +31,7 @@ namespace LightNode.Server
         public Type ParameterType { get; set; }
         public bool ParameterTypeIsArray { get; set; }
         public bool ParameterTypeIsClass { get; set; }
+        public bool ParameterTypeIsString { get; set; }
         public bool ParameterTypeIsNullable { get; set; }
 
         public string Name { get; set; }

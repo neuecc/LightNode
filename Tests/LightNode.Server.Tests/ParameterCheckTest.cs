@@ -1,8 +1,10 @@
 ﻿using System;
+using Owin;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Net;
 using System.Collections.Generic;
+using LightNode.Formatter;
 
 namespace LightNode.Server.Tests
 {
@@ -37,8 +39,20 @@ namespace LightNode.Server.Tests
         [TestMethod]
         public void String()
         {
-            MockEnv.CreateRequest("/ParameterContract/String").GetString().Trim('\"').Is("null");
+            MockEnv.CreateRequest("/ParameterContract/String").GetAsync().Result.StatusCode.Is(HttpStatusCode.BadRequest);
             MockEnv.CreateRequest("/ParameterContract/String?x=hoge").GetString().Trim('\"').Is("hoge");
+
+            using(var server = Microsoft.Owin.Testing.TestServer.Create(app =>
+            {
+                app.UseLightNode(
+                    new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
+                        new JavaScriptContentTypeFormatter(),
+                        new TextContentFormatter()){ ParameterStringAllowsNull = true}
+                    , typeof(MockEnv).Assembly);
+            }))
+            {
+                server.CreateRequest("/ParameterContract/String").GetString().Trim('\"').Is("null");
+            }
         }
 
         [TestMethod]

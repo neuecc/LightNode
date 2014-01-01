@@ -62,6 +62,7 @@ namespace LightNode.Server
                             ParameterType = x.ParameterType,
                             ParameterTypeIsArray = x.ParameterType.IsArray,
                             ParameterTypeIsClass = x.ParameterType.IsClass,
+                            ParameterTypeIsString = x.ParameterType == typeof(string),
                             ParameterTypeIsNullable = x.ParameterType.IsNullable()
                         })
                         .ToArray();
@@ -250,7 +251,7 @@ namespace LightNode.Server
                                 methodParameters[i] = item.DefaultValue;
                                 continue;
                             }
-                            else if (item.ParameterTypeIsClass || item.ParameterTypeIsNullable)
+                            else if ((!item.ParameterTypeIsString || options.ParameterStringAllowsNull) && (item.ParameterTypeIsClass || item.ParameterTypeIsNullable))
                             {
                                 methodParameters[i] = null;
                                 continue;
@@ -278,7 +279,7 @@ namespace LightNode.Server
                                 methodParameters[i] = item.DefaultValue;
                                 continue;
                             }
-                            else if (item.ParameterTypeIsClass || item.ParameterTypeIsNullable)
+                            else if ((!item.ParameterTypeIsString || options.ParameterStringAllowsNull) && (item.ParameterTypeIsClass || item.ParameterTypeIsNullable))
                             {
                                 methodParameters[i] = null;
                                 continue;
