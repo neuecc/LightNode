@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1D780B80-C034-4AF9-8A47-3C4C3708E198}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\NuGet.Config = .nuget\NuGet.Config
@@ -61,6 +63,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WcfService", "Performance\WcfService\WcfService.csproj", "{7F1DBA87-5AEF-4DE4-AA67-A08B87D88900}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetMVC", "Performance\AspNetMVC\AspNetMVC.csproj", "{97307648-8671-4023-AA53-C5DE7DC79065}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Helios", "Performance\LightNode.Helios\LightNode.Helios.csproj", "{3AB75B9A-EDCE-4761-A71C-612E9BA48AC3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -140,6 +144,10 @@ Global
 		{97307648-8671-4023-AA53-C5DE7DC79065}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97307648-8671-4023-AA53-C5DE7DC79065}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97307648-8671-4023-AA53-C5DE7DC79065}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AB75B9A-EDCE-4761-A71C-612E9BA48AC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AB75B9A-EDCE-4761-A71C-612E9BA48AC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AB75B9A-EDCE-4761-A71C-612E9BA48AC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AB75B9A-EDCE-4761-A71C-612E9BA48AC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -156,5 +164,6 @@ Global
 		{64E7BD45-C57B-40D6-BC85-65CA9903A775} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 		{7F1DBA87-5AEF-4DE4-AA67-A08B87D88900} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 		{97307648-8671-4023-AA53-C5DE7DC79065} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
+		{3AB75B9A-EDCE-4761-A71C-612E9BA48AC3} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 	EndGlobalSection
 EndGlobal

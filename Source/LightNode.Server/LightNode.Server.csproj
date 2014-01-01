@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AllowRequestType.cs" />
+    <Compile Include="ReturnStatusCodeException.cs" />
     <Compile Include="LightNodeContract.cs" />
     <Compile Include="LightNodeOptions.cs" />
     <Compile Include="LightNodeServer.cs" />
