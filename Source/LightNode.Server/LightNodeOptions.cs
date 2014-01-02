@@ -14,7 +14,7 @@ namespace LightNode.Server
         public IContentFormatter[] SpecifiedFormatters { get; private set; }
 
         public bool UseOtherMiddleware { get; set; }
-        public bool ParameterStringAllowsNull { get; set; }
+        public bool ParameterStringImplicitNullAsDefault { get; set; }
 
         public LightNodeOptions(AcceptVerbs defaultAcceptVerb, IContentFormatter defaultFormatter, params IContentFormatter[] specifiedFormatters)
         {
@@ -22,7 +22,7 @@ namespace LightNode.Server
             DefaultFormatter = defaultFormatter;
             SpecifiedFormatters = specifiedFormatters;
             UseOtherMiddleware = false;
-            ParameterStringAllowsNull = false;
+            ParameterStringImplicitNullAsDefault = false;
         }
     }
 

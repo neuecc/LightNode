@@ -251,7 +251,7 @@ namespace LightNode.Server
                                 methodParameters[i] = item.DefaultValue;
                                 continue;
                             }
-                            else if ((!item.ParameterTypeIsString || options.ParameterStringAllowsNull) && (item.ParameterTypeIsClass || item.ParameterTypeIsNullable))
+                            else if ((!item.ParameterTypeIsString || options.ParameterStringImplicitNullAsDefault) && (item.ParameterTypeIsClass || item.ParameterTypeIsNullable))
                             {
                                 methodParameters[i] = null;
                                 continue;
@@ -279,7 +279,7 @@ namespace LightNode.Server
                                 methodParameters[i] = item.DefaultValue;
                                 continue;
                             }
-                            else if ((!item.ParameterTypeIsString || options.ParameterStringAllowsNull) && (item.ParameterTypeIsClass || item.ParameterTypeIsNullable))
+                            else if ((!item.ParameterTypeIsString || options.ParameterStringImplicitNullAsDefault) && (item.ParameterTypeIsClass || item.ParameterTypeIsNullable))
                             {
                                 methodParameters[i] = null;
                                 continue;

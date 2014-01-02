@@ -47,12 +47,20 @@ namespace LightNode.Server.Tests
                 app.UseLightNode(
                     new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
                         new JavaScriptContentTypeFormatter(),
-                        new TextContentFormatter()){ ParameterStringAllowsNull = true}
+                        new TextContentFormatter()){ ParameterStringImplicitNullAsDefault = true}
                     , typeof(MockEnv).Assembly);
             }))
             {
                 server.CreateRequest("/ParameterContract/String").GetString().Trim('\"').Is("null");
             }
+        }
+
+        [TestMethod]
+        public void StringNullDefaultValue()
+        {
+            MockEnv.CreateRequest("/ParameterContract/StringNullDefaultValue").GetString().Trim('\"').Is("null");
+            MockEnv.CreateRequest("/ParameterContract/StringNullDefaultValue?x=hoge").GetString().Trim('\"').Is("hoge");
+            MockEnv.CreateRequest("/ParameterContract/StringNullDefaultValue?x=hoge&x=huga").GetString().Trim('\"').Is("hoge");
         }
 
         [TestMethod]
@@ -144,6 +152,11 @@ namespace LightNode.Server.Tests
         }
 
         public string String(string x)
+        {
+            return (x == null) ? "null" : x;
+        }
+
+        public string StringNullDefaultValue(string x = null)
         {
             return (x == null) ? "null" : x;
         }
