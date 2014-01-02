@@ -162,7 +162,7 @@ namespace LightNode.Server
                 if (filters.Length != index)
                 {
                     // chain next filter
-                    return filters[index].Invoke(context, _ => invokeRecursive());
+                    return filters[index].Invoke(context, invokeRecursive);
                 }
                 else
                 {

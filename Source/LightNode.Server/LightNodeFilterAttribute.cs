@@ -16,7 +16,7 @@ namespace LightNode.Server
             set { order = value; }
         }
 
-        public abstract Task Invoke(OperationContext operationContext, Func<OperationContext, Task> next);
+        public abstract Task Invoke(OperationContext operationContext, Func<Task> next);
     }
 
     public class LightNodeFilterCollection : IEnumerable<LightNodeFilterAttribute>

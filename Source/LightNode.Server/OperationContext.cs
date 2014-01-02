@@ -33,24 +33,28 @@ namespace LightNode.Server
             Verb = verb;
         }
 
-        public bool IsDefined(Type attributeType)
+        public bool IsFilterDefined(Type attributeType)
         {
             return Filters.Contains(attributeType);
         }
 
-        public bool IsDefined<T>() where T : LightNodeFilterAttribute
+        public bool IsFilterDefined<T>() where T : LightNodeFilterAttribute
         {
             return Filters.Contains(typeof(T));
         }
 
-        public IEnumerable<Attribute> GetFilterAttributes(Type attributeType)
+        public IEnumerable<Attribute> GetFilters(Type attributeType)
         {
             return Filters[attributeType];
         }
 
-        public IEnumerable<T> GetFilterAttributes<T>() where T : LightNodeFilterAttribute
+        public IEnumerable<T> GetFilters<T>() where T : LightNodeFilterAttribute
         {
             return Filters[typeof(T)].Cast<T>();
+        }
+        public IEnumerable<LightNodeFilterAttribute> GetAllFilters()
+        {
+            return Filters.SelectMany(xs => xs);
         }
     }
 }
