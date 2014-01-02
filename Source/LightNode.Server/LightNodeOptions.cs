@@ -1,9 +1,6 @@
 ﻿using LightNode.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LightNode.Server
 {
@@ -16,6 +13,10 @@ namespace LightNode.Server
         public bool UseOtherMiddleware { get; set; }
         public bool ParameterStringImplicitNullAsDefault { get; set; }
 
+        public LightNodeFilterCollection Filters { get; private set; }
+
+        internal ParameterBinder parametertBinder = ParameterBinder.Default;
+
         public LightNodeOptions(AcceptVerbs defaultAcceptVerb, IContentFormatter defaultFormatter, params IContentFormatter[] specifiedFormatters)
         {
             DefaultAcceptVerb = defaultAcceptVerb;
@@ -23,6 +24,13 @@ namespace LightNode.Server
             SpecifiedFormatters = specifiedFormatters;
             UseOtherMiddleware = false;
             ParameterStringImplicitNullAsDefault = false;
+            Filters = new LightNodeFilterCollection();
+        }
+
+        public LightNodeOptions ConfigureWith(Action<LightNodeOptions> @this)
+        {
+            @this(this);
+            return this;
         }
     }
 

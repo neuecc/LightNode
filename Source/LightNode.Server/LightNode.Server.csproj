@@ -47,6 +47,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AllowRequestType.cs" />
+    <Compile Include="LightNodeFilterAttribute.cs" />
+    <Compile Include="OperationContext.cs" />
+    <Compile Include="OwinHelper.cs" />
+    <Compile Include="ParameterBinder.cs" />
     <Compile Include="ReturnStatusCodeException.cs" />
     <Compile Include="LightNodeContract.cs" />
     <Compile Include="LightNodeOptions.cs" />
