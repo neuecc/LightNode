@@ -28,6 +28,11 @@ namespace LightNode.Server
             list.Add(filter);
         }
 
+        public void Add(Func<OperationContext, Func<Task>, Task> invoke, int order = int.MaxValue)
+        {
+            list.Add(new AnonymousLightNodeFilter(invoke, order));
+        }
+
         public IEnumerator<LightNodeFilterAttribute> GetEnumerator()
         {
             return list.GetEnumerator();
@@ -36,6 +41,22 @@ namespace LightNode.Server
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+    }
+
+    internal class AnonymousLightNodeFilter : LightNodeFilterAttribute
+    {
+        readonly Func<OperationContext, Func<Task>, Task> invoke;
+
+        public AnonymousLightNodeFilter(Func<OperationContext, Func<Task>, Task> invoke, int order)
+        {
+            this.invoke = invoke;
+            this.Order = order;
+        }
+
+        public override Task Invoke(OperationContext operationContext, Func<Task> next)
+        {
+            return this.invoke(operationContext, next);
         }
     }
 }
