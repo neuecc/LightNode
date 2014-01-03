@@ -35,6 +35,11 @@ namespace LightNode.Server
             Parallel.ForEach(contractTypes, classType =>
             {
                 var className = classType.Name;
+                if (!classType.GetConstructors().Any(x => x.GetParameters().Length == 0))
+                {
+                    throw new InvalidOperationException(string.Format("Type needs parameterless constructor, class:{0}", classType.FullName));
+                }
+
                 foreach (var methodInfo in classType.GetMethods(BindingFlags.Public | BindingFlags.Instance))
                 {
                     if (methodInfo.IsSpecialName && (methodInfo.Name.StartsWith("set_") || methodInfo.Name.StartsWith("get_"))) continue; // as property
@@ -176,10 +181,21 @@ namespace LightNode.Server
                 statusException.EmitCode(environment);
                 return;
             }
-            catch
+            catch (Exception ex)
             {
-                environment.EmitInternalServerError();
-                throw;
+                switch (options.ErrorHandlingPolicy)
+                {
+                    case ErrorHandlingPolicy.ReturnInternalServerError:
+                        environment.EmitInternalServerError();
+                        return;
+                    case ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails:
+                        environment.EmitInternalServerError();
+                        environment.EmitStringMessage(ex.ToString());
+                        return;
+                    case ErrorHandlingPolicy.ThrowException:
+                    default:
+                        throw;
+                }
             }
         }
     }

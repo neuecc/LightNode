@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LightNode.Server
 {
-    // binder shuld be interface? customizable?
+    // binder shuold be interface? customizable?
 
     internal class ParameterBinder
     {

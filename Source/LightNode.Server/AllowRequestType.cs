@@ -266,6 +266,12 @@ namespace LightNode.Server
             {
                 var tryParse = GetConverter(elemType);
 
+                var arrayInitializer = arrayInitCache.GetOrAdd(elemType, _type =>
+                {
+                    var length = Expression.Parameter(typeof(int), "length");
+                    return Expression.Lambda<Func<int, Array>>(Expression.NewArrayBounds(_type, length), length).Compile();
+                });
+
                 return new Func<IEnumerable<string>, object>((IEnumerable<string> xs) =>
                 {
                     var success = true;
@@ -280,12 +286,6 @@ namespace LightNode.Server
                         return (success) ? @out : null;
                     })
                     .ToArray();
-
-                    var arrayInitializer = arrayInitCache.GetOrAdd(elemType, _type =>
-                    {
-                        var length = Expression.Parameter(typeof(int), "length");
-                        return Expression.Lambda<Func<int, Array>>(Expression.NewArrayBounds(_type, length), length).Compile();
-                    });
 
                     if (success)
                     {

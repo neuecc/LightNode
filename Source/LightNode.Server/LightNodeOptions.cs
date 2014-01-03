@@ -13,8 +13,11 @@ namespace LightNode.Server
         public bool UseOtherMiddleware { get; set; }
         public bool ParameterStringImplicitNullAsDefault { get; set; }
 
+        public ErrorHandlingPolicy ErrorHandlingPolicy { get; set; }
+
         public LightNodeFilterCollection Filters { get; private set; }
 
+        // currently internal only
         internal ParameterBinder parametertBinder = ParameterBinder.Default;
 
         public LightNodeOptions(AcceptVerbs defaultAcceptVerb, IContentFormatter defaultFormatter, params IContentFormatter[] specifiedFormatters)
@@ -24,6 +27,7 @@ namespace LightNode.Server
             SpecifiedFormatters = specifiedFormatters;
             UseOtherMiddleware = false;
             ParameterStringImplicitNullAsDefault = false;
+            ErrorHandlingPolicy = Server.ErrorHandlingPolicy.ThrowException;
             Filters = new LightNodeFilterCollection();
         }
 
@@ -39,6 +43,16 @@ namespace LightNode.Server
     {
         Get = 1,
         Post = 2
+    }
+
+    public enum ErrorHandlingPolicy
+    {
+        /// <summary>Do Nothing, throw next pipeline.</summary>
+        ThrowException = 0,
+        /// <summary>Response StatusCode is 500.</summary>
+        ReturnInternalServerError = 1,
+        /// <summary>Response StatusCode is 500 and ResponseBody includes error details for debugging.</summary>
+        ReturnInternalServerErrorIncludeErrorDetails = 2
     }
 
     // TODO:Attribute Configuration?
