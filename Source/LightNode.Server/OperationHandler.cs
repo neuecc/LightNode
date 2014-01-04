@@ -222,9 +222,9 @@ namespace LightNode.Server
                 {
                     using (var buffer = new MemoryStream())
                     {
-                        context.ContentFormatter.Serialize(buffer, result);
+                        context.ContentFormatter.Serialize(new UnflushableStream(buffer), result);
                         buffer.Position = 0;
-                        await buffer.CopyToAsync(responseStream);
+                        await buffer.CopyToAsync(responseStream).ConfigureAwait(false);
                     }
                 }
                 else

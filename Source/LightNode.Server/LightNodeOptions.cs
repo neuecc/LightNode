@@ -15,7 +15,7 @@ namespace LightNode.Server
 
         /// <summary>
         /// <pre>Use buffering when content formatter serialize, Default is true.</pre>
-        /// <pre>If you use top level stream buffering or needs performance, set to false for performance improvement.</pre>
+        /// <pre>If you use top level stream buffering, set to false for avoid double buffering.</pre>
         /// </summary>
         public bool BufferContentBeforeWrite { get; set; }
 
