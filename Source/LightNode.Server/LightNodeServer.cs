@@ -30,7 +30,8 @@ namespace LightNode.Server
 
             var contractTypes = hostAssemblies
                 .SelectMany(x => x.GetTypes())
-                .Where(x => typeof(LightNodeContract).IsAssignableFrom(x));
+                .Where(x => typeof(LightNodeContract).IsAssignableFrom(x))
+                .Where(x => !x.IsAbstract);
 
             Parallel.ForEach(contractTypes, classType =>
             {
@@ -138,14 +139,17 @@ namespace LightNode.Server
                     var formatter = options.DefaultFormatter;
                     if (ext != "")
                     {
-                        formatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
-                            .FirstOrDefault(x => x.Ext == ext);
+                        // TODO:need performance improvement
+                        var selectedFormatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
+                            .SelectMany(x => (x.Ext ?? "").Split('|'), (fmt, xt) => new { fmt, xt })
+                            .FirstOrDefault(x => x.xt == ext);
 
-                        if (formatter == null)
+                        if (selectedFormatter == null)
                         {
                             environment.EmitNotAcceptable();
                             return;
                         }
+                        formatter = selectedFormatter.fmt;
                     }
                     else if (requestHeader.TryGetValue("Accept", out accepts))
                     {
@@ -165,7 +169,7 @@ namespace LightNode.Server
                     {
                         Parameters = methodParameters,
                         ContentFormatter = formatter,
-                        Filters = handler.FiltersLookup
+                        Attributes = handler.AttributeLookup
                     };
                     await handler.Execute(options, context).ConfigureAwait(false);
                     return;

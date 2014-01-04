@@ -20,7 +20,7 @@ namespace LightNode.Server
 
         public Type ReturnType { get; private set; }
 
-        public ILookup<Type, LightNodeFilterAttribute> FiltersLookup { get; private set; }
+        public ILookup<Type, Attribute> AttributeLookup { get; private set; }
 
         readonly LightNodeFilterAttribute[] filters;
 
@@ -61,7 +61,10 @@ namespace LightNode.Server
                 .OrderBy(x => x.Order)
                 .ToArray();
 
-            this.FiltersLookup = this.filters.ToLookup(x => x.GetType());
+            this.AttributeLookup = classType.GetCustomAttributes(true)
+                .Concat(methodInfo.GetCustomAttributes(true))
+                .Cast<Attribute>()
+                .ToLookup(x => x.GetType());
 
             foreach (var argument in this.Arguments)
             {
@@ -212,6 +215,7 @@ namespace LightNode.Server
                 // append header
                 var responseHeader = environment["owin.ResponseHeaders"] as IDictionary<string, string[]>;
                 responseHeader["Content-Type"] = new[] { context.ContentFormatter.MediaType };
+                responseHeader["Encoding"] = new[] { "UTF-8" };
                 environment.EmitOK();
 
                 var responseStream = environment["owin.ResponseBody"] as Stream;

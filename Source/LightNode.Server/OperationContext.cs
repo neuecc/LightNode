@@ -22,8 +22,8 @@ namespace LightNode.Server
 
         internal object[] Parameters { get; set; }
 
-        // Type as typeof(LightNodeFilterAttribute)
-        internal ILookup<Type, LightNodeFilterAttribute> Filters { get; set; }
+        // Type as typeof(Attribute)
+        internal ILookup<Type, Attribute> Attributes { get; set; }
 
         internal OperationContext(IDictionary<string, object> environment, string contractName, string operationName, AcceptVerbs verb)
         {
@@ -33,28 +33,29 @@ namespace LightNode.Server
             Verb = verb;
         }
 
-        public bool IsFilterDefined(Type attributeType)
+        public bool IsAttributeDefined(Type attributeType)
         {
-            return Filters.Contains(attributeType);
+            return Attributes.Contains(attributeType);
         }
 
-        public bool IsFilterDefined<T>() where T : LightNodeFilterAttribute
+        public bool IsAttributeDefined<T>() where T : Attribute
         {
-            return Filters.Contains(typeof(T));
+            return Attributes.Contains(typeof(T));
         }
 
-        public IEnumerable<Attribute> GetFilters(Type attributeType)
+        public IEnumerable<Attribute> GetAttributes(Type attributeType)
         {
-            return Filters[attributeType];
+            return Attributes[attributeType];
         }
 
-        public IEnumerable<T> GetFilters<T>() where T : LightNodeFilterAttribute
+        public IEnumerable<T> GetAttributes<T>() where T : Attribute
         {
-            return Filters[typeof(T)].Cast<T>();
+            return Attributes[typeof(T)].Cast<T>();
         }
-        public IEnumerable<LightNodeFilterAttribute> GetAllFilters()
+
+        public IEnumerable<Attribute> GetAllAttributes()
         {
-            return Filters.SelectMany(xs => xs);
+            return Attributes.SelectMany(xs => xs);
         }
     }
 }
