@@ -5,9 +5,9 @@ using System.Text;
 
 namespace LightNode.Formatter
 {
-    public class JavaScriptContentTypeFormatter : ContentFormatterBase
+    public class JavaScriptContentFormatter : ContentFormatterBase
     {
-        public JavaScriptContentTypeFormatter(string mediaType = "application/json; charset=utf-8", string ext = "json")
+        public JavaScriptContentFormatter(string mediaType = "application/json; charset=utf-8", string ext = "json")
             : base(mediaType, ext)
         {
 

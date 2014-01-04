@@ -26,7 +26,7 @@ namespace LightNode.Sample.Server.SelfHost
             app.UseErrorPage();
             app.UseLightNode(
                 new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
-                new JavaScriptContentTypeFormatter()));
+                new JavaScriptContentFormatter()));
         }
     }
 

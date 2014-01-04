@@ -8,7 +8,7 @@
     <ProjectGuid>{072D35EF-AF4A-4DA0-849A-6B0B9196C959}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LightNode.Core</RootNamespace>
+    <RootNamespace>LightNode</RootNamespace>
     <AssemblyName>LightNode.Core</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile158</TargetFrameworkProfile>
@@ -36,9 +36,10 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IContentFormatter.cs" />
+    <Compile Include="Formatter\IContentFormatter.cs" />
+    <Compile Include="Diagnostics\ILogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StandardContentFormatters.cs" />
+    <Compile Include="Formatter\StandardContentFormatters.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

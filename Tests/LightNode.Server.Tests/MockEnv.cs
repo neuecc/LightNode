@@ -30,7 +30,7 @@ namespace LightNode.Server.Tests
             {
                 app.UseLightNode(
                     new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
-                        new JavaScriptContentTypeFormatter(),
+                        new JavaScriptContentFormatter(),
                         new TextContentFormatter())
                     , typeof(MockEnv).Assembly);
             });
