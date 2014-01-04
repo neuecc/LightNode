@@ -6,6 +6,7 @@ namespace LightNode.Server
 {
     // protect stream flush using Dispose
 
+    [Obsolete]
     internal class UnflushableStream : Stream
     {
         readonly Stream baseStream;

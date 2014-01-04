@@ -13,9 +13,16 @@ namespace LightNode.Server
         public bool UseOtherMiddleware { get; set; }
         public bool ParameterStringImplicitNullAsDefault { get; set; }
 
+        /// <summary>
+        /// <pre>Use buffering when content formatter serialize, Default is true.</pre>
+        /// <pre>If you use top level stream buffering or needs performance, set to false for performance improvement.</pre>
+        /// </summary>
+        public bool BufferContentBeforeWrite { get; set; }
+
         public ErrorHandlingPolicy ErrorHandlingPolicy { get; set; }
 
         public LightNodeFilterCollection Filters { get; private set; }
+
 
         // currently internal only
         internal ParameterBinder parametertBinder = ParameterBinder.Default;
@@ -27,6 +34,7 @@ namespace LightNode.Server
             SpecifiedFormatters = specifiedFormatters;
             UseOtherMiddleware = false;
             ParameterStringImplicitNullAsDefault = false;
+            BufferContentBeforeWrite = true;
             ErrorHandlingPolicy = Server.ErrorHandlingPolicy.ThrowException;
             Filters = new LightNodeFilterCollection();
         }

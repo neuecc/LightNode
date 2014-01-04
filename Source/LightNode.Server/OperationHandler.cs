@@ -215,11 +215,22 @@ namespace LightNode.Server
                 // append header
                 var responseHeader = environment["owin.ResponseHeaders"] as IDictionary<string, string[]>;
                 responseHeader["Content-Type"] = new[] { context.ContentFormatter.MediaType };
-                responseHeader["Encoding"] = new[] { "UTF-8" };
                 environment.EmitOK();
 
                 var responseStream = environment["owin.ResponseBody"] as Stream;
-                context.ContentFormatter.Serialize(new UnflushableStream(responseStream), result);
+                if (options.BufferContentBeforeWrite)
+                {
+                    using (var buffer = new MemoryStream())
+                    {
+                        context.ContentFormatter.Serialize(buffer, result);
+                        buffer.Position = 0;
+                        await buffer.CopyToAsync(responseStream);
+                    }
+                }
+                else
+                {
+                    context.ContentFormatter.Serialize(responseStream, result);
+                }
 
                 return;
             }

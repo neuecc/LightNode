@@ -61,7 +61,7 @@
     <Compile Include="OperationHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestPath.cs" />
-    <Compile Include="UnflushableStream.cs" />
+    <Compile Include="Utility\UnflushableStream.cs" />
     <Compile Include="Utility\Utils.cs" />
   </ItemGroup>
   <ItemGroup>
