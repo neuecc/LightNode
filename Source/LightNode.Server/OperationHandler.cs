@@ -229,7 +229,7 @@ namespace LightNode.Server
                 }
                 else
                 {
-                    context.ContentFormatter.Serialize(responseStream, result);
+                    context.ContentFormatter.Serialize(new UnflushableStream(responseStream), result);
                 }
 
                 return;
