@@ -4,14 +4,16 @@ using System.Threading.Tasks;
 
 namespace LightNode.Server
 {
-    // protect stream flush using Dispose
+    // protect stream close
 
-    internal class UnflushableStream : Stream
+    internal class UnclosableStream : Stream
     {
         readonly Stream baseStream;
 
-        public UnflushableStream(Stream baseStream)
+        public UnclosableStream(Stream baseStream)
         {
+            if (baseStream == null) throw new ArgumentNullException("baseStream");
+
             this.baseStream = baseStream;
         }
 
@@ -153,24 +155,39 @@ namespace LightNode.Server
             this.baseStream.WriteByte(value);
         }
 
-        public override void Close()
-        {
-        }
-
-        public new void Dispose()
-        {
-        }
-
         public override void Flush()
         {
+            this.baseStream.Flush();
         }
-
-        static Task NullTask = Task.FromResult<object>(null);
 
         public override Task FlushAsync(System.Threading.CancellationToken cancellationToken)
         {
-            return NullTask;
+            return this.baseStream.FlushAsync(cancellationToken);
         }
+
+        public override Task CopyToAsync(Stream destination, int bufferSize, System.Threading.CancellationToken cancellationToken)
+        {
+            return this.baseStream.CopyToAsync(destination, bufferSize, cancellationToken);
+        }
+
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
+        {
+            return this.baseStream.ReadAsync(buffer, offset, count, cancellationToken);
+        }
+
+        public override Task WriteAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
+        {
+            return this.baseStream.WriteAsync(buffer, offset, count, cancellationToken);
+        }
+
+        // protect closing
+
+        public override void Close()
+        {
+
+        }
+
+
         protected override void Dispose(bool disposing)
         {
         }
