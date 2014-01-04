@@ -8,11 +8,12 @@ namespace LightNode.Formatter
     {
         readonly JsonSerializer serializer;
 
-        public JsonNetContentFormatter(string mediaType = "application/json", string ext = "json")
+        public JsonNetContentFormatter(string mediaType = "application/json; charset=utf-8", string ext = "json")
             : this(new JsonSerializer(), mediaType, ext)
         {
         }
-        public JsonNetContentFormatter(JsonSerializer serializer, string mediaType = "application/json", string ext = "json")
+
+        public JsonNetContentFormatter(JsonSerializer serializer, string mediaType = "application/json; charset=utf-8", string ext = "json")
             : base(mediaType, ext)
         {
             this.serializer = serializer;
