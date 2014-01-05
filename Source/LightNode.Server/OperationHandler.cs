@@ -214,7 +214,8 @@ namespace LightNode.Server
             {
                 // append header
                 var responseHeader = environment["owin.ResponseHeaders"] as IDictionary<string, string[]>;
-                responseHeader["Content-Type"] = new[] { context.ContentFormatter.MediaType };
+                var encoding = context.ContentFormatter.Encoding;
+                responseHeader["Content-Type"] = new[] { context.ContentFormatter.MediaType + ((encoding == null) ? "" : "; charset=" + encoding.WebName) };
                 environment.EmitOK();
 
                 var responseStream = environment["owin.ResponseBody"] as Stream;
@@ -223,6 +224,7 @@ namespace LightNode.Server
                     using (var buffer = new MemoryStream())
                     {
                         context.ContentFormatter.Serialize(new UnclosableStream(buffer), result);
+                        responseHeader["Content-Length"] = new[] { buffer.Position.ToString() };
                         buffer.Position = 0;
                         await buffer.CopyToAsync(responseStream).ConfigureAwait(false);
                     }

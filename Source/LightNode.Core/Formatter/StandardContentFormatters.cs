@@ -11,11 +11,13 @@ namespace LightNode.Formatter
     {
         readonly string mediaType;
         readonly string ext;
+        readonly Encoding encoding;
 
-        public ContentFormatterBase(string mediaType, string ext)
+        public ContentFormatterBase(string mediaType, string ext, Encoding encoding)
         {
             this.mediaType = mediaType;
             this.ext = ext;
+            this.encoding = encoding;
         }
 
         public string MediaType
@@ -28,6 +30,10 @@ namespace LightNode.Formatter
             get { return ext; }
         }
 
+        public Encoding Encoding
+        {
+            get { return encoding; }
+        }
         public abstract void Serialize(Stream stream, object obj);
 
         public abstract object Deserialize(Type type, Stream stream);
@@ -35,18 +41,15 @@ namespace LightNode.Formatter
 
     public class TextContentFormatter : ContentFormatterBase
     {
-        public Encoding Encoding { get; protected set; }
-
-        public TextContentFormatter(string mediaType = "text/plain; charset=utf-8", string ext = "txt")
+        public TextContentFormatter(string mediaType = "text/plain", string ext = "txt")
             : this(Encoding.UTF8, mediaType, ext)
         {
 
         }
 
         public TextContentFormatter(Encoding encoding, string mediaType = "text/plain", string ext = "txt")
-            : base(mediaType, ext)
+            : base(mediaType, ext, encoding)
         {
-            this.Encoding = encoding;
         }
 
         public override void Serialize(Stream stream, object obj)
@@ -72,23 +75,22 @@ namespace LightNode.Formatter
 
     public class HtmlContentFormatter : TextContentFormatter
     {
-        public HtmlContentFormatter(string mediaType = "text/html; charset=utf-8", string ext = "htm|html")
+        public HtmlContentFormatter(string mediaType = "text/html", string ext = "htm|html")
             : this(Encoding.UTF8, mediaType, ext)
         {
 
         }
 
         public HtmlContentFormatter(Encoding encoding, string mediaType = "text/html", string ext = "htm|html")
-            : base(mediaType, ext)
+            : base(encoding, mediaType, ext)
         {
-            this.Encoding = encoding;
         }
     }
 
     public class RawOctetStreamContentFormatter : ContentFormatterBase
     {
         public RawOctetStreamContentFormatter(string mediaType = "application/octet-stream", string ext = "")
-            : base(mediaType, ext)
+            : base(mediaType, ext, null)
         {
 
         }
@@ -116,10 +118,9 @@ namespace LightNode.Formatter
 
     public class XmlContentFormatter : ContentFormatterBase
     {
-        public XmlContentFormatter(string mediaType = "application/xml; charset=utf-8", string ext = "xml")
-            : base(mediaType, ext)
+        public XmlContentFormatter(string mediaType = "application/xml", string ext = "xml")
+            : base(mediaType, ext, Encoding.UTF8)
         {
-
         }
 
         public override void Serialize(Stream stream, object obj)
@@ -135,10 +136,9 @@ namespace LightNode.Formatter
 
     public class DataContractContentFormatter : ContentFormatterBase
     {
-        public DataContractContentFormatter(string mediaType = "application/xml; charset=utf-8", string ext = "xml")
-            : base(mediaType, ext)
+        public DataContractContentFormatter(string mediaType = "application/xml", string ext = "xml")
+            : base(mediaType, ext, Encoding.UTF8)
         {
-
         }
 
         public override void Serialize(Stream stream, object obj)
@@ -156,10 +156,9 @@ namespace LightNode.Formatter
 
     public class DataContractJsonContentFormatter : ContentFormatterBase
     {
-        public DataContractJsonContentFormatter(string mediaType = "application/json; charset=utf-8", string ext = "json")
-            : base(mediaType, ext)
+        public DataContractJsonContentFormatter(string mediaType = "application/json", string ext = "json")
+            : base(mediaType, ext, Encoding.UTF8)
         {
-
         }
 
         public override void Serialize(Stream stream, object obj)

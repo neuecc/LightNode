@@ -8,6 +8,7 @@ namespace LightNode.Core
     {
         string MediaType { get; }
         string Ext { get; }
+        Encoding Encoding { get; }
         void Serialize(Stream stream, object obj);
         object Deserialize(Type type, Stream stream);
     }

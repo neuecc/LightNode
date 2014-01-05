@@ -203,7 +203,7 @@ namespace <#= namespaceName #>
 
         protected virtual async Task<T> PostAsync<T>(string method, FormUrlEncodedContent content, CancellationToken cancellationToken)
         {
-            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(ContentFormatter.MediaType);
+            if (ContentFormatter.MediaType != null) content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(ContentFormatter.MediaType);
             var response = await httpClient.PostAsync(rootEndPoint + method, content, cancellationToken).ConfigureAwait(false);
             using (var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
@@ -219,7 +219,13 @@ namespace <#= namespaceName #>
         {
             var list = new List<KeyValuePair<string, string>>(<#= operation.Parameters.Length - 1 #>);
 <# foreach(var parameter in operation.Parameters.Where(x => x.Name != "cancellationToken")) { #>
+<# if (parameter.ParameterType.IsArray) { #>
+            if (<#= parameter.Name #> != null) list.AddRange(<#= parameter.Name #>.Select(___x => new KeyValuePair<string, string>("<#= parameter.Name #>", ___x.ToString())));
+<# } else if(parameter.ParameterType.IsClass || (parameter.ParameterType.IsGenericType && parameter.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>))) { #>
             if (<#= parameter.Name #> != null) list.Add(new KeyValuePair<string, string>("<#= parameter.Name #>", <#= parameter.Name #>.ToString()));
+<# } else { #>
+            list.Add(new KeyValuePair<string, string>("<#= parameter.Name #>", <#= parameter.Name #>.ToString()));
+<# } #>
 <# } #>
 
             return PostAsync<#= operation.ReturnType == typeof(Task) ? "" : "<" + UnwrapTask(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", new FormUrlEncodedContent(list), cancellationToken);

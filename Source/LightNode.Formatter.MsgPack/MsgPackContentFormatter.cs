@@ -13,7 +13,7 @@ namespace LightNode.Formatter
         }
 
         public MsgPackContentFormatter(MsgPack.Serialization.SerializationContext serializationContext, string mediaType = "application/x-msgpack", string ext = "mpk")
-            : base(mediaType, ext)
+            : base(mediaType, ext, null)
         {
             this.serializationContext = serializationContext;
         }

@@ -13,12 +13,14 @@ namespace LightNode.Client
         {
             var client = new LightNodeClient("http://localhost:54097");
 
-            var tasks = Enumerable.Range(1, 1000).Select(_ =>
+            var tasks = Enumerable.Range(1, 1).Select(_ =>
             {
-                return client.Perf.EchoAsync("hoge", 10, 2, Performance.MyEnum.B);
+                // return client.Perf.EchoAsync("hoge", 10, 2, Performance.MyEnum.B);
+
+                return client.Perf.TeAsync();
             });
 
-            var v = await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks);
         }
 
         static void Main(string[] args)

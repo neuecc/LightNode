@@ -30,6 +30,10 @@ namespace LightNode.Performance
         {
             return System.Threading.Tasks.Task.FromResult(1);
         }
+
+        public void TestArray(string[] array, int[] array2)
+        {
+        }
     }
 
     public class MyClass

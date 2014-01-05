@@ -12,7 +12,7 @@ namespace LightNode.Formatter
         {
         }
         public ProtoBufContentFormatter(RuntimeTypeModel runtimeTypeModel, string mediaType = "application/x-protobuf", string ext = "proto")
-            : base(mediaType, ext)
+            : base(mediaType, ext, null)
         {
             this.runtimeTypeModel = runtimeTypeModel;
         }
