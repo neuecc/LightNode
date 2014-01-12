@@ -64,12 +64,4 @@ namespace LightNode.Server
         /// <summary>Response StatusCode is 500 and ResponseBody includes error details for debugging.</summary>
         ReturnInternalServerErrorIncludeErrorDetails = 2
     }
-
-    //// TODO:Option?
-    //public class ContractOptionAttribute : Attribute
-    //{
-    //    public AcceptVerbs AcceptVerb { get; private set; }
-
-    //    public IContentFormatter OutputContentFormatter { get; set; }
-    //}
 }
