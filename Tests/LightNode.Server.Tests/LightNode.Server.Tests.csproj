@@ -75,6 +75,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ParameterCheckTest.cs" />
     <Compile Include="ContentTypeTest.cs" />
+    <Compile Include="ReturnStatusCodeTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

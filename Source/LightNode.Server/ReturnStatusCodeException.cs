@@ -12,9 +12,11 @@ namespace LightNode.Server
 
         public HttpStatusCode StatusCode { get; private set; }
 
-        public ReturnStatusCodeException(HttpStatusCode statusCode)
+        public ReturnStatusCodeException(HttpStatusCode statusCode, string reasonPhrase = null, string content = null)
         {
             this.StatusCode = statusCode;
+            this.ReasonPhrase = reasonPhrase;
+            this.Content = content;
         }
 
         internal void EmitCode(IDictionary<string, object> environment)
@@ -22,8 +24,7 @@ namespace LightNode.Server
             environment["owin.ResponseStatusCode"] = (int)StatusCode;
             if (ReasonPhrase != null)
             {
-                var responseHeader = environment["owin.ResponseHeaders"] as IDictionary<string, string[]>;
-                responseHeader["Reason-Phrase"] = new[] { ReasonPhrase };
+                environment["owin.ResponseReasonPhrase"] = ReasonPhrase;
             }
             if (Content != null)
             {
