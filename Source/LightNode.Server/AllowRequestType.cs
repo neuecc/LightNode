@@ -223,11 +223,11 @@ namespace LightNode.Server
 
         internal static bool IsAllowType(Type targetType)
         {
-            return GetConverter(targetType) != null
-                || GetArrayConverter(targetType) != null;
+            return GetConverter(targetType, false) != null
+                || GetArrayConverter(targetType, false) != null;
         }
 
-        internal static TryParse GetConverter(Type targetType)
+        internal static TryParse GetConverter(Type targetType, bool enumStrictParse)
         {
             TryParse f;
             var result = convertTypeDictionary.TryGetValue(targetType, out f)
@@ -238,7 +238,9 @@ namespace LightNode.Server
             if (targetType.IsEnum)
             {
                 var meta = metaEnumCache.GetOrAdd(targetType, x => new MetaEnum(x));
-                return new TryParse((string x, out object o) => meta.TryParse(x, true, out o));
+                return (enumStrictParse)
+                    ? new TryParse((string x, out object o) => meta.TryParseStrict(x, out o))
+                    : new TryParse((string x, out object o) => meta.TryParse(x, true, out o));
             }
             else if (targetType.IsNullable())
             {
@@ -246,14 +248,16 @@ namespace LightNode.Server
                 if (genArg.IsEnum)
                 {
                     var meta = metaEnumCache.GetOrAdd(genArg, x => new MetaEnum(x));
-                    return new TryParse((string x, out object o) => meta.TryParse(x, true, out o));
+                    return (enumStrictParse)
+                        ? new TryParse((string x, out object o) => meta.TryParseStrict(x, out o))
+                        : new TryParse((string x, out object o) => meta.TryParse(x, true, out o));
                 }
             }
 
             return result;
         }
 
-        internal static Func<IEnumerable<string>, object> GetArrayConverter(Type targetType)
+        internal static Func<IEnumerable<string>, object> GetArrayConverter(Type targetType, bool enumStrictParse)
         {
             Func<IEnumerable<string>, object> f;
             var result = convertArrayTypeDictionary.TryGetValue(targetType, out f)
@@ -264,7 +268,7 @@ namespace LightNode.Server
             var elemType = targetType.GetElementType();
             if (elemType.IsEnum)
             {
-                var tryParse = GetConverter(elemType);
+                var tryParse = GetConverter(elemType, enumStrictParse);
 
                 var arrayInitializer = arrayInitCache.GetOrAdd(elemType, _type =>
                 {

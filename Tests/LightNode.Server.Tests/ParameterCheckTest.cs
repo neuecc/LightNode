@@ -87,7 +87,8 @@ namespace LightNode.Server.Tests
         {
             MockEnv.CreateRequest("/ParameterContract/Enum").GetAsync().Result.StatusCode.Is(HttpStatusCode.BadRequest);
             MockEnv.CreateRequest("/ParameterContract/Enum?fruit=2").GetString().Trim('\"').Is("Orange");
-            MockEnv.CreateRequest("/ParameterContract/Enum?fruit=oRange").GetString().Trim('\"').Is("Orange");
+            MockEnv.CreateRequest("/ParameterContract/Enum?fruit=Orange").GetAsync().Result.StatusCode.Is(HttpStatusCode.BadRequest);
+            MockEnv.CreateRequest("/ParameterContract/Enum?fruit=oRange").GetAsync().Result.StatusCode.Is(HttpStatusCode.BadRequest);
             MockEnv.CreateRequest("/ParameterContract/Enum?fruit=hogemoge").GetAsync().Result.StatusCode.Is(HttpStatusCode.BadRequest);
         }
 
@@ -96,7 +97,8 @@ namespace LightNode.Server.Tests
         {
             MockEnv.CreateRequest("/ParameterContract/EnumNullable").GetString().Trim('\"').Is("null");
             MockEnv.CreateRequest("/ParameterContract/EnumNullable?fruit=2").GetString().Trim('\"').Is("Orange");
-            MockEnv.CreateRequest("/ParameterContract/EnumNullable?fruit=oRange").GetString().Trim('\"').Is("Orange");
+            MockEnv.CreateRequest("/ParameterContract/EnumNullable?fruit=10000").GetString().Trim('\"').Is("null");
+            MockEnv.CreateRequest("/ParameterContract/EnumNullable?fruit=oRange").GetString().Trim('\"').Is("null");
             MockEnv.CreateRequest("/ParameterContract/EnumNullable?fruit=hogemoge").GetString().Trim('\"').Is("null");
         }
 
@@ -105,7 +107,8 @@ namespace LightNode.Server.Tests
         {
             MockEnv.CreateRequest("/ParameterContract/EnumDefaultValue").GetString().Trim('\"').Is("Apple");
             MockEnv.CreateRequest("/ParameterContract/EnumDefaultValue?fruit=2").GetString().Trim('\"').Is("Orange");
-            MockEnv.CreateRequest("/ParameterContract/EnumDefaultValue?fruit=oRange").GetString().Trim('\"').Is("Orange");
+            MockEnv.CreateRequest("/ParameterContract/EnumDefaultValue?fruit=10000").GetString().Trim('\"').Is("Apple");
+            MockEnv.CreateRequest("/ParameterContract/EnumDefaultValue?fruit=oRange").GetString().Trim('\"').Is("Apple");
             MockEnv.CreateRequest("/ParameterContract/EnumDefaultValue?fruit=hogemoge").GetString().Trim('\"').Is("Apple");
         }
 
@@ -114,8 +117,28 @@ namespace LightNode.Server.Tests
         {
             MockEnv.CreateRequest("/ParameterContract/EnumArray").GetString().Trim('\"').Is("Empty");
             MockEnv.CreateRequest("/ParameterContract/EnumArray?fruit=2").GetString().Trim('\"').Is("Orange");
-            MockEnv.CreateRequest("/ParameterContract/EnumArray?fruit=oRange&fruit=3").GetString().Trim('\"').Is("Orange,Apple");
+            MockEnv.CreateRequest("/ParameterContract/EnumArray?fruit=oRange&fruit=3").GetString().Trim('\"').Is("Empty");
             MockEnv.CreateRequest("/ParameterContract/EnumArray?fruit=oRange&fruit=hogemoge").GetString().Trim('\"').Is("Empty");
+        }
+
+        [TestMethod]
+        public void EnumStrict()
+        {
+            using (var server = Microsoft.Owin.Testing.TestServer.Create(app =>
+            {
+                app.UseLightNode(
+                    new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
+                        new JavaScriptContentFormatter(),
+                        new TextContentFormatter()) { ParameterEnumAllowsFieldNameParse = true }
+                    , typeof(MockEnv).Assembly);
+            }))
+            {
+                server.CreateRequest("/ParameterContract/Enum?fruit=orange").GetString().Trim('\"').Is("Orange");
+                server.CreateRequest("/ParameterContract/Enum?fruit=oRange").GetString().Trim('\"').Is("Orange");
+                server.CreateRequest("/ParameterContract/EnumNullable?fruit=oRange").GetString().Trim('\"').Is("Orange");
+                server.CreateRequest("/ParameterContract/EnumArray?fruit=oRange&fruit=3").GetString().Trim('\"').Is("Orange,Apple");
+                server.CreateRequest("/ParameterContract/EnumArray?fruit=oRange&fruit=hogemoge").GetString().Trim('\"').Is("Empty");
+            }
         }
 
         [TestMethod]

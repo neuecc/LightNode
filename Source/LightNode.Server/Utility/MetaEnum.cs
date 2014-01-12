@@ -102,6 +102,104 @@ namespace LightNode.Server
             }
         }
 
+        public bool TryParseStrict(object value, out object result)
+        {
+            if (value == null)
+            {
+                result = null;
+                return false;
+            }
+            if (value.GetType() == EnumType)
+            {
+                if (IsBitFlag)
+                {
+                    if (IsValidFlag(value))
+                    {
+                        result = value;
+                        return true;
+                    }
+                    else
+                    {
+                        result = null;
+                        return false;
+                    }
+                }
+                else
+                {
+                    KeyValuePair<string, object> meta;
+                    if (byValue.TryGetValue(value, out meta))
+                    {
+                        result = meta.Value;
+                        return true;
+                    }
+                    else
+                    {
+                        result = null;
+                        return false;
+                    }
+                }
+            }
+
+            var name = value as string;
+            if (name != null)
+            {
+                if (name.Length == 0)
+                {
+                    result = null;
+                    return false;
+                }
+
+                if (char.IsDigit(name[0]) || name[0] == '-' || name[0] == '+')
+                {
+                    // Character is Value String
+                    object primitiveValue;
+                    if (enumConvertTypeDictionary[EnumUnderlyingType](name, out primitiveValue))
+                    {
+                        value = primitiveValue;
+                        goto FromValueType;
+                    }
+                    else
+                    {
+                        result = null;
+                        return false;
+                    }
+                }
+                else
+                {
+                    result = null;
+                    return false;
+                }
+            }
+        FromValueType:
+            if (IsBitFlag)
+            {
+                if (IsValidFlag(value))
+                {
+                    result = Enum.ToObject(EnumType, value);
+                    return true;
+                }
+                else
+                {
+                    result = null;
+                    return false;
+                }
+            }
+            else
+            {
+                KeyValuePair<string, object> enumValue;
+                if (byUnderlyingType.TryGetValue(value, out enumValue))
+                {
+                    result = enumValue.Value;
+                    return true;
+                }
+                else
+                {
+                    result = null;
+                    return false;
+                }
+            }
+        }
+
         public bool TryParse(object value, out object result)
         {
             return TryParse(value, false, out result);

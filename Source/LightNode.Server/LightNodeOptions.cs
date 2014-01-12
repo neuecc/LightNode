@@ -12,6 +12,7 @@ namespace LightNode.Server
 
         public bool UseOtherMiddleware { get; set; }
         public bool ParameterStringImplicitNullAsDefault { get; set; }
+        public bool ParameterEnumAllowsFieldNameParse { get; set; }
 
         /// <summary>
         /// <pre>Use buffering when content formatter serialize, Default is true.</pre>
@@ -34,6 +35,7 @@ namespace LightNode.Server
             SpecifiedFormatters = specifiedFormatters;
             UseOtherMiddleware = false;
             ParameterStringImplicitNullAsDefault = false;
+            ParameterEnumAllowsFieldNameParse = false;
             BufferContentBeforeWrite = true;
             ErrorHandlingPolicy = Server.ErrorHandlingPolicy.ThrowException;
             Filters = new LightNodeFilterCollection();

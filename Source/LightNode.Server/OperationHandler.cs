@@ -41,17 +41,7 @@ namespace LightNode.Server
             this.ClassName = classType.Name;
             this.MethodName = methodInfo.Name;
             this.Arguments = methodInfo.GetParameters()
-                .Select(x => new ParameterInfoSlim
-                {
-                    Name = x.Name,
-                    DefaultValue = x.DefaultValue,
-                    IsOptional = x.IsOptional,
-                    ParameterType = x.ParameterType,
-                    ParameterTypeIsArray = x.ParameterType.IsArray,
-                    ParameterTypeIsClass = x.ParameterType.IsClass,
-                    ParameterTypeIsString = x.ParameterType == typeof(string),
-                    ParameterTypeIsNullable = x.ParameterType.IsNullable()
-                })
+                .Select(x => new ParameterInfoSlim(x))
                 .ToArray();
             this.ReturnType = methodInfo.ReturnType;
 
@@ -255,6 +245,18 @@ namespace LightNode.Server
         public string Name { get; set; }
         public bool IsOptional { get; set; }
         public object DefaultValue { get; set; }
+
+        internal ParameterInfoSlim(ParameterInfo parameterInfo)
+        {
+            Name = parameterInfo.Name;
+            DefaultValue = parameterInfo.DefaultValue;
+            IsOptional = parameterInfo.IsOptional;
+            ParameterType = parameterInfo.ParameterType;
+            ParameterTypeIsArray = parameterInfo.ParameterType.IsArray;
+            ParameterTypeIsClass = parameterInfo.ParameterType.IsClass;
+            ParameterTypeIsString = parameterInfo.ParameterType == typeof(string);
+            ParameterTypeIsNullable = parameterInfo.ParameterType.IsNullable();
+        }
     }
 
     internal enum HandlerBodyType
