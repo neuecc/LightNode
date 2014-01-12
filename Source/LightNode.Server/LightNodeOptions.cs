@@ -65,13 +65,6 @@ namespace LightNode.Server
         ReturnInternalServerErrorIncludeErrorDetails = 2
     }
 
-    // TODO:Attribute Configuration?
-
-    //public class IgnoreOperationAttribute : Attribute
-    //{
-
-    //}
-
     //// TODO:Option?
     //public class ContractOptionAttribute : Attribute
     //{

@@ -40,10 +40,12 @@ namespace LightNode.Server
                 {
                     throw new InvalidOperationException(string.Format("Type needs parameterless constructor, class:{0}", classType.FullName));
                 }
+                if (classType.GetCustomAttribute<IgnoreOperationAttribute>(true) != null) return; // ignore
 
                 foreach (var methodInfo in classType.GetMethods(BindingFlags.Public | BindingFlags.Instance))
                 {
                     if (methodInfo.IsSpecialName && (methodInfo.Name.StartsWith("set_") || methodInfo.Name.StartsWith("get_"))) continue; // as property
+                    if (methodInfo.GetCustomAttribute<IgnoreOperationAttribute>(true) != null) continue; // ignore
 
                     var methodName = methodInfo.Name;
 

@@ -69,6 +69,7 @@
   <ItemGroup>
     <Compile Include="ChainingAssertion.MSTest.cs" />
     <Compile Include="FilterTest.cs" />
+    <Compile Include="IgnoreOperationTest.cs" />
     <Compile Include="MetaEnumTest.cs" />
     <Compile Include="MockEnv.cs" />
     <Compile Include="BasicOperation.cs" />
