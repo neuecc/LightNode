@@ -65,34 +65,116 @@ Server API rule is very simple.
 
 Return type allows all serializable(ContentFormatter support) type.
 
+Filter
+---
+LightNode supports filter. The implementation is like middleware pipeline.
+
+![lightnode_performance](https://f.cloud.github.com/assets/46207/1902207/3dbe3012-7c6f-11e3-8d39-7e442e92b970.jpg)
+
+```csharp
+public class SampleFilterAttribute : LightNodeFilterAttribute
+{
+    public override async Task Invoke(OperationContext operationContext, Func<Task> next)
+    {
+        try
+        {
+            // OnBeforeAction
+
+            await next(); // next filter or operation handler
+
+            // OnAfterAction
+        }
+        catch
+        {
+            // OnExeception
+        }
+        finally
+        {
+            // OnFinally
+        }
+    }
+}
+```
+
+Filter can be attached contract(class), operation(method) and global. Execution pipeline is formed is sorted by Order all specified. Range is -int.MaxValue to int.MaxValue. Default Order of all filters is int.MaxValue.
+
+Difference between Middleware and Filter is who knows operation context. Filter is located after the parameter binding. Therefore, it is possible check attributes(`operationContext.IsAttributeDefined`, `operationContext.GetAttributes`).
+
+Control StatusCode
+---
+The default status code, can't find operation returns 404, failed operation returns 500, success and has value returns 200, success and no value returns 204. If returns arbitrary status code, throw ReturnStatusCodeException.
+
+```csharp
+throw new ReturnStatusCodeException(System.Net.HttpStatusCode.Unauthorized);
+```
+
+Authenticate, Routing, Session, etc...
+---
+You can use other owin middleware. For example, Auth:Microsoft.Owin.Security.*, Session:[Owin.RedisSession](https://github.com/neuecc/Owin.RedisSession/), Context:[OwinRequestScopeContext](https://github.com/neuecc/OwinRequestScopeContext), etc...
+
+Routing and versioning example.
+```csharp
+// Conditional Use
+app.MapWhen(x => x.Request.Path.Value.StartsWith("/v1/"), ap =>
+{
+   // Trim Version Path
+   ap.Use((context, next) =>
+   {
+        context.Request.Path = new Microsoft.Owin.PathString(
+            Regex.Replace(context.Request.Path.Value, @"^/v[1-9]/", "/"));
+        return next();
+   });
+ 
+    // use v1 assembly
+    ap.UseLightNode(new LightNodeOptions(AcceptVerbs.Post, new JsonNetContentFormatter()),
+        typeof(v1Contract).Assembly);
+});
+ 
+app.MapWhen(x => x.Request.Path.Value.StartsWith("/v2/"), ap =>
+{
+   // copy and paste:)
+   ap.Use((context, next) =>
+   {
+        context.Request.Path = new Microsoft.Owin.PathString(
+            Regex.Replace(context.Request.Path.Value, @"^/v[1-9]/", "/"));
+        return next();
+   });
+   
+   // use v2 assembly
+   ap.UseLightNode(new LightNodeOptions(AcceptVerbs.Post, new JsonNetContentFormatter()),
+    typeof(v2Contract).Assembly);
+});
+```
+Composability is owin's nice feature.
+
 Lightweight Client
 --- 
 Implementation of the REST API is often painful. LightNode solves by T4 code generation.
 
-
 ```csharp
 // Open .tt file and configure four steps.
 
-// ------------- T4 Configuration ------------- //
+<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Server.dll" #>
+<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Performance.dll" #>
+<#
+    // ------------- T4 Configuration ------------- //
+    
+    // 1. Set LightNodeContract assemblies(and all dependency) path to above #@ assembly name # directive
 
-// 1. Set Namespace & ClientName & Namespace
-var clientName = "LightNodeClient";
-var namespaceName = "LightNode.Client";
+    // 2. Set Namespace & ClientName & Namespace
+    var clientName = "LightNodeClient";
+    var namespaceName = "LightNode.Client";
 
-// Note: You can take solutionDirectory path
-var solutionDir = this.Host.ResolveAssemblyReference("$(SolutionDir)"); 
+    // 3. Set DefaultContentFormatter Construct String
+    var defaultContentFormatter = "new LightNode.Formatter.XmlContentFormatter()";
 
-// 2. Set LightNodeContract Assemblies Path
-// Note: Currentry this T4 locks assembly. If need release assembly, please restart Visual Studio.
-var assemblyPaths = new string[] { solutionDir + @"Source\Sample\bin\Debug\Asm.dll"};
+    // 4. Set Additional using Namespace
+    var usingNamespaces = new [] {"System.Linq"};
 
-// 3. Set DefaultContentFormatter Construct String
-var defaultContentFormatter = "new LightNode.Formatter.XmlContentTypeFormatter()";
+    // 5. Set append "Async" suffix to method name(ex: CalcAsync or Calc)
+    var addAsyncSuffix = true;
 
-// 4. Set Additional using Namespace
-var usingNamespaces = new [] {"System.Linq"};
-
-// ----------End T4 Configuration ------------- //
+    // ----------End T4 Configuration ------------- //
 ```
 
 ```csharp
@@ -114,15 +196,15 @@ LightNode is like RPC but REST. Public API follows a simple rule. Address is `{C
 
 Performance
 ---
-LightNode is very fast, nearly raw HttpHandler.
+LightNode is fastest framework.
 
-![lightnode_performance](https://f.cloud.github.com/assets/46207/1799212/32d94e5e-6b8d-11e3-9e58-cd8f89c62131.jpg)
+![lightnode_performance](https://f.cloud.github.com/assets/46207/1902439/a0a19c5c-7c72-11e3-9bea-244ac00dcd87.jpg)
 
-ASP.NET Web API, LightNode, app.Run are Hosted on OWIN and IIS(System.Web). HttpHandler is hosted on IIS(System.Web).
+Performance source code is in [LightNode/Performance](https://github.com/neuecc/LightNode/tree/master/Performance). Enviroment is "Windows 8.1/CPU Core i7-3770K(3.5GHz)/Memory 32GB" and disabled firewall and windows defender. Orange and Green bar is hosted on IIS(System.Web). LightNode(Green bar)'s performance is nearly raw handler. Gray bar is reference, LightNode on [Helios - Microsoft.Owin.Host.IIS](http://www.nuget.org/packages/Microsoft.Owin.Host.IIS/) gots extremely performance. 
 
 ReleaseNote
 ---
-0.2.0 - 2014-01-13
+0.2.0 - 2014-01-14
 * Add Filter System
 * Enum Binding Performance Improvement
 * Strict parse for Enum
@@ -132,6 +214,7 @@ ReleaseNote
 * Fixed T4 ClientCode generation
 * Return 204 when operation is void or Task
 * Return Arbitrary StatusCode that throws ReturnStatusCodeException
+* Add IgnoreOperationAttribute
 
 0.1.1 - 2013-12-23  
 * First Release
