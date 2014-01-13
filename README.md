@@ -110,7 +110,7 @@ Client is very simple, too.
 
 Language Interoperability
 ---
-LightNode is like RPC but REST. Public API follows a simple rule. Address is `{ClassName}/{MethodName}`, and it's case insensitive. GET parameter use QueryString. POST parameter use x-www-form-urlencoded. Response type follows configured ContentTypeFormatter. Receiver can select response type use url extension(.xml, .json etc...) or Accept header.
+LightNode is like RPC but REST. Public API follows a simple rule. Address is `{ClassName}/{MethodName}`, and it's case insensitive. GET parameter use QueryString. POST parameter use x-www-form-urlencoded. Response type follows configured ContentFormatter. Receiver can select response type use url extension(.xml, .json etc...) or Accept header.
 
 Performance
 ---
@@ -122,5 +122,16 @@ ASP.NET Web API, LightNode, app.Run are Hosted on OWIN and IIS(System.Web). Http
 
 ReleaseNote
 ---
+0.2.0 - 2014-01-13
+* Add Filter System
+* Enum Binding Performance Improvement
+* Strict parse for Enum
+* Parameter String disallows null at default
+* IContentFormatter needs Encoding
+* IContentFormatter.Ext can add multiple ext by "|" separater
+* Fixed T4 ClientCode generation
+* Return 204 when operation is void or Task
+* Return Arbitrary StatusCode that throws ReturnStatusCodeException
+
 0.1.1 - 2013-12-23  
 * First Release

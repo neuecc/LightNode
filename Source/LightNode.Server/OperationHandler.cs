@@ -173,7 +173,6 @@ namespace LightNode.Server
             var environment = context.Environment;
             var methodParameters = context.Parameters;
 
-
             bool isVoid = true;
             object result = null;
             switch (handler.handlerBodyType)
@@ -209,19 +208,26 @@ namespace LightNode.Server
                 environment.EmitOK();
 
                 var responseStream = environment["owin.ResponseBody"] as Stream;
-                if (options.BufferContentBeforeWrite)
+                if (options.StreamWriteOption == StreamWriteOption.DirectWrite)
+                {
+                    context.ContentFormatter.Serialize(new UnclosableStream(responseStream), result);
+                }
+                else
                 {
                     using (var buffer = new MemoryStream())
                     {
                         context.ContentFormatter.Serialize(new UnclosableStream(buffer), result);
                         responseHeader["Content-Length"] = new[] { buffer.Position.ToString() };
                         buffer.Position = 0;
-                        await buffer.CopyToAsync(responseStream).ConfigureAwait(false);
+                        if (options.StreamWriteOption == StreamWriteOption.BufferAndWrite)
+                        {
+                            buffer.CopyTo(responseStream); // not CopyToAsync
+                        }
+                        else
+                        {
+                            await buffer.CopyToAsync(responseStream).ConfigureAwait(false);
+                        }
                     }
-                }
-                else
-                {
-                    context.ContentFormatter.Serialize(new UnclosableStream(responseStream), result);
                 }
 
                 return;

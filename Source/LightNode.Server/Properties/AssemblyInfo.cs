@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("LightNode.Owin")]
-[assembly: AssemblyCopyright("Copyright ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -15,8 +14,8 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid("a8480342-8d48-46ec-af7b-a220bc5b6b8b")]
 
-[assembly: AssemblyVersion("0.1.1.0")]
-[assembly: AssemblyFileVersion("0.1.1.0")]
-
+[assembly: AssemblyCopyright("Copyright (C)  2014")]
+[assembly: AssemblyVersion("0.2.0.0")]
+[assembly: AssemblyFileVersion("0.2.0.0")]
 
 [assembly: InternalsVisibleTo("LightNode.Server.Tests")]

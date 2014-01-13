@@ -11,6 +11,8 @@ namespace RawOwinHandler
 {
     public class Startup
     {
+        readonly static Task EmptyTask = Task.FromResult<object>(null);
+
         public void Configuration(IAppBuilder app)
         {
             app.Run(context =>
@@ -25,7 +27,17 @@ namespace RawOwinHandler
                 var json = JsonConvert.SerializeObject(mc);
                 var enc = System.Text.Encoding.UTF8.GetBytes(json);
                 context.Response.ContentType = "application/json";
-                return context.Response.Body.WriteAsync(enc, 0, enc.Length);
+
+                // sync write or async write
+                if (context.Request.Query.Get("sync") == "true")
+                {
+                    context.Response.Body.Write(enc, 0, enc.Length);
+                    return EmptyTask; // Task.FromResult<object>(null)
+                }
+                else
+                {
+                    return context.Response.Body.WriteAsync(enc, 0, enc.Length);
+                }
             });
         }
     }

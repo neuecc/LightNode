@@ -14,7 +14,7 @@
     <RootNamespace>LightNode.Performance</RootNamespace>
     <AssemblyName>LightNode.Performance</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <UseIISExpress>true</UseIISExpress>
+    <UseIISExpress>false</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
@@ -55,6 +55,7 @@
       <HintPath>..\..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -79,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
+    <None Include="Properties\PublishProfiles\LocalIIS.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -94,6 +96,10 @@
     <ProjectReference Include="..\..\Source\LightNode.Formatter.JsonNet\LightNode.Formatter.JsonNet.csproj">
       <Project>{80ea8854-2596-4eed-9d59-dc13cc55bbd9}</Project>
       <Name>LightNode.Formatter.JsonNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\LightNode.Formatter.ProtoBuf\LightNode.Formatter.ProtoBuf.csproj">
+      <Project>{9c70a625-e0c8-4575-b25e-9cfa905e1b7f}</Project>
+      <Name>LightNode.Formatter.ProtoBuf</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Source\LightNode.Server\LightNode.Server.csproj">
       <Project>{cabc7913-f7c9-4e89-8312-f9ae523b9f41}</Project>
@@ -115,11 +121,10 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>0</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:54097/</IISUrl>
+          <IISUrl>http://localhost/LightNode.Performance</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
-          <CustomServerUrl>
-          </CustomServerUrl>
+          <CustomServerUrl>http://localhost</CustomServerUrl>
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>

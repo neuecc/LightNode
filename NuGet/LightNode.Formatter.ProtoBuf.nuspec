@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>LightNode.Formatter.ProtoBuf</id>
-    <version>0.1.1</version>
+    <version>0.2.0</version>
     <title>LightNode.Formatter.ProtoBuf</title>
     <authors>neuecc</authors>
     <owners>neuecc</owners>
@@ -13,7 +13,7 @@
     <projectUrl>https://github.com/neuecc/LightNode</projectUrl>
     <tags>Owin Rest RPC</tags>
     <dependencies>
-      <dependency id="LightNode.Core" version="0.1.1" />
+      <dependency id="LightNode.Core" version="0.2.0" />
       <dependency id="protobuf-net" version="2.0.0.668" />
     </dependencies>
   </metadata>

@@ -1,12 +1,24 @@
-﻿using Owin;
+﻿using Microsoft.Owin.Hosting;
+using Owin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Web;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace LightNode.Performance
+namespace LightNode.SelfHost
 {
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            using (WebApp.Start<Startup>("http://localhost:12345"))
+            {
+                Console.ReadLine();
+            }
+        }
+    }
+
     public class Startup
     {
         public void Configuration(IAppBuilder appa)

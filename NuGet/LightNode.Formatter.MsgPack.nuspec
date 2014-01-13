@@ -1,23 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-  <metadata>
-    <id>LightNode.Formatter.MsgPack</id>
-    <version>0.1.1</version>
-    <title>LightNode.Formatter.MsgPack</title>
-    <authors>neuecc</authors>
-    <owners>neuecc</owners>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>LightNode(as Micro REST/RPC Framework) Formatter by MsgPack.</description>
-    <language>en-US</language>
-    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
-    <projectUrl>https://github.com/neuecc/LightNode</projectUrl>
-    <tags>Owin Rest RPC</tags>
-    <dependencies>
-      <dependency id="LightNode.Core" version="0.1.1" />
-      <dependency id="MsgPack.Cli" version="0.5.0" />
-    </dependencies>
-  </metadata>
-  <files>
-    <file src="..\Source\LightNode.Formatter.MsgPack\bin\Release\LightNode.Formatter.MsgPack.dll" target="lib" />
-  </files>
+    <metadata>
+        <id>LightNode.Formatter.MsgPack</id>
+        <version>0.2.0</version>
+        <title>LightNode.Formatter.MsgPack</title>
+        <authors>neuecc</authors>
+        <owners>neuecc</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>LightNode(as Micro REST/RPC Framework) Formatter by MsgPack.</description>
+        <language>en-US</language>
+        <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+        <projectUrl>https://github.com/neuecc/LightNode</projectUrl>
+        <tags>Owin Rest RPC</tags>
+        <dependencies>
+            <dependency id="LightNode.Core" version="0.2.0" />
+            <dependency id="MsgPack.Cli" version="0.5.0" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\Source\LightNode.Formatter.MsgPack\bin\Release\LightNode.Formatter.MsgPack.dll" target="lib" />
+    </files>
 </package>

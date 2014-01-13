@@ -15,10 +15,10 @@ namespace LightNode.Server
         public bool ParameterEnumAllowsFieldNameParse { get; set; }
 
         /// <summary>
-        /// <pre>Use buffering when content formatter serialize, Default is true.</pre>
-        /// <pre>If you use top level stream buffering, set to false for avoid double buffering.</pre>
+        /// <pre>Use buffering when content formatter serialize, Default is BufferAndWrite.</pre>
+        /// <pre>If you use top level stream buffering, set to DirectWrite for avoid double buffering.</pre>
         /// </summary>
-        public bool BufferContentBeforeWrite { get; set; }
+        public StreamWriteOption StreamWriteOption { get; set; }
 
         public ErrorHandlingPolicy ErrorHandlingPolicy { get; set; }
 
@@ -36,7 +36,7 @@ namespace LightNode.Server
             UseOtherMiddleware = false;
             ParameterStringImplicitNullAsDefault = false;
             ParameterEnumAllowsFieldNameParse = false;
-            BufferContentBeforeWrite = true;
+            StreamWriteOption = Server.StreamWriteOption.BufferAndWrite;
             ErrorHandlingPolicy = Server.ErrorHandlingPolicy.ThrowException;
             Filters = new LightNodeFilterCollection();
         }
@@ -53,6 +53,13 @@ namespace LightNode.Server
     {
         Get = 1,
         Post = 2
+    }
+
+    public enum StreamWriteOption
+    {
+        BufferAndWrite = 0,
+        BufferAndAsynchronousWrite = 1,
+        DirectWrite = 2
     }
 
     public enum ErrorHandlingPolicy
