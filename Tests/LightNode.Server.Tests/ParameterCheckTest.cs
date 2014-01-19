@@ -144,13 +144,13 @@ namespace LightNode.Server.Tests
         [TestMethod]
         public void CacheSize()
         {
-            var dict = typeof(AllowRequestType).GetField("convertTypeDictionary", System.Reflection.BindingFlags.GetField | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+            var dict = typeof(TypeBinder).GetField("convertTypeDictionary", System.Reflection.BindingFlags.GetField | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
                 .GetValue(null);
 
-            var count = ((Dictionary<Type, LightNode.Server.AllowRequestType.TryParse>)dict).Count;
+            var count = ((Dictionary<Type, LightNode.Server.TypeBinder.TryParse>)dict).Count;
             count.Is(33);
 
-            var dict2 = typeof(AllowRequestType).GetField("convertArrayTypeDictionary", System.Reflection.BindingFlags.GetField | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+            var dict2 = typeof(TypeBinder).GetField("convertArrayTypeDictionary", System.Reflection.BindingFlags.GetField | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
                 .GetValue(null);
             var count2 = ((Dictionary<Type, Func<IEnumerable<string>, object>>)dict2).Count;
             count2.Is(16);

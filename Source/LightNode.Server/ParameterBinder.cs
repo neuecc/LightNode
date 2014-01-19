@@ -55,7 +55,7 @@ namespace LightNode.Server
                 }
                 else if (!item.ParameterTypeIsArray)
                 {
-                    var conv = AllowRequestType.GetConverter(item.ParameterType, !options.ParameterEnumAllowsFieldNameParse);
+                    var conv = TypeBinder.GetConverter(item.ParameterType, !options.ParameterEnumAllowsFieldNameParse);
                     if (conv == null) throw new InvalidOperationException("critical:register code is broken");
 
                     object pValue;
@@ -82,7 +82,7 @@ namespace LightNode.Server
                     }
                 }
 
-                var arrayConv = AllowRequestType.GetArrayConverter(item.ParameterType, !options.ParameterEnumAllowsFieldNameParse);
+                var arrayConv = TypeBinder.GetArrayConverter(item.ParameterType, !options.ParameterEnumAllowsFieldNameParse);
                 if (arrayConv == null) throw new InvalidOperationException("critical:register code is broken");
 
                 methodParameters[i] = arrayConv(values);

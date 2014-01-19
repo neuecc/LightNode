@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace LightNode.Server
 {
-    internal class AllowRequestType
+    internal static class TypeBinder
     {
         public delegate bool TryParse(string x, out object result);
 

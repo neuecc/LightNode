@@ -9,9 +9,9 @@ namespace LightNode.Performance
 {
     public class Startup
     {
-        public void Configuration(IAppBuilder appa)
+        public void Configuration(IAppBuilder app)
         {
-            appa.UseLightNode(new LightNode.Server.LightNodeOptions(Server.AcceptVerbs.Get | Server.AcceptVerbs.Post,
+            app.UseLightNode(new LightNode.Server.LightNodeOptions(Server.AcceptVerbs.Get | Server.AcceptVerbs.Post,
                 new LightNode.Formatter.JsonNetContentFormatter()));
         }
     }

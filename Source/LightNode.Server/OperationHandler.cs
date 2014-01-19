@@ -58,7 +58,7 @@ namespace LightNode.Server
 
             foreach (var argument in this.Arguments)
             {
-                if (!AllowRequestType.IsAllowType(argument.ParameterType))
+                if (!TypeBinder.IsAllowType(argument.ParameterType))
                 {
                     throw new InvalidOperationException(string.Format("parameter is not allowed, class:{0} method:{1} paramName:{2} paramType:{3}",
                         classType.Name, methodInfo.Name, argument.Name, argument.ParameterType.FullName));
