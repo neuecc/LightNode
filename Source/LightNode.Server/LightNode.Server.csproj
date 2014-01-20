@@ -64,6 +64,7 @@
     <Compile Include="RequestPath.cs" />
     <Compile Include="Utility\UnclosableStream.cs" />
     <Compile Include="Utility\Utils.cs" />
+    <Compile Include="ValueProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

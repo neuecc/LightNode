@@ -24,10 +24,6 @@ namespace LightNode.Server
 
         public LightNodeFilterCollection Filters { get; private set; }
 
-
-        // currently internal only
-        internal ParameterBinder parametertBinder = ParameterBinder.Default;
-
         public LightNodeOptions(AcceptVerbs defaultAcceptVerb, IContentFormatter defaultFormatter, params IContentFormatter[] specifiedFormatters)
         {
             DefaultAcceptVerb = defaultAcceptVerb;

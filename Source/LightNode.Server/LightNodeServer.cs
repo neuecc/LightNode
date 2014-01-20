@@ -128,7 +128,8 @@ namespace LightNode.Server
                     }
 
                     // Parameter binding
-                    var methodParameters = options.parametertBinder.BindParameter(environment, options, handler.Arguments);
+                    var valueProvider = new ValueProvider(environment, verb);
+                    var methodParameters = ParameterBinder.BindParameter(environment, options, valueProvider, handler.Arguments);
                     if (methodParameters == null)
                     {
                         return;
