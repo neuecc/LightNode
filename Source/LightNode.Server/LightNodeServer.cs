@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LightNode.Core;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -74,114 +75,131 @@ namespace LightNode.Server
             });
         }
 
+        OperationHandler SelectHandler(IDictionary<string, object> environment, out AcceptVerbs verb, out string ext)
+        {
+            // out default
+            verb = AcceptVerbs.Get;
+            ext = "";
+
+            // verb check
+            var method = environment["owin.RequestMethod"];
+            if (StringComparer.OrdinalIgnoreCase.Equals(method, "GET"))
+            {
+                verb = AcceptVerbs.Get;
+            }
+            else if (StringComparer.OrdinalIgnoreCase.Equals(method, "POST"))
+            {
+                verb = AcceptVerbs.Post;
+            }
+            else
+            {
+                environment.EmitMethodNotAllowed();
+                return null;
+            }
+
+            // extract path
+            var path = environment["owin.RequestPath"] as string;
+            var keyBase = path.Trim('/').Split('/');
+            if (keyBase.Length != 2)
+            {
+                environment.EmitNotFound();
+                return null;
+            }
+
+            // extract "extension" for media type
+            var extStart = keyBase[1].LastIndexOf(".");
+            if (extStart != -1)
+            {
+                ext = keyBase[1].Substring(extStart + 1);
+                keyBase[1] = keyBase[1].Substring(0, keyBase[1].Length - ext.Length - 1);
+            }
+
+            // {ClassName, MethodName}
+            var key = new RequestPath(keyBase[0], keyBase[1]);
+
+            OperationHandler handler;
+            if (handlers.TryGetValue(key, out handler))
+            {
+                return handler;
+            }
+            else
+            {
+                environment.EmitNotFound();
+                return null;
+            }
+        }
+
+        IContentFormatter NegotiateFormat(IDictionary<string, object> environment, string ext)
+        {
+            var requestHeader = environment["owin.RequestHeaders"] as IDictionary<string, string[]>;
+            string[] accepts;
+
+            var formatter = options.DefaultFormatter;
+            if (ext != "")
+            {
+                // TODO:need performance improvement
+                var selectedFormatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
+                    .SelectMany(x => (x.Ext ?? "").Split('|'), (fmt, xt) => new { fmt, xt })
+                    .FirstOrDefault(x => x.xt == ext);
+
+                if (selectedFormatter == null)
+                {
+                    environment.EmitNotAcceptable();
+                    return null;
+                }
+                formatter = selectedFormatter.fmt;
+            }
+            else if (requestHeader.TryGetValue("Accept", out accepts))
+            {
+                // TODO:parse accept header q, */*, etc...
+                var contentType = accepts[0];
+                formatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
+                    .FirstOrDefault(x => contentType.Contains(x.MediaType));
+
+                if (formatter == null)
+                {
+                    formatter = options.DefaultFormatter; // through...
+                }
+            }
+
+            return formatter;
+        }
+
         // Routing -> ParameterBinding -> Execute
         public async Task ProcessRequest(IDictionary<string, object> environment)
         {
             try
             {
-                var path = environment["owin.RequestPath"] as string;
+                AcceptVerbs verb;
+                string ext;
+                var handler = SelectHandler(environment, out verb, out ext);
+                if (handler == null) return;
 
-                // verb check
-                var method = environment["owin.RequestMethod"];
-                var verb = AcceptVerbs.Get;
-                if (StringComparer.OrdinalIgnoreCase.Equals(method, "GET"))
-                {
-                    verb = AcceptVerbs.Get;
-                }
-                else if (StringComparer.OrdinalIgnoreCase.Equals(method, "POST"))
-                {
-                    verb = AcceptVerbs.Post;
-                }
-                else
+                // verb check | TODO:check operation verb attribute
+                if (!options.DefaultAcceptVerb.HasFlag(verb))
                 {
                     environment.EmitMethodNotAllowed();
                     return;
                 }
 
-                var keyBase = path.Trim('/').Split('/');
-                if (keyBase.Length != 2)
+                // Parameter binding
+                var valueProvider = new ValueProvider(environment, verb);
+                var methodParameters = ParameterBinder.BindParameter(environment, options, valueProvider, handler.Arguments);
+                if (methodParameters == null) return;
+
+                // select formatter
+                var formatter = NegotiateFormat(environment, ext);
+                if (formatter == null) return;
+
+                // Operation execute
+                var context = new OperationContext(environment, handler.ClassName, handler.MethodName, verb)
                 {
-                    environment.EmitNotFound();
-                    return;
-                }
-
-                // extract "extension" for media type
-                var extStart = keyBase[1].LastIndexOf(".");
-                var ext = "";
-                if (extStart != -1)
-                {
-                    ext = keyBase[1].Substring(extStart + 1);
-                    keyBase[1] = keyBase[1].Substring(0, keyBase[1].Length - ext.Length - 1);
-                }
-
-                // {ClassName, MethodName}
-                var key = new RequestPath(keyBase[0], keyBase[1]);
-
-                OperationHandler handler;
-                if (handlers.TryGetValue(key, out handler))
-                {
-                    // verb check
-                    if (!options.DefaultAcceptVerb.HasFlag(verb))
-                    {
-                        environment.EmitMethodNotAllowed();
-                        return;
-                    }
-
-                    // Parameter binding
-                    var valueProvider = new ValueProvider(environment, verb);
-                    var methodParameters = ParameterBinder.BindParameter(environment, options, valueProvider, handler.Arguments);
-                    if (methodParameters == null)
-                    {
-                        return;
-                    }
-
-                    // select formatter
-                    var requestHeader = environment["owin.RequestHeaders"] as IDictionary<string, string[]>;
-                    string[] accepts;
-
-                    var formatter = options.DefaultFormatter;
-                    if (ext != "")
-                    {
-                        // TODO:need performance improvement
-                        var selectedFormatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
-                            .SelectMany(x => (x.Ext ?? "").Split('|'), (fmt, xt) => new { fmt, xt })
-                            .FirstOrDefault(x => x.xt == ext);
-
-                        if (selectedFormatter == null)
-                        {
-                            environment.EmitNotAcceptable();
-                            return;
-                        }
-                        formatter = selectedFormatter.fmt;
-                    }
-                    else if (requestHeader.TryGetValue("Accept", out accepts))
-                    {
-                        // TODO:parse accept header q, */*, etc...
-                        var contentType = accepts[0];
-                        formatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
-                            .FirstOrDefault(x => contentType.Contains(x.MediaType));
-
-                        if (formatter == null)
-                        {
-                            formatter = options.DefaultFormatter; // through...
-                        }
-                    }
-
-                    // Operation execute
-                    var context = new OperationContext(environment, handler.ClassName, handler.MethodName, verb)
-                    {
-                        Parameters = methodParameters,
-                        ContentFormatter = formatter,
-                        Attributes = handler.AttributeLookup
-                    };
-                    await handler.Execute(options, context).ConfigureAwait(false);
-                    return;
-                }
-                else
-                {
-                    environment.EmitNotFound();
-                    return;
-                }
+                    Parameters = methodParameters,
+                    ContentFormatter = formatter,
+                    Attributes = handler.AttributeLookup
+                };
+                await handler.Execute(options, context).ConfigureAwait(false);
+                return;
             }
             catch (ReturnStatusCodeException statusException)
             {
