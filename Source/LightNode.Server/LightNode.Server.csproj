@@ -50,6 +50,7 @@
     <Compile Include="IgnoreOperationAttribute.cs" />
     <Compile Include="LightNodeFilterAttribute.cs" />
     <Compile Include="OperationContext.cs" />
+    <Compile Include="Utility\OwinConstants.cs" />
     <Compile Include="Utility\OwinHelper.cs" />
     <Compile Include="ParameterBinder.cs" />
     <Compile Include="ReturnStatusCodeException.cs" />
