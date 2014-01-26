@@ -202,6 +202,12 @@ LightNode is fastest framework.
 
 Performance source code is in [LightNode/Performance](https://github.com/neuecc/LightNode/tree/master/Performance). Enviroment is "Windows 8.1/CPU Core i7-3770K(3.5GHz)/Memory 32GB" and disabled firewall and windows defender. Orange and Green bar is hosted on IIS(System.Web). LightNode(Green bar)'s performance is nearly raw handler. Gray bar is reference, LightNode on [Helios - Microsoft.Owin.Host.IIS](http://www.nuget.org/packages/Microsoft.Owin.Host.IIS/) gots extremely performance. 
 
+Build
+---
+[![Build status](https://ci.appveyor.com/api/projects/status?id=i7smkb51sr0ghy15)](https://ci.appveyor.com/project/lightnode)
+
+LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit test status.
+
 ReleaseNote
 ---
 0.2.0 - 2014-01-14
