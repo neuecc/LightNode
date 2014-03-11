@@ -204,7 +204,7 @@ Performance source code is in [LightNode/Performance](https://github.com/neuecc/
 
 Build/Test Status
 ---
-[![Build status](https://ci.appveyor.com/api/projects/status?id=i7smkb51sr0ghy15)](https://ci.appveyor.com/project/lightnode)
+[![Build status](https://ci.appveyor.com/api/projects/status/i7smkb51sr0ghy15)](https://ci.appveyor.com/project/neuecc/lightnode)
 
 LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit test status.
 
