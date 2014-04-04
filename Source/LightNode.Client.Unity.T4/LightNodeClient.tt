@@ -1,0 +1,335 @@
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="EnvDTE" #>
+<#@ import namespace="EnvDTE" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Threading" #>
+<#@ import namespace="System.Threading.Tasks" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension="Generated.cs" encoding="utf-8" #>
+<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Server.dll" #>
+<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Performance.dll" #>
+<#
+    // ------------- T4 Configuration ------------- //
+    
+    // 1. Set LightNodeContract assemblies(and all dependency) path to above #@ assembly name # directive
+
+    // 2. Set Namespace & ClientName & Namespace
+    var clientName = "LightNodeClient";
+    var namespaceName = "LightNode.Client";
+
+    // 3. Set DefaultContentFormatter Construct String
+    var defaultContentFormatter = "new LightNode.Formatter.JsonNetContentFormatter()";
+
+    // 4. Set Additional using Namespace
+    var usingNamespaces = new [] {"System.Linq"};
+
+    // 5. Set append "Async" suffix to method name(ex: CalcAsync or Calc)
+    var addAsyncSuffix = true;
+
+    // 6. Add CoreInterface(IContentFormatter etc) on inline
+    var emitCoreInterface = true;
+
+    // 7. Emit Json.NET(Unity) ContentFormatter on inline
+    var emitJsonNetFormatter = true;
+
+    // ----------End T4 Configuration ------------- //
+
+    Func<Type, string> BeautifyType = null;
+    BeautifyType = (Type t) =>
+    {
+        if (t == typeof(void)) return "void";
+        if (!t.IsGenericType) return t.FullName;
+
+        var innerFormat = string.Join(", ", t.GetGenericArguments().Select(x => BeautifyType(x)));
+        return Regex.Replace(t.GetGenericTypeDefinition().FullName, @"`.+$", "") + "<" + innerFormat + ">";
+    };
+
+    var ignoreMethods = new HashSet<string> { "Equals", "GetHashCode", "GetType", "ToString" };
+
+    var typeFromAssemblies = System.AppDomain.CurrentDomain
+        .GetAssemblies()
+        .Where(x => !Regex.IsMatch(x.GetName().Name, "^(mscorlib|System|Sytem.Web|EnvDTE)$"))
+        .SelectMany(x => x.GetTypes())
+        .Where(x => x != null && x.FullName != "LightNode.Server.LightNodeContract");
+
+    var contracts = typeFromAssemblies
+        .Where(x =>
+        {
+            while (x != typeof(object) && x != null)
+            {
+                if (x.FullName == "LightNode.Server.LightNodeContract") return true;
+                x = x.BaseType;
+            }
+            return false;
+        })
+        .Select(x =>
+        {
+            var methods = x.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Where(methodInfo => !(methodInfo.IsSpecialName && (methodInfo.Name.StartsWith("set_") || methodInfo.Name.StartsWith("get_"))))
+                .Where(methodInfo => !ignoreMethods.Contains(methodInfo.Name))
+                .Select(methodInfo =>
+                {
+                    var retType = methodInfo.ReturnType;
+                    var returnType =
+                        (retType == typeof(void)) ? typeof(void)
+                        : (retType == typeof(Task)) ? typeof(void)
+                        : (retType.IsGenericType && retType.GetGenericTypeDefinition() == typeof(Task<>)) ? retType.GetGenericArguments()[0]
+                        : retType;
+
+                    var parameter = methodInfo.GetParameters()
+                        .Select(paramInfo => new
+                        {
+                            paramInfo.Name,
+                            paramInfo.ParameterType,
+                            paramInfo.IsOptional,
+                            paramInfo.DefaultValue,
+                        })
+                        .ToArray();
+
+                    var parameterString = string.Join(", ", parameter.Select(p =>
+                    {
+                        return BeautifyType(p.ParameterType) + " " + p.Name;
+                    }));
+
+                    var parameterStringWithOptional = string.Join(", ", parameter.Select(p =>
+                    {
+                        var @base = BeautifyType(p.ParameterType) + " " + p.Name;
+                        if (p.IsOptional)
+                        {
+                            @base += " = " + (
+                                (p.DefaultValue == null) ? "null"
+                              : (p.DefaultValue is string) ? "\"" + p.DefaultValue + "\"" 
+                              : (p.DefaultValue is CancellationToken) ? "default(CancellationToken)"
+                              : p.DefaultValue);
+                        }
+                        return @base;
+                    }));
+
+                    return new
+                    {
+                        OperationName = methodInfo.Name,
+                        ReturnType = returnType,
+                        Parameters = parameter,
+                        ParameterString = parameterString,
+                        ParameterStringWithOptional = parameterStringWithOptional
+                    };
+                })
+                .ToArray();
+
+            return new
+            {
+                RootName = x.Name,
+                InterfaceName = "_I" + x.Name,
+                Operations = methods
+            };
+        })
+        .ToArray();
+#>
+using UnityEngine;
+using System.Collections;
+using System;
+using System.Text;
+using System.IO;
+using LightNode.Core;
+using System.Collections.Generic;
+<#= string.Join("\r\n", usingNamespaces.Select(x => "using " + x + ";")) #>
+<# if(emitCoreInterface) { #>
+
+namespace LightNode.Core
+{
+    public interface IContentFormatter
+    {
+        string MediaType { get; }
+        string Ext { get; }
+        System.Text.Encoding Encoding { get; }
+        void Serialize(System.IO.Stream stream, object obj);
+        object Deserialize(Type type, System.IO.Stream stream);
+    }
+}
+
+<# } #>
+<# if(emitJsonNetFormatter) { #>
+
+namespace LightNode.Formatter
+{
+    public class JsonNetContentFormatter : LightNode.Core.IContentFormatter
+    {
+        readonly string mediaType;
+        readonly string ext;
+        readonly Encoding encoding;
+        readonly Newtonsoft.Json.JsonSerializer serializer;
+
+        public string MediaType
+        {
+            get { return mediaType; }
+        }
+
+        public string Ext
+        {
+            get { return ext; }
+        }
+
+        public Encoding Encoding
+        {
+            get { return encoding; }
+        }
+
+        public JsonNetContentFormatter(string mediaType = "application/json", string ext = "json")
+            : this(new Newtonsoft.Json.JsonSerializer(), mediaType, ext)
+        {
+        }
+
+        public JsonNetContentFormatter(Newtonsoft.Json.JsonSerializer serializer, string mediaType = "application/json", string ext = "json")
+            : this(serializer, System.Text.Encoding.UTF8, mediaType, ext)
+        {
+        }
+
+        public JsonNetContentFormatter(Encoding encoding, string mediaType = "application/json", string ext = "json")
+            : this(new Newtonsoft.Json.JsonSerializer(), encoding, mediaType, ext)
+        {
+        }
+
+        public JsonNetContentFormatter(Newtonsoft.Json.JsonSerializer serializer, Encoding encoding, string mediaType = "application/json", string ext = "json")
+        {
+            this.mediaType = mediaType;
+            this.ext = ext;
+            this.encoding = encoding;
+            this.serializer = serializer;
+        }
+
+        public void Serialize(System.IO.Stream stream, object obj)
+        {
+            using (var sw = new StreamWriter(stream, Encoding ?? System.Text.Encoding.UTF8))
+            {
+                serializer.Serialize(sw, obj);
+            }
+        }
+
+        public object Deserialize(Type type, System.IO.Stream stream)
+        {
+            using (var sr = new StreamReader(stream, Encoding ?? System.Text.Encoding.UTF8))
+            {
+                return serializer.Deserialize(sr, type);
+            }
+        }
+    }
+}
+
+<# } #>
+namespace <#= namespaceName #>
+{
+    public partial class <#= clientName #> : <#= string.Join(", ", contracts.Select(x => x.InterfaceName)) #>
+    {
+        static IContentFormatter defaultContentFormatter = <#= defaultContentFormatter #>;
+        readonly string rootEndPoint;
+
+        IContentFormatter contentFormatter;
+        public IContentFormatter ContentFormatter
+        {
+            get { return contentFormatter = (contentFormatter ?? defaultContentFormatter); }
+            set { contentFormatter = value; }
+        }
+
+<# foreach(var contract in contracts) { #>
+        public <#= contract.InterfaceName #> <#= contract.RootName #> { get { return this; } }
+<# } #>
+
+        public LightNodeClient(string rootEndPoint)
+        {
+            this.rootEndPoint = rootEndPoint.TrimEnd('/');
+            this.ContentFormatter = defaultContentFormatter;
+        }
+
+        protected virtual IEnumerator _PostAsync(string method, WWWForm content)
+        {
+            using (var www = new WWW(rootEndPoint + method, content))
+            {
+                // TODO:Progress?
+                yield return www;
+                if (www.isDone && www.error != null)
+                {
+                    // as void
+                }
+                else
+                {
+                    // TODO:other exception?
+                    throw new Exception(www.error ?? "");
+                }
+            }
+        }
+
+        protected virtual IEnumerator _PostAsync<T>(string method, WWWForm content, Action<T> onCompleted)
+        {
+            using (var www = new WWW(rootEndPoint + method, content))
+            {
+                // TODO:Progress?
+                yield return www;
+                if (www.isDone && www.error != null)
+                {
+                    // bytes? text?
+                    using (var ms = new MemoryStream(www.bytes))
+                    {
+                        var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
+                        onCompleted(value);
+                    }
+                }
+                else
+                {
+                    // TODO:other exception?
+                    throw new Exception(www.error ?? "");
+                }
+            }
+        }
+
+<# foreach(var contract in contracts) { #>
+        #region <#= contract.InterfaceName #>
+
+<# foreach(var operation in contract.Operations) { #>
+<# if (operation.ReturnType == typeof(void)) { #>
+        IEnumerator <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #>)
+<# } else { #>
+        IEnumerator <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #>, Action<<#= BeautifyType(operation.ReturnType) #>> onCompleted)
+<# } #>
+        {
+            var form = new WWWForm();
+<# foreach(var parameter in operation.Parameters) { #>
+<# if (parameter.ParameterType.IsArray) { #>
+            if (<#= parameter.Name #> != null) foreach (var ___x in <#= parameter.Name #>) form.AddField("<#= parameter.Name #>", ___x.ToString());
+<# } else if(parameter.ParameterType.IsClass || (parameter.ParameterType.IsGenericType && parameter.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>))) { #>
+            if (<#= parameter.Name #> != null) form.AddField("<#= parameter.Name #>", <#= parameter.Name #>.ToString());
+<# } else { #>
+            form.AddField("<#= parameter.Name #>", <#= parameter.Name #>.ToString());
+<# } #>
+<# } #>
+
+<# if (operation.ReturnType != typeof(void)) { #>
+            return _PostAsync<#= "<" + BeautifyType(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", form, onCompleted);
+<# } else { #>
+            return _PostAsync("/<#= contract.RootName #>/<#= operation.OperationName #>", form);
+<# } #>
+        }
+
+<# } #>
+        #endregion
+
+<# } #>
+    }
+
+<# foreach(var contract in contracts) { #>
+    public interface <#= contract.InterfaceName #>
+    {
+<# foreach(var operation in contract.Operations) { #>
+<# if (operation.ReturnType == typeof(void)) { #>
+        IEnumerator <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #>);
+<# } else { #>
+        IEnumerator <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #>, Action<<#= BeautifyType(operation.ReturnType) #>> onCompleted);
+<# } #>
+<# } #>
+    }
+
+<# } #>
+}
