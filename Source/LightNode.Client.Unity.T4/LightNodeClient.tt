@@ -10,7 +10,6 @@
 <#@ import namespace="System.Threading.Tasks" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension="Generated.cs" encoding="utf-8" #>
-<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Server.dll" #>
 <#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Performance.dll" #>
 <#
     // ------------- T4 Configuration ------------- //
@@ -244,43 +243,52 @@ namespace <#= namespaceName #>
             this.ContentFormatter = defaultContentFormatter;
         }
 
-        protected virtual IEnumerator _PostAsync(string method, WWWForm content)
+        protected virtual IEnumerator _PostAsync(string method, WWWForm content, Action<Exception> onError, Action<float> reportProgress)
         {
             using (var www = new WWW(rootEndPoint + method, content))
             {
-                // TODO:Progress?
-                yield return www;
-                if (www.isDone && www.error != null)
+                while (!www.isDone)
+	            {
+                    if(reportProgress != null) reportProgress(www.progress);
+                    yield return null;
+	            }
+
+                if(www.error != null)
                 {
-                    // as void
-                }
-                else
-                {
-                    // TODO:other exception?
-                    throw new Exception(www.error ?? "");
+                    onError(new Exception(www.error ?? ""));
                 }
             }
         }
 
-        protected virtual IEnumerator _PostAsync<T>(string method, WWWForm content, Action<T> onCompleted)
+        protected virtual IEnumerator _PostAsync<T>(string method, WWWForm content, Action<T> onCompleted, Action<Exception> onError, Action<float> reportProgress)
         {
             using (var www = new WWW(rootEndPoint + method, content))
             {
-                // TODO:Progress?
-                yield return www;
-                if (www.isDone && www.error != null)
+                while (!www.isDone)
+	            {
+                    if(reportProgress != null) reportProgress(www.progress);
+                    yield return null;
+	            }
+                
+                if (www.error != null)
                 {
-                    // bytes? text?
-                    using (var ms = new MemoryStream(www.bytes))
-                    {
-                        var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
-                        onCompleted(value);
-                    }
+                    var ex = new Exception(www.error ?? "");
+                    onError(ex);
                 }
                 else
                 {
-                    // TODO:other exception?
-                    throw new Exception(www.error ?? "");
+                    try
+                    {
+                        using (var ms = new MemoryStream(www.bytes))
+                        {
+                            var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
+                            onCompleted(value);
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        onError(ex);
+                    }
                 }
             }
         }
@@ -290,9 +298,9 @@ namespace <#= namespaceName #>
 
 <# foreach(var operation in contract.Operations) { #>
 <# if (operation.ReturnType == typeof(void)) { #>
-        IEnumerator <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #>)
+        IEnumerator <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #><#= operation.Parameters.Any() ? ", " : "" #>Action<Exception> onError, Action<float> reportProgress)
 <# } else { #>
-        IEnumerator <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #>, Action<<#= BeautifyType(operation.ReturnType) #>> onCompleted)
+        IEnumerator <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #><#= operation.Parameters.Any() ? ", " : "" #>Action<<#= BeautifyType(operation.ReturnType) #>> onCompleted, Action<Exception> onError, Action<float> reportProgress)
 <# } #>
         {
             var form = new WWWForm();
@@ -307,9 +315,9 @@ namespace <#= namespaceName #>
 <# } #>
 
 <# if (operation.ReturnType != typeof(void)) { #>
-            return _PostAsync<#= "<" + BeautifyType(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", form, onCompleted);
+            return _PostAsync<#= "<" + BeautifyType(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", form, onCompleted, onError, reportProgress);
 <# } else { #>
-            return _PostAsync("/<#= contract.RootName #>/<#= operation.OperationName #>", form);
+            return _PostAsync("/<#= contract.RootName #>/<#= operation.OperationName #>", form, onError, reportProgress);
 <# } #>
         }
 
@@ -324,9 +332,9 @@ namespace <#= namespaceName #>
     {
 <# foreach(var operation in contract.Operations) { #>
 <# if (operation.ReturnType == typeof(void)) { #>
-        IEnumerator <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #>);
+        IEnumerator <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #><#= operation.Parameters.Any() ? ", " : "" #>Action<Exception> onError = null, Action<float> reportProgress = null);
 <# } else { #>
-        IEnumerator <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #>, Action<<#= BeautifyType(operation.ReturnType) #>> onCompleted);
+        IEnumerator <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #><#= operation.Parameters.Any() ? ", " : "" #>Action<<#= BeautifyType(operation.ReturnType) #>> onCompleted, Action<Exception> onError = null, Action<float> reportProgress = null);
 <# } #>
 <# } #>
     }

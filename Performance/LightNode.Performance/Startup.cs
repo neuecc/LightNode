@@ -35,6 +35,15 @@ namespace LightNode.Performance
         public void TestArray(string[] array, int[] array2)
         {
         }
+
+        public void TeVoid()
+        {
+        }
+
+        public string Te4(string xs)
+        {
+            return xs;
+        }
     }
 
     public class MyClass

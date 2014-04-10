@@ -111,6 +111,21 @@ namespace LightNode.Client
             return PostAsync("/Perf/TestArray", new FormUrlEncodedContent(list), cancellationToken);
         }
 
+        System.Threading.Tasks.Task _IPerf.TeVoidAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var list = new List<KeyValuePair<string, string>>(0);
+
+            return PostAsync("/Perf/TeVoid", new FormUrlEncodedContent(list), cancellationToken);
+        }
+
+        System.Threading.Tasks.Task<System.String> _IPerf.Te4Async(System.String xs, System.Threading.CancellationToken cancellationToken)
+        {
+            var list = new List<KeyValuePair<string, string>>(1);
+            if (xs != null) list.Add(new KeyValuePair<string, string>("xs", xs.ToString()));
+
+            return PostAsync<System.String>("/Perf/Te4", new FormUrlEncodedContent(list), cancellationToken);
+        }
+
         #endregion
 
     }
@@ -121,6 +136,8 @@ namespace LightNode.Client
         System.Threading.Tasks.Task TestAsync(System.String a = null, System.Nullable<System.Int32> x = null, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
         System.Threading.Tasks.Task TeAsync(System.Threading.CancellationToken cancellationToken = default(CancellationToken));
         System.Threading.Tasks.Task TestArrayAsync(System.String[] array, System.Int32[] array2, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+        System.Threading.Tasks.Task TeVoidAsync(System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+        System.Threading.Tasks.Task<System.String> Te4Async(System.String xs, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
     }
 
 }

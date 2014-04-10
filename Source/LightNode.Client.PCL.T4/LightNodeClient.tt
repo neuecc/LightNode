@@ -10,7 +10,6 @@
 <#@ import namespace="System.Threading.Tasks" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension="Generated.cs" encoding="utf-8" #>
-<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Server.dll" #>
 <#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Performance.dll" #>
 <#
     // ------------- T4 Configuration ------------- //

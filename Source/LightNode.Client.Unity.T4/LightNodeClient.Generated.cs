@@ -107,50 +107,59 @@ namespace LightNode.Client
             this.ContentFormatter = defaultContentFormatter;
         }
 
-        protected virtual IEnumerator _PostAsync(string method, WWWForm content)
+        protected virtual IEnumerator _PostAsync(string method, WWWForm content, Action<Exception> onError, Action<float> reportProgress)
         {
             using (var www = new WWW(rootEndPoint + method, content))
             {
-                // TODO:Progress?
-                yield return www;
-                if (www.isDone && www.error != null)
+                while (!www.isDone)
                 {
-                    // as void
+                    if (reportProgress != null) reportProgress(www.progress);
+                    yield return null;
                 }
-                else
+
+                if (www.error != null)
                 {
-                    // TODO:other exception?
-                    throw new Exception(www.error ?? "");
+                    onError(new Exception(www.error ?? ""));
                 }
             }
         }
 
-        protected virtual IEnumerator _PostAsync<T>(string method, WWWForm content, Action<T> onCompleted)
+        protected virtual IEnumerator _PostAsync<T>(string method, WWWForm content, Action<T> onCompleted, Action<Exception> onError, Action<float> reportProgress)
         {
             using (var www = new WWW(rootEndPoint + method, content))
             {
-                // TODO:Progress?
-                yield return www;
-                if (www.isDone && www.error != null)
+                while (!www.isDone)
                 {
-                    // bytes? text?
-                    using (var ms = new MemoryStream(www.bytes))
-                    {
-                        var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
-                        onCompleted(value);
-                    }
+                    if (reportProgress != null) reportProgress(www.progress);
+                    yield return null;
+                }
+
+                if (www.error != null)
+                {
+                    var ex = new Exception(www.error ?? "");
+                    onError(ex);
                 }
                 else
                 {
-                    // TODO:other exception?
-                    throw new Exception(www.error ?? "");
+                    try
+                    {
+                        using (var ms = new MemoryStream(www.bytes))
+                        {
+                            var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
+                            onCompleted(value);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        onError(ex);
+                    }
                 }
             }
         }
 
         #region _IPerf
 
-        IEnumerator _IPerf.EchoAsync(System.String name, System.Int32 x, System.Int32 y, LightNode.Performance.MyEnum e, Action<LightNode.Performance.MyClass> onCompleted)
+        IEnumerator _IPerf.EchoAsync(System.String name, System.Int32 x, System.Int32 y, LightNode.Performance.MyEnum e, Action<LightNode.Performance.MyClass> onCompleted, Action<Exception> onError, Action<float> reportProgress)
         {
             var form = new WWWForm();
             if (name != null) form.AddField("name", name.ToString());
@@ -158,32 +167,47 @@ namespace LightNode.Client
             form.AddField("y", y.ToString());
             form.AddField("e", e.ToString());
 
-            return _PostAsync<LightNode.Performance.MyClass>("/Perf/Echo", form, onCompleted);
+            return _PostAsync<LightNode.Performance.MyClass>("/Perf/Echo", form, onCompleted, onError, reportProgress);
         }
 
-        IEnumerator _IPerf.TestAsync(System.String a, System.Nullable<System.Int32> x)
+        IEnumerator _IPerf.TestAsync(System.String a, System.Nullable<System.Int32> x, Action<Exception> onError, Action<float> reportProgress)
         {
             var form = new WWWForm();
             if (a != null) form.AddField("a", a.ToString());
             if (x != null) form.AddField("x", x.ToString());
 
-            return _PostAsync("/Perf/Test", form);
+            return _PostAsync("/Perf/Test", form, onError, reportProgress);
         }
 
-        IEnumerator _IPerf.TeAsync()
+        IEnumerator _IPerf.TeAsync(Action<Exception> onError, Action<float> reportProgress)
         {
             var form = new WWWForm();
 
-            return _PostAsync("/Perf/Te", form);
+            return _PostAsync("/Perf/Te", form, onError, reportProgress);
         }
 
-        IEnumerator _IPerf.TestArrayAsync(System.String[] array, System.Int32[] array2)
+        IEnumerator _IPerf.TestArrayAsync(System.String[] array, System.Int32[] array2, Action<Exception> onError, Action<float> reportProgress)
         {
             var form = new WWWForm();
             if (array != null) foreach (var ___x in array) form.AddField("array", ___x.ToString());
             if (array2 != null) foreach (var ___x in array2) form.AddField("array2", ___x.ToString());
 
-            return _PostAsync("/Perf/TestArray", form);
+            return _PostAsync("/Perf/TestArray", form, onError, reportProgress);
+        }
+
+        IEnumerator _IPerf.TeVoidAsync(Action<Exception> onError, Action<float> reportProgress)
+        {
+            var form = new WWWForm();
+
+            return _PostAsync("/Perf/TeVoid", form, onError, reportProgress);
+        }
+
+        IEnumerator _IPerf.Te4Async(System.String xs, Action<System.String> onCompleted, Action<Exception> onError, Action<float> reportProgress)
+        {
+            var form = new WWWForm();
+            if (xs != null) form.AddField("xs", xs.ToString());
+
+            return _PostAsync<System.String>("/Perf/Te4", form, onCompleted, onError, reportProgress);
         }
 
         #endregion
@@ -192,10 +216,12 @@ namespace LightNode.Client
 
     public interface _IPerf
     {
-        IEnumerator EchoAsync(System.String name, System.Int32 x, System.Int32 y, LightNode.Performance.MyEnum e, Action<LightNode.Performance.MyClass> onCompleted);
-        IEnumerator TestAsync(System.String a = null, System.Nullable<System.Int32> x = null);
-        IEnumerator TeAsync();
-        IEnumerator TestArrayAsync(System.String[] array, System.Int32[] array2);
+        IEnumerator EchoAsync(System.String name, System.Int32 x, System.Int32 y, LightNode.Performance.MyEnum e, Action<LightNode.Performance.MyClass> onCompleted, Action<Exception> onError = null, Action<float> reportProgress = null);
+        IEnumerator TestAsync(System.String a = null, System.Nullable<System.Int32> x = null, Action<Exception> onError = null, Action<float> reportProgress = null);
+        IEnumerator TeAsync(Action<Exception> onError = null, Action<float> reportProgress = null);
+        IEnumerator TestArrayAsync(System.String[] array, System.Int32[] array2, Action<Exception> onError = null, Action<float> reportProgress = null);
+        IEnumerator TeVoidAsync(Action<Exception> onError = null, Action<float> reportProgress = null);
+        IEnumerator Te4Async(System.String xs, Action<System.String> onCompleted, Action<Exception> onError = null, Action<float> reportProgress = null);
     }
 
 }
