@@ -11,7 +11,7 @@ namespace LightNode.Client
 {
     public partial class LightNodeClient : _IPerf
     {
-        static IContentFormatter defaultContentFormatter = new LightNode.Formatter.XmlContentFormatter();
+        static IContentFormatter defaultContentFormatter = new LightNode.Formatter.JsonNetContentFormatter();
         readonly string rootEndPoint;
         readonly HttpClient httpClient;
 

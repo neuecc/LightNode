@@ -46,10 +46,16 @@ namespace Owin
 {
     public static class AppBuilderLightNodeMiddlewareExtensions
     {
+        public static IAppBuilder UseLightNode(this IAppBuilder app)
+        {
+            return UseLightNode(app, new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new LightNode.Formatter.JavaScriptContentFormatter()));
+        }
+
         public static IAppBuilder UseLightNode(this IAppBuilder app, LightNodeOptions options)
         {
             return app.Use(typeof(LightNodeServerMiddleware), options);
         }
+
         public static IAppBuilder UseLightNode(this IAppBuilder app, LightNodeOptions options, params Assembly[] hostAssemblies)
         {
             return app.Use(typeof(LightNodeServerMiddleware), options, hostAssemblies);
