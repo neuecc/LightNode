@@ -44,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LightNodeClient.Generated.cs">
+    <Compile Include="LightNodeClient1.Generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>LightNodeClient.tt</DependentUpon>
@@ -73,7 +73,7 @@
     <None Include="app.config" />
     <None Include="LightNodeClient.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>LightNodeClient.Generated.cs</LastGenOutput>
+      <LastGenOutput>LightNodeClient1.Generated.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

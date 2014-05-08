@@ -219,11 +219,11 @@ namespace <#= namespaceName #>
             var list = new List<KeyValuePair<string, string>>(<#= operation.Parameters.Length - 1 #>);
 <# foreach(var parameter in operation.Parameters.Where(x => x.Name != "cancellationToken")) { #>
 <# if (parameter.ParameterType.IsArray) { #>
-            if (<#= parameter.Name #> != null) list.AddRange(<#= parameter.Name #>.Select(___x => new KeyValuePair<string, string>("<#= parameter.Name #>", ___x.ToString())));
+            if (<#= parameter.Name #> != null) list.AddRange(<#= parameter.Name #>.Select(___x => new KeyValuePair<string, string>("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType.GetElementType(), "___x"); #>)));
 <# } else if(parameter.ParameterType.IsClass || (parameter.ParameterType.IsGenericType && parameter.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>))) { #>
-            if (<#= parameter.Name #> != null) list.Add(new KeyValuePair<string, string>("<#= parameter.Name #>", <#= parameter.Name #>.ToString()));
+            if (<#= parameter.Name #> != null) list.Add(new KeyValuePair<string, string>("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType, parameter.Name); #>));
 <# } else { #>
-            list.Add(new KeyValuePair<string, string>("<#= parameter.Name #>", <#= parameter.Name #>.ToString()));
+            list.Add(new KeyValuePair<string, string>("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType, parameter.Name); #>));
 <# } #>
 <# } #>
 
@@ -246,3 +246,26 @@ namespace <#= namespaceName #>
 
 <# } #>
 }
+
+<#+  
+    void WriteParameter(Type parameterType, string parameterName)
+    {
+        if(parameterType == typeof(string))
+        {
+            Write(parameterName);
+        }
+        else if(parameterType.IsEnum)
+        {
+            var underlyingType = Enum.GetUnderlyingType(parameterType);
+            Write(string.Format("(({0}){1}).ToString()", underlyingType, parameterName));
+        }
+        else if(parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() == typeof(Nullable<>))
+        {
+            WriteParameter(parameterType.GetGenericArguments()[0], parameterName);
+        }
+        else
+        {
+            Write(parameterName + ".ToString()");
+        }
+    }
+#>

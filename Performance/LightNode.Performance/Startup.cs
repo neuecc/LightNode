@@ -23,7 +23,7 @@ namespace LightNode.Performance
             return new MyClass { Name = name, Sum = (x + y) * (int)e };
         }
 
-        public void Test(string a = null, int? x = null)
+        public void Test(string a = null, int? x = null, MyEnum2? z = null)
         {
         }
 
@@ -32,7 +32,7 @@ namespace LightNode.Performance
             return System.Threading.Tasks.Task.FromResult(1);
         }
 
-        public void TestArray(string[] array, int[] array2)
+        public void TestArray(string[] array, int[] array2, MyEnum[] array3)
         {
         }
 
@@ -57,5 +57,12 @@ namespace LightNode.Performance
         A = 2,
         B = 3,
         C = 4
+    }
+
+    public enum MyEnum2 : ulong
+    {
+        A = 100,
+        B = 3000,
+        C = 50000
     }
 }

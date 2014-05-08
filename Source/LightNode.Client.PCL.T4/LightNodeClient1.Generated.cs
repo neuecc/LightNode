@@ -78,19 +78,20 @@ namespace LightNode.Client
         System.Threading.Tasks.Task<LightNode.Performance.MyClass> _IPerf.EchoAsync(System.String name, System.Int32 x, System.Int32 y, LightNode.Performance.MyEnum e, System.Threading.CancellationToken cancellationToken)
         {
             var list = new List<KeyValuePair<string, string>>(4);
-            if (name != null) list.Add(new KeyValuePair<string, string>("name", name.ToString()));
+            if (name != null) list.Add(new KeyValuePair<string, string>("name", name));
             list.Add(new KeyValuePair<string, string>("x", x.ToString()));
             list.Add(new KeyValuePair<string, string>("y", y.ToString()));
-            list.Add(new KeyValuePair<string, string>("e", e.ToString()));
+            list.Add(new KeyValuePair<string, string>("e", ((System.Int32)e).ToString()));
 
             return PostAsync<LightNode.Performance.MyClass>("/Perf/Echo", new FormUrlEncodedContent(list), cancellationToken);
         }
 
-        System.Threading.Tasks.Task _IPerf.TestAsync(System.String a, System.Nullable<System.Int32> x, System.Threading.CancellationToken cancellationToken)
+        System.Threading.Tasks.Task _IPerf.TestAsync(System.String a, System.Nullable<System.Int32> x, System.Nullable<LightNode.Performance.MyEnum2> z, System.Threading.CancellationToken cancellationToken)
         {
-            var list = new List<KeyValuePair<string, string>>(2);
-            if (a != null) list.Add(new KeyValuePair<string, string>("a", a.ToString()));
+            var list = new List<KeyValuePair<string, string>>(3);
+            if (a != null) list.Add(new KeyValuePair<string, string>("a", a));
             if (x != null) list.Add(new KeyValuePair<string, string>("x", x.ToString()));
+            if (z != null) list.Add(new KeyValuePair<string, string>("z", ((System.UInt64)z).ToString()));
 
             return PostAsync("/Perf/Test", new FormUrlEncodedContent(list), cancellationToken);
         }
@@ -102,11 +103,12 @@ namespace LightNode.Client
             return PostAsync("/Perf/Te", new FormUrlEncodedContent(list), cancellationToken);
         }
 
-        System.Threading.Tasks.Task _IPerf.TestArrayAsync(System.String[] array, System.Int32[] array2, System.Threading.CancellationToken cancellationToken)
+        System.Threading.Tasks.Task _IPerf.TestArrayAsync(System.String[] array, System.Int32[] array2, LightNode.Performance.MyEnum[] array3, System.Threading.CancellationToken cancellationToken)
         {
-            var list = new List<KeyValuePair<string, string>>(2);
-            if (array != null) list.AddRange(array.Select(___x => new KeyValuePair<string, string>("array", ___x.ToString())));
+            var list = new List<KeyValuePair<string, string>>(3);
+            if (array != null) list.AddRange(array.Select(___x => new KeyValuePair<string, string>("array", ___x)));
             if (array2 != null) list.AddRange(array2.Select(___x => new KeyValuePair<string, string>("array2", ___x.ToString())));
+            if (array3 != null) list.AddRange(array3.Select(___x => new KeyValuePair<string, string>("array3", ((System.Int32)___x).ToString())));
 
             return PostAsync("/Perf/TestArray", new FormUrlEncodedContent(list), cancellationToken);
         }
@@ -121,7 +123,7 @@ namespace LightNode.Client
         System.Threading.Tasks.Task<System.String> _IPerf.Te4Async(System.String xs, System.Threading.CancellationToken cancellationToken)
         {
             var list = new List<KeyValuePair<string, string>>(1);
-            if (xs != null) list.Add(new KeyValuePair<string, string>("xs", xs.ToString()));
+            if (xs != null) list.Add(new KeyValuePair<string, string>("xs", xs));
 
             return PostAsync<System.String>("/Perf/Te4", new FormUrlEncodedContent(list), cancellationToken);
         }
@@ -133,11 +135,12 @@ namespace LightNode.Client
     public interface _IPerf
     {
         System.Threading.Tasks.Task<LightNode.Performance.MyClass> EchoAsync(System.String name, System.Int32 x, System.Int32 y, LightNode.Performance.MyEnum e, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
-        System.Threading.Tasks.Task TestAsync(System.String a = null, System.Nullable<System.Int32> x = null, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+        System.Threading.Tasks.Task TestAsync(System.String a = null, System.Nullable<System.Int32> x = null, System.Nullable<LightNode.Performance.MyEnum2> z = null, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
         System.Threading.Tasks.Task TeAsync(System.Threading.CancellationToken cancellationToken = default(CancellationToken));
-        System.Threading.Tasks.Task TestArrayAsync(System.String[] array, System.Int32[] array2, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+        System.Threading.Tasks.Task TestArrayAsync(System.String[] array, System.Int32[] array2, LightNode.Performance.MyEnum[] array3, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
         System.Threading.Tasks.Task TeVoidAsync(System.Threading.CancellationToken cancellationToken = default(CancellationToken));
         System.Threading.Tasks.Task<System.String> Te4Async(System.String xs, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
     }
 
 }
+

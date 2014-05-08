@@ -306,11 +306,11 @@ namespace <#= namespaceName #>
             var form = new WWWForm();
 <# foreach(var parameter in operation.Parameters) { #>
 <# if (parameter.ParameterType.IsArray) { #>
-            if (<#= parameter.Name #> != null) foreach (var ___x in <#= parameter.Name #>) form.AddField("<#= parameter.Name #>", ___x.ToString());
+            if (<#= parameter.Name #> != null) foreach (var ___x in <#= parameter.Name #>) form.AddField("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType.GetElementType(), "___x"); #>);
 <# } else if(parameter.ParameterType.IsClass || (parameter.ParameterType.IsGenericType && parameter.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>))) { #>
-            if (<#= parameter.Name #> != null) form.AddField("<#= parameter.Name #>", <#= parameter.Name #>.ToString());
+            if (<#= parameter.Name #> != null) form.AddField("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType, parameter.Name); #>);
 <# } else { #>
-            form.AddField("<#= parameter.Name #>", <#= parameter.Name #>.ToString());
+            form.AddField("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType, parameter.Name); #>);
 <# } #>
 <# } #>
 
@@ -341,3 +341,26 @@ namespace <#= namespaceName #>
 
 <# } #>
 }
+
+<#+  
+    void WriteParameter(Type parameterType, string parameterName)
+    {
+        if(parameterType == typeof(string))
+        {
+            Write(parameterName);
+        }
+        else if(parameterType.IsEnum)
+        {
+            var underlyingType = Enum.GetUnderlyingType(parameterType);
+            Write(string.Format("(({0}){1}).ToString()", underlyingType, parameterName));
+        }
+        else if(parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() == typeof(Nullable<>))
+        {
+            WriteParameter(parameterType.GetGenericArguments()[0], parameterName);
+        }
+        else
+        {
+            Write(parameterName + ".ToString()");
+        }
+    }
+#>

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LightNode.Server
 {
-    using AppFunc = Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>;
+    using AppFunc = Func<IDictionary<string, object>, Task>;
 
     public class LightNodeServerMiddleware
     {
