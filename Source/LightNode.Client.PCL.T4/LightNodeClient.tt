@@ -173,21 +173,21 @@ namespace <#= namespaceName #>
         public <#= contract.InterfaceName #> <#= contract.RootName #> { get { return this; } }
 <# } #>
 
-        public LightNodeClient(string rootEndPoint)
+        public <#= clientName #>(string rootEndPoint)
         {
             this.httpClient = new HttpClient();
             this.rootEndPoint = rootEndPoint.TrimEnd('/');
             this.ContentFormatter = defaultContentFormatter;
         }
 
-        public LightNodeClient(string rootEndPoint, HttpMessageHandler innerHandler)
+        public <#= clientName #>(string rootEndPoint, HttpMessageHandler innerHandler)
         {
             this.httpClient = new HttpClient(innerHandler);
             this.rootEndPoint = rootEndPoint.TrimEnd('/');
             this.ContentFormatter = defaultContentFormatter;
         }
 
-        public LightNodeClient(string rootEndPoint, HttpMessageHandler innerHandler, bool disposeHandler)
+        public <#= clientName #>(string rootEndPoint, HttpMessageHandler innerHandler, bool disposeHandler)
         {
             this.httpClient = new HttpClient(innerHandler, disposeHandler);
             this.rootEndPoint = rootEndPoint.TrimEnd('/');

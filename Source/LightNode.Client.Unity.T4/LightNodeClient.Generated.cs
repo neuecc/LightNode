@@ -112,12 +112,12 @@ namespace LightNode.Client
             using (var www = new WWW(rootEndPoint + method, content))
             {
                 while (!www.isDone)
-                {
-                    if (reportProgress != null) reportProgress(www.progress);
+	            {
+                    if(reportProgress != null) reportProgress(www.progress);
                     yield return null;
-                }
+	            }
 
-                if (www.error != null)
+                if(www.error != null)
                 {
                     onError(new Exception(www.error ?? ""));
                 }
@@ -129,11 +129,11 @@ namespace LightNode.Client
             using (var www = new WWW(rootEndPoint + method, content))
             {
                 while (!www.isDone)
-                {
-                    if (reportProgress != null) reportProgress(www.progress);
+	            {
+                    if(reportProgress != null) reportProgress(www.progress);
                     yield return null;
-                }
-
+	            }
+                
                 if (www.error != null)
                 {
                     var ex = new Exception(www.error ?? "");
@@ -149,7 +149,7 @@ namespace LightNode.Client
                             onCompleted(value);
                         }
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
                         onError(ex);
                     }

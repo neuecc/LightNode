@@ -237,7 +237,7 @@ namespace <#= namespaceName #>
         public <#= contract.InterfaceName #> <#= contract.RootName #> { get { return this; } }
 <# } #>
 
-        public LightNodeClient(string rootEndPoint)
+        public <#= clientName #>(string rootEndPoint)
         {
             this.rootEndPoint = rootEndPoint.TrimEnd('/');
             this.ContentFormatter = defaultContentFormatter;
