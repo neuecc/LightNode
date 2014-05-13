@@ -50,6 +50,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{52DEAA6E-C
 	ProjectSection(SolutionItems) = preProject
 		LICENSE = LICENSE
 		NuGet\LightNode.Client.PCL.T4.nuspec = NuGet\LightNode.Client.PCL.T4.nuspec
+		NuGet\LightNode.Client.Unity.T4.nuspec = NuGet\LightNode.Client.Unity.T4.nuspec
 		NuGet\LightNode.Core.nuspec = NuGet\LightNode.Core.nuspec
 		NuGet\LightNode.Formatter.JsonNet.nuspec = NuGet\LightNode.Formatter.JsonNet.nuspec
 		NuGet\LightNode.Formatter.MsgPack.nuspec = NuGet\LightNode.Formatter.MsgPack.nuspec

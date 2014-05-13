@@ -1,6 +1,6 @@
 LightNode
 =========
-LightNode is Micro RPC/REST Framework built on OWIN provides both server and client. Server is lightweight and performant implementation. Client is code generation(T4) based auto generated RPC Client based on HttpClient, of course everything return Task. And client code generation will provide for Unity3D and TypeScript. 
+LightNode is Micro RPC/REST Framework built on OWIN provides both server and client. Server is lightweight and performant implementation. Client is code generation(T4) based auto generated RPC Client based on HttpClient, of course everything return Task. And client code generation for Unity3D(WWW base). We will provide for TypeScript. 
 
 Installation
 ---
@@ -10,12 +10,19 @@ binary from NuGet, [LightNode.Server](https://nuget.org/packages/LightNode.Serve
 PM> Install-Package LightNode.Server
 ```
 
-and Client is [LightNode.Client.PCL.T4](https://nuget.org/packages/LightNode.Client.PCL.T4/)
+Client for Portable Client Library [LightNode.Client.PCL.T4](https://nuget.org/packages/LightNode.Client.PCL.T4/)
 
 ```
 PM> Install-Package LightNode.Client.PCL.T4
 ```
-and ContentFormatters(for JsonNet, ProtoBuf, MsgPack)
+
+Client for Unity3D [LightNode.Client.Unity.T4](https://nuget.org/packages/LightNode.Client.Unity.T4/)
+
+```
+PM> Install-Package LightNode.Client.Unity.T4
+```
+
+ContentFormatters(for JsonNet, ProtoBuf, MsgPack)
 ```
 PM> Install-Package LightNode.Formatter.JsonNet
 PM> Install-Package LightNode.Formatter.ProtoBuf
@@ -210,6 +217,11 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+0.3.0 - 2014-05-12
+* Add Unity T4 Template
+* Some fixes for PCL.T4 Template
+* Add default UseLightNode overload
+
 0.2.0 - 2014-01-14
 * Add Filter System
 * Enum Binding Performance Improvement
