@@ -39,10 +39,14 @@ public class Startup
 {
     public void Configuration(Owin.IAppBuilder app)
     {
+        // UseLightNode = AcceptVerbs.Get | Post, JavaScriptContentFormatter
+        app.UseLightNode();
+    
+        // Details Option
         // global configuration, select your primary/secondary formatters(JsonNet/ProtoBuf/MsgPack/Xml/etc...)
-        app.UseLightNode(new LightNodeOptions(
-            AcceptVerbs.Get | AcceptVerbs.Post, 
-            new JavaScriptContentTypeFormatter()));
+        // app.UseLightNode(new LightNodeOptions(
+        //     AcceptVerbs.Get | AcceptVerbs.Post, 
+        //     new JsonNetContentTypeFormatter()));
     }
 }
 
