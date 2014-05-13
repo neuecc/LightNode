@@ -161,7 +161,6 @@ Implementation of the REST API is often painful. LightNode solves by T4 code gen
 ```csharp
 // Open .tt file and configure four steps.
 
-<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Server.dll" #>
 <#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Performance.dll" #>
 <#
     // ------------- T4 Configuration ------------- //
@@ -173,7 +172,7 @@ Implementation of the REST API is often painful. LightNode solves by T4 code gen
     var namespaceName = "LightNode.Client";
 
     // 3. Set DefaultContentFormatter Construct String
-    var defaultContentFormatter = "new LightNode.Formatter.XmlContentFormatter()";
+    var defaultContentFormatter = "new LightNode.Formatter.JsonNetContentFormatter()";
 
     // 4. Set Additional using Namespace
     var usingNamespaces = new [] {"System.Linq"};
