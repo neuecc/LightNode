@@ -1,0 +1,285 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>LightNode by neuecc</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/neuecc/LightNode">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/neuecc/LightNode/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/neuecc/LightNode/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>LightNode</h1>
+          <p>Micro RPC/REST Framework built on OWIN</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/neuecc">neuecc</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="lightnode" class="anchor" href="#lightnode"><span class="octicon octicon-link"></span></a>LightNode</h1>
+
+<p>LightNode is Micro RPC/REST Framework built on OWIN provides both server and client. Server is lightweight and performant implementation. Client is code generation(T4) based auto generated RPC Client based on HttpClient, of course everything return Task. And client code generation for Unity3D(WWW base). We will provide for TypeScript.</p>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>binary from NuGet, <a href="https://nuget.org/packages/LightNode.Server/">LightNode.Server</a></p>
+
+<pre><code>PM&gt; Install-Package LightNode.Server
+</code></pre>
+
+<p>Client for <a href="https://nuget.org/packages/LightNode.Client.PCL.T4/">LightNode.Client.PCL.T4</a></p>
+
+<pre><code>PM&gt; Install-Package LightNode.Client.PCL.T4
+</code></pre>
+
+<p>Client for <a href="https://nuget.org/packages/LightNode.Client.Unity.T4/">LightNode.Client.Unity.T4</a></p>
+
+<pre><code>PM&gt; Install-Package LightNode.Client.Unity.T4
+</code></pre>
+
+<p>and ContentFormatters(for JsonNet, ProtoBuf, MsgPack)</p>
+
+<pre><code>PM&gt; Install-Package LightNode.Formatter.JsonNet
+PM&gt; Install-Package LightNode.Formatter.ProtoBuf
+PM&gt; Install-Package LightNode.Formatter.MsgPack
+</code></pre>
+
+<h2>
+<a name="lightweight-server" class="anchor" href="#lightweight-server"><span class="octicon octicon-link"></span></a>Lightweight Server</h2>
+
+<p>Server implementation is very easy, built up Owin and implements <code>LightNodeContract</code>.</p>
+
+<div class="highlight highlight-csharp"><pre><span class="c1">// Owin Code</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Startup</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">Configuration</span><span class="p">(</span><span class="n">Owin</span><span class="p">.</span><span class="n">IAppBuilder</span> <span class="n">app</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// global configuration, select your primary/secondary formatters(JsonNet/ProtoBuf/MsgPack/Xml/etc...)</span>
+        <span class="n">app</span><span class="p">.</span><span class="n">UseLightNode</span><span class="p">(</span><span class="k">new</span> <span class="n">LightNodeOptions</span><span class="p">(</span>
+            <span class="n">AcceptVerbs</span><span class="p">.</span><span class="n">Get</span> <span class="p">|</span> <span class="n">AcceptVerbs</span><span class="p">.</span><span class="n">Post</span><span class="p">,</span> 
+            <span class="k">new</span> <span class="nf">JavaScriptContentTypeFormatter</span><span class="p">()));</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// implement LightNodeContract, all public methods become API.</span>
+<span class="c1">// You can access {ClassName}/{MethodName}</span>
+<span class="c1">// Ex. http://localhost/My/Echo?x=test</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">My</span> <span class="p">:</span> <span class="n">LightNodeContract</span>
+<span class="p">{</span>
+    <span class="c1">// return value is response body serialized by ContentTypeFormatter.    </span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="nf">Echo</span><span class="p">(</span><span class="kt">string</span> <span class="n">x</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// support async! return type allows void, T, Task and Task&lt;T&gt;.</span>
+    <span class="c1">// parameter supports array, nullable and optional parameter.</span>
+    <span class="k">public</span> <span class="n">Task</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;</span> <span class="n">Sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int?</span> <span class="n">y</span><span class="p">,</span> <span class="kt">int</span> <span class="n">z</span> <span class="p">=</span> <span class="m">1000</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="n">Task</span><span class="p">.</span><span class="n">Run</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="n">x</span> <span class="p">+</span> <span class="n">y</span><span class="p">.</span><span class="n">Value</span> <span class="p">+</span> <span class="n">z</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Server API rule is very simple.</p>
+
+<blockquote>
+<p>Parameter model bindings supports only basic pattern, can't use complex type. allow types are "string, DateTime, DateTimeOffset, Boolean, Decimal, Char, TimeSpan, Int16, Int32, Int64, UInt16, UInt32, UInt64, Single, Double, SByte, Byte and each Nullable types and array(except byte[]. If you want to use byte[], use Base64 string instead of byte[])</p>
+</blockquote>
+
+<p>Return type allows all serializable(ContentFormatter support) type.</p>
+
+<h2>
+<a name="filter" class="anchor" href="#filter"><span class="octicon octicon-link"></span></a>Filter</h2>
+
+<p>LightNode supports filter. The implementation is like middleware pipeline.</p>
+
+<p><img src="https://f.cloud.github.com/assets/46207/1902207/3dbe3012-7c6f-11e3-8d39-7e442e92b970.jpg" alt="lightnode_performance"></p>
+
+<div class="highlight highlight-csharp"><pre><span class="k">public</span> <span class="k">class</span> <span class="nc">SampleFilterAttribute</span> <span class="p">:</span> <span class="n">LightNodeFilterAttribute</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">Invoke</span><span class="p">(</span><span class="n">OperationContext</span> <span class="n">operationContext</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">Task</span><span class="p">&gt;</span> <span class="n">next</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">try</span>
+        <span class="p">{</span>
+            <span class="c1">// OnBeforeAction</span>
+
+            <span class="k">await</span> <span class="nf">next</span><span class="p">();</span> <span class="c1">// next filter or operation handler</span>
+
+            <span class="c1">// OnAfterAction</span>
+        <span class="p">}</span>
+        <span class="k">catch</span>
+        <span class="p">{</span>
+            <span class="c1">// OnExeception</span>
+        <span class="p">}</span>
+        <span class="k">finally</span>
+        <span class="p">{</span>
+            <span class="c1">// OnFinally</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Filter can be attached contract(class), operation(method) and global. Execution pipeline is formed is sorted by Order all specified. Range is -int.MaxValue to int.MaxValue. Default Order of all filters is int.MaxValue.</p>
+
+<p>Difference between Middleware and Filter is who knows operation context. Filter is located after the parameter binding. Therefore, it is possible check attributes(<code>operationContext.IsAttributeDefined</code>, <code>operationContext.GetAttributes</code>).</p>
+
+<h2>
+<a name="control-statuscode" class="anchor" href="#control-statuscode"><span class="octicon octicon-link"></span></a>Control StatusCode</h2>
+
+<p>The default status code, can't find operation returns 404, failed operation returns 500, success and has value returns 200, success and no value returns 204. If returns arbitrary status code, throw ReturnStatusCodeException.</p>
+
+<div class="highlight highlight-csharp"><pre><span class="k">throw</span> <span class="k">new</span> <span class="nf">ReturnStatusCodeException</span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">.</span><span class="n">HttpStatusCode</span><span class="p">.</span><span class="n">Unauthorized</span><span class="p">);</span>
+</pre></div>
+
+<h2>
+<a name="authenticate-routing-session-etc" class="anchor" href="#authenticate-routing-session-etc"><span class="octicon octicon-link"></span></a>Authenticate, Routing, Session, etc...</h2>
+
+<p>You can use other owin middleware. For example, Auth:Microsoft.Owin.Security.*, Session:<a href="https://github.com/neuecc/Owin.RedisSession/">Owin.RedisSession</a>, Context:<a href="https://github.com/neuecc/OwinRequestScopeContext">OwinRequestScopeContext</a>, etc...</p>
+
+<p>Routing and versioning example.</p>
+
+<div class="highlight highlight-csharp"><pre><span class="c1">// Conditional Use</span>
+<span class="n">app</span><span class="p">.</span><span class="n">MapWhen</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Path</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">StartsWith</span><span class="p">(</span><span class="s">"/v1/"</span><span class="p">),</span> <span class="n">ap</span> <span class="p">=&gt;</span>
+<span class="p">{</span>
+   <span class="c1">// Trim Version Path</span>
+   <span class="n">ap</span><span class="p">.</span><span class="n">Use</span><span class="p">((</span><span class="n">context</span><span class="p">,</span> <span class="n">next</span><span class="p">)</span> <span class="p">=&gt;</span>
+   <span class="p">{</span>
+        <span class="n">context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Path</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Microsoft</span><span class="p">.</span><span class="n">Owin</span><span class="p">.</span><span class="n">PathString</span><span class="p">(</span>
+            <span class="n">Regex</span><span class="p">.</span><span class="n">Replace</span><span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Path</span><span class="p">.</span><span class="n">Value</span><span class="p">,</span> <span class="s">@"^/v[1-9]/"</span><span class="p">,</span> <span class="s">"/"</span><span class="p">));</span>
+        <span class="k">return</span> <span class="nf">next</span><span class="p">();</span>
+   <span class="p">});</span>
+
+    <span class="c1">// use v1 assembly</span>
+    <span class="n">ap</span><span class="p">.</span><span class="n">UseLightNode</span><span class="p">(</span><span class="k">new</span> <span class="n">LightNodeOptions</span><span class="p">(</span><span class="n">AcceptVerbs</span><span class="p">.</span><span class="n">Post</span><span class="p">,</span> <span class="k">new</span> <span class="n">JsonNetContentFormatter</span><span class="p">()),</span>
+        <span class="k">typeof</span><span class="p">(</span><span class="n">v1Contract</span><span class="p">).</span><span class="n">Assembly</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="n">app</span><span class="p">.</span><span class="n">MapWhen</span><span class="p">(</span><span class="n">x</span> <span class="p">=&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Path</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">StartsWith</span><span class="p">(</span><span class="s">"/v2/"</span><span class="p">),</span> <span class="n">ap</span> <span class="p">=&gt;</span>
+<span class="p">{</span>
+   <span class="c1">// copy and paste:)</span>
+   <span class="n">ap</span><span class="p">.</span><span class="n">Use</span><span class="p">((</span><span class="n">context</span><span class="p">,</span> <span class="n">next</span><span class="p">)</span> <span class="p">=&gt;</span>
+   <span class="p">{</span>
+        <span class="n">context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Path</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Microsoft</span><span class="p">.</span><span class="n">Owin</span><span class="p">.</span><span class="n">PathString</span><span class="p">(</span>
+            <span class="n">Regex</span><span class="p">.</span><span class="n">Replace</span><span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Path</span><span class="p">.</span><span class="n">Value</span><span class="p">,</span> <span class="s">@"^/v[1-9]/"</span><span class="p">,</span> <span class="s">"/"</span><span class="p">));</span>
+        <span class="k">return</span> <span class="nf">next</span><span class="p">();</span>
+   <span class="p">});</span>
+
+   <span class="c1">// use v2 assembly</span>
+   <span class="n">ap</span><span class="p">.</span><span class="n">UseLightNode</span><span class="p">(</span><span class="k">new</span> <span class="n">LightNodeOptions</span><span class="p">(</span><span class="n">AcceptVerbs</span><span class="p">.</span><span class="n">Post</span><span class="p">,</span> <span class="k">new</span> <span class="n">JsonNetContentFormatter</span><span class="p">()),</span>
+    <span class="k">typeof</span><span class="p">(</span><span class="n">v2Contract</span><span class="p">).</span><span class="n">Assembly</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>Composability is owin's nice feature.</p>
+
+<h2>
+<a name="lightweight-client" class="anchor" href="#lightweight-client"><span class="octicon octicon-link"></span></a>Lightweight Client</h2>
+
+<p>Implementation of the REST API is often painful. LightNode solves by T4 code generation.</p>
+
+<div class="highlight highlight-csharp"><pre><span class="c1">// Open .tt file and configure four steps.</span>
+
+<span class="p">&lt;</span><span class="err">#@</span> <span class="n">assembly</span> <span class="n">name</span><span class="p">=</span><span class="s">"$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Server.dll"</span> <span class="err">#</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="err">#@</span> <span class="n">assembly</span> <span class="n">name</span><span class="p">=</span><span class="s">"$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Performance.dll"</span> <span class="err">#</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="err">#</span>
+    <span class="c1">// ------------- T4 Configuration ------------- //</span>
+
+    <span class="c1">// 1. Set LightNodeContract assemblies(and all dependency) path to above #@ assembly name # directive</span>
+
+    <span class="c1">// 2. Set Namespace &amp; ClientName &amp; Namespace</span>
+    <span class="kt">var</span> <span class="n">clientName</span> <span class="p">=</span> <span class="s">"LightNodeClient"</span><span class="p">;</span>
+    <span class="kt">var</span> <span class="n">namespaceName</span> <span class="p">=</span> <span class="s">"LightNode.Client"</span><span class="p">;</span>
+
+    <span class="c1">// 3. Set DefaultContentFormatter Construct String</span>
+    <span class="kt">var</span> <span class="n">defaultContentFormatter</span> <span class="p">=</span> <span class="s">"new LightNode.Formatter.XmlContentFormatter()"</span><span class="p">;</span>
+
+    <span class="c1">// 4. Set Additional using Namespace</span>
+    <span class="kt">var</span> <span class="n">usingNamespaces</span> <span class="p">=</span> <span class="k">new</span> <span class="p">[]</span> <span class="p">{</span><span class="s">"System.Linq"</span><span class="p">};</span>
+
+    <span class="c1">// 5. Set append "Async" suffix to method name(ex: CalcAsync or Calc)</span>
+    <span class="kt">var</span> <span class="n">addAsyncSuffix</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+
+    <span class="c1">// ----------End T4 Configuration ------------- //</span>
+</pre></div>
+
+<div class="highlight highlight-csharp"><pre><span class="c1">// generated code is like RPC Style.</span>
+<span class="c1">// {ClassName}.{MethodName}({Parameters}) </span>
+
+<span class="kt">var</span> <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="n">LightNodeClient</span><span class="p">(</span><span class="s">"http://localhost"</span><span class="p">);</span>
+<span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">Me</span><span class="p">.</span><span class="n">EchoAsync</span><span class="p">(</span><span class="s">"test"</span><span class="p">);</span>
+<span class="kt">var</span> <span class="n">sum</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">Me</span><span class="p">.</span><span class="n">SumAsync</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">10</span><span class="p">,</span> <span class="m">100</span><span class="p">);</span>
+</pre></div>
+
+<p>Client is very simple, too.</p>
+
+<blockquote>
+<p>Currently provides only for Portable Class Library. But we plan for Unity3D and TypeScript.</p>
+</blockquote>
+
+<h2>
+<a name="language-interoperability" class="anchor" href="#language-interoperability"><span class="octicon octicon-link"></span></a>Language Interoperability</h2>
+
+<p>LightNode is like RPC but REST. Public API follows a simple rule. Address is <code>{ClassName}/{MethodName}</code>, and it's case insensitive. GET parameter use QueryString. POST parameter use x-www-form-urlencoded. Response type follows configured ContentFormatter. Receiver can select response type use url extension(.xml, .json etc...) or Accept header.</p>
+
+<h2>
+<a name="performance" class="anchor" href="#performance"><span class="octicon octicon-link"></span></a>Performance</h2>
+
+<p>LightNode is fastest framework.</p>
+
+<p><img src="https://f.cloud.github.com/assets/46207/1902439/a0a19c5c-7c72-11e3-9bea-244ac00dcd87.jpg" alt="lightnode_performance"></p>
+
+<p>Performance source code is in <a href="https://github.com/neuecc/LightNode/tree/master/Performance">LightNode/Performance</a>. Enviroment is "Windows 8.1/CPU Core i7-3770K(3.5GHz)/Memory 32GB" and disabled firewall and windows defender. Orange and Green bar is hosted on IIS(System.Web). LightNode(Green bar)'s performance is nearly raw handler. Gray bar is reference, LightNode on <a href="http://www.nuget.org/packages/Microsoft.Owin.Host.IIS/">Helios - Microsoft.Owin.Host.IIS</a> gots extremely performance. </p>
+
+<h2>
+<a name="releasenote" class="anchor" href="#releasenote"><span class="octicon octicon-link"></span></a>ReleaseNote</h2>
+
+<p>0.2.0 - 2014-01-14</p>
+
+<ul>
+<li>Add Filter System</li>
+<li>Enum Binding Performance Improvement</li>
+<li>Strict parse for Enum</li>
+<li>Parameter String disallows null at default</li>
+<li>IContentFormatter needs Encoding</li>
+<li>IContentFormatter.Ext can add multiple ext by "|" separater</li>
+<li>Fixed T4 ClientCode generation</li>
+<li>Return 204 when operation is void or Task</li>
+<li>Return Arbitrary StatusCode that throws ReturnStatusCodeException</li>
+<li>Add IgnoreOperationAttribute</li>
+</ul><p>0.1.1 - 2013-12-23  </p>
+
+<ul>
+<li>First Release</li>
+</ul>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
