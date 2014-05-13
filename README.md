@@ -46,7 +46,7 @@ public class Startup
         // global configuration, select your primary/secondary formatters(JsonNet/ProtoBuf/MsgPack/Xml/etc...)
         // app.UseLightNode(new LightNodeOptions(
         //     AcceptVerbs.Get | AcceptVerbs.Post, 
-        //     new JsonNetContentTypeFormatter()));
+        //     new JsonNetContentFormatter()));
     }
 }
 
