@@ -198,7 +198,7 @@ var sum = await client.Me.SumAsync(1, 10, 100);
 
 Client is very simple, too.
 
-> Currently provides only for Portable Class Library. But we plan for Unity3D and TypeScript.
+> Currently provides for Portable Class Library and Unity3D. We plan for TypeScript.
 
 Language Interoperability
 ---
