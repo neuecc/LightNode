@@ -87,6 +87,14 @@ namespace LightNode.Formatter
 
 namespace LightNode.Client
 {
+#if !(UNITY_METRO || UNITY_WP8)
+    using Hash = System.Collections.Hashtable;
+    using HashEntry = System.Collections.DictionaryEntry;
+#else
+    using Hash = System.Collections.Generic.Dictionary<string, string>;
+    using HashEntry = System.Collections.Generic.KeyValuePair<string, string>;
+#endif
+
     public partial class LightNodeClient : _IPerf
     {
         static IContentFormatter defaultContentFormatter = new LightNode.Formatter.JsonNetContentFormatter();
@@ -99,45 +107,88 @@ namespace LightNode.Client
             set { contentFormatter = value; }
         }
 
+        Hash defaultHeaders;
+        public Hash DefaultHeaders
+        {
+            get { return defaultHeaders = (defaultHeaders ?? new Hash()); }
+            set { defaultHeaders = value; }
+        }
+
+        partial void OnAfterInitialized();
+
         public _IPerf Perf { get { return this; } }
 
         public LightNodeClient(string rootEndPoint)
         {
             this.rootEndPoint = rootEndPoint.TrimEnd('/');
             this.ContentFormatter = defaultContentFormatter;
+            OnAfterInitialized();
+        }
+
+        Hash MergeHeaders(Hash contentHeaders)
+        {
+            if (defaultHeaders == null) return contentHeaders;
+
+            foreach (HashEntry item in defaultHeaders)
+            {
+                contentHeaders.Add(item.Key, item.Value);
+            }
+            return contentHeaders;
         }
 
         protected virtual IEnumerator _PostAsync(string method, WWWForm content, Action<Exception> onError, Action<float> reportProgress)
         {
-            using (var www = new WWW(rootEndPoint + method, content))
+            using (var www = new WWW(rootEndPoint + method, content.data, MergeHeaders(content.headers)))
             {
                 while (!www.isDone)
 	            {
-                    if(reportProgress != null) reportProgress(www.progress);
+                    if (reportProgress != null)
+                    {
+                        try
+                        {
+                            reportProgress(www.progress);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (onError != null) onError(ex);
+                            yield break;
+                        }
+                    }
                     yield return null;
 	            }
 
-                if(www.error != null)
+                if (www.error != null)
                 {
-                    onError(new Exception(www.error ?? ""));
+                    if (onError != null) onError(new Exception(www.error ?? ""));
                 }
             }
         }
 
         protected virtual IEnumerator _PostAsync<T>(string method, WWWForm content, Action<T> onCompleted, Action<Exception> onError, Action<float> reportProgress)
         {
-            using (var www = new WWW(rootEndPoint + method, content))
+            using (var www = new WWW(rootEndPoint + method, content.data, MergeHeaders(content.headers)))
             {
                 while (!www.isDone)
 	            {
-                    if(reportProgress != null) reportProgress(www.progress);
+                    if (reportProgress != null)
+                    {
+                        try
+                        {
+                            reportProgress(www.progress);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (onError != null) onError(ex);
+                            yield break;
+                        }
+                    }
                     yield return null;
 	            }
                 
                 if (www.error != null)
                 {
                     var ex = new Exception(www.error ?? "");
-                    onError(ex);
+                    if (onError != null) onError(ex);
                 }
                 else
                 {
@@ -151,7 +202,7 @@ namespace LightNode.Client
                     }
                     catch(Exception ex)
                     {
-                        onError(ex);
+                        if (onError != null) onError(ex);
                     }
                 }
             }

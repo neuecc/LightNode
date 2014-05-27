@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1D780B80-C034-4AF9-8A47-3C4C3708E198}"
 	ProjectSection(SolutionItems) = preProject
@@ -70,6 +70,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.SelfHost", "Performance\LightNode.SelfHost\LightNode.SelfHost.csproj", "{9E4C02D4-BFC8-48F5-BAE8-5AD88B384961}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Client.Unity.T4", "Source\LightNode.Client.Unity.T4\LightNode.Client.Unity.T4.csproj", "{8B0BB999-5876-44BA-AC5A-58443149A12C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Client.UniRx.T4", "Source\LightNode.Client.UniRx.T4\LightNode.Client.UniRx.T4.csproj", "{20B6FCE4-B03F-4889-AB87-8E60FA78EE4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -161,13 +163,17 @@ Global
 		{8B0BB999-5876-44BA-AC5A-58443149A12C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B0BB999-5876-44BA-AC5A-58443149A12C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B0BB999-5876-44BA-AC5A-58443149A12C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20B6FCE4-B03F-4889-AB87-8E60FA78EE4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20B6FCE4-B03F-4889-AB87-8E60FA78EE4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20B6FCE4-B03F-4889-AB87-8E60FA78EE4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20B6FCE4-B03F-4889-AB87-8E60FA78EE4B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{7BAEA48D-6A91-490E-9B19-35C2A8F4174B} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
 		{E6E4EB3F-208F-42FB-8107-4E57BD82347B} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
+		{7BAEA48D-6A91-490E-9B19-35C2A8F4174B} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
 		{EF5DA3BB-CBA7-4FEE-9478-67C3ADAF6E5E} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 		{F6BB4D44-C8AD-44FF-8E61-ABA042AC323A} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 		{EB2D7853-3C75-49A4-A250-912D4E5488B4} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}

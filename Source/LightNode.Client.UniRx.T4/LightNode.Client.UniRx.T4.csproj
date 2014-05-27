@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{20B6FCE4-B03F-4889-AB87-8E60FA78EE4B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LightNode.Client.UniRx.T4</RootNamespace>
+    <AssemblyName>LightNode.Client.UniRx.T4</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\UnityEngine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="LightNodeClient.Generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LightNodeClient.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UniRx\Scripts\Disposables\BooleanDisposable.cs" />
+    <Compile Include="UniRx\Scripts\Disposables\CompositeDisposable.cs" />
+    <Compile Include="UniRx\Scripts\Disposables\Disposable.cs" />
+    <Compile Include="UniRx\Scripts\Disposables\ICancelable.cs" />
+    <Compile Include="UniRx\Scripts\Disposables\MultipleAssignmentDisposable.cs" />
+    <Compile Include="UniRx\Scripts\Disposables\ScheduledDisposable.cs" />
+    <Compile Include="UniRx\Scripts\Disposables\SerialDisposable.cs" />
+    <Compile Include="UniRx\Scripts\Disposables\SingleAssignmentDisposable.cs" />
+    <Compile Include="UniRx\Scripts\EventPattern.cs" />
+    <Compile Include="UniRx\Scripts\Notification.cs" />
+    <Compile Include="UniRx\Scripts\Notifiers\BooleanNotifier.cs" />
+    <Compile Include="UniRx\Scripts\Notifiers\CountNotifier.cs" />
+    <Compile Include="UniRx\Scripts\Notifiers\ScheduledNotifier.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Aggregate.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Binding.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Blocking.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Concatenate.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Concurrency.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Conversions.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Creation.cs" />
+    <Compile Include="UniRx\Scripts\Observable.cs" />
+    <Compile Include="UniRx\Scripts\Observable.ErrorHandling.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Events.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Joins.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Paging.cs" />
+    <Compile Include="UniRx\Scripts\Observable.Time.cs" />
+    <Compile Include="UniRx\Scripts\Observer.cs" />
+    <Compile Include="UniRx\Scripts\Schedulers\CurrentThreadScheduler.cs" />
+    <Compile Include="UniRx\Scripts\Schedulers\ImmediateScheduler.cs" />
+    <Compile Include="UniRx\Scripts\Schedulers\Scheduler.cs" />
+    <Compile Include="UniRx\Scripts\Schedulers\ThreadPoolScheduler.cs" />
+    <Compile Include="UniRx\Scripts\Subjects\AsyncSubject.cs" />
+    <Compile Include="UniRx\Scripts\Subjects\BehaviorSubject.cs" />
+    <Compile Include="UniRx\Scripts\Subjects\ConnectableObservable.cs" />
+    <Compile Include="UniRx\Scripts\Subjects\ISubject.cs" />
+    <Compile Include="UniRx\Scripts\Subjects\ReplaySubject.cs" />
+    <Compile Include="UniRx\Scripts\Subjects\Subject.cs" />
+    <Compile Include="UniRx\Scripts\System\IProgress.cs" />
+    <Compile Include="UniRx\Scripts\System\Tuple.cs" />
+    <Compile Include="UniRx\Scripts\System\Unit.cs" />
+    <Compile Include="UniRx\Scripts\TimeInterval.cs" />
+    <Compile Include="UniRx\Scripts\Timestamped.cs" />
+    <Compile Include="UniRx\Scripts\UnityEngineBridge\CancellationToken.cs" />
+    <Compile Include="UniRx\Scripts\UnityEngineBridge\MainThreadDispatcher.cs" />
+    <Compile Include="UniRx\Scripts\UnityEngineBridge\MainThreadScheduler.cs" />
+    <Compile Include="UniRx\Scripts\UnityEngineBridge\Observable.Unity.cs" />
+    <Compile Include="UniRx\Scripts\UnityEngineBridge\ObservableWWW.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="UnityEngine.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LightNodeClient.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightNodeClient.Generated.cs</LastGenOutput>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Performance\LightNode.Performance\LightNode.Performance.csproj">
+      <Project>{eb2d7853-3c75-49a4-a250-912d4e5488b4}</Project>
+      <Name>LightNode.Performance</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LightNode.Server\LightNode.Server.csproj">
+      <Project>{cabc7913-f7c9-4e89-8312-f9ae523b9f41}</Project>
+      <Name>LightNode.Server</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>このプロジェクトは、このコンピューターにはない NuGet パッケージを参照しています。これらをダウンロードするには、NuGet パッケージの復元を有効にしてください。詳細については、http://go.microsoft.com/fwlink/?LinkID=322105 を参照してください。不足しているファイルは {0} です。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

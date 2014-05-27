@@ -15,6 +15,13 @@ namespace LightNode.Client
         readonly string rootEndPoint;
         readonly HttpClient httpClient;
 
+        partial void OnAfterInitialized();
+
+        public System.Net.Http.Headers.HttpRequestHeaders DefaultRequestHeaders
+        {
+            get { return httpClient.DefaultRequestHeaders; }
+        }
+
         public long MaxResponseContentBufferSize
         {
             get { return httpClient.MaxResponseContentBufferSize; }
@@ -41,6 +48,7 @@ namespace LightNode.Client
             this.httpClient = new HttpClient();
             this.rootEndPoint = rootEndPoint.TrimEnd('/');
             this.ContentFormatter = defaultContentFormatter;
+            OnAfterInitialized();
         }
 
         public LightNodeClient(string rootEndPoint, HttpMessageHandler innerHandler)
@@ -48,6 +56,7 @@ namespace LightNode.Client
             this.httpClient = new HttpClient(innerHandler);
             this.rootEndPoint = rootEndPoint.TrimEnd('/');
             this.ContentFormatter = defaultContentFormatter;
+            OnAfterInitialized();
         }
 
         public LightNodeClient(string rootEndPoint, HttpMessageHandler innerHandler, bool disposeHandler)
@@ -55,6 +64,7 @@ namespace LightNode.Client
             this.httpClient = new HttpClient(innerHandler, disposeHandler);
             this.rootEndPoint = rootEndPoint.TrimEnd('/');
             this.ContentFormatter = defaultContentFormatter;
+            OnAfterInitialized();
         }
 
         protected virtual async Task PostAsync(string method, FormUrlEncodedContent content, CancellationToken cancellationToken)

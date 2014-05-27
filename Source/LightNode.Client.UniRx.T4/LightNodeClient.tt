@@ -27,7 +27,7 @@
     var usingNamespaces = new [] {"System.Linq"};
 
     // 5. Set append "Async" suffix to method name(ex: CalcAsync or Calc)
-    var addAsyncSuffix = true;
+    var addAsyncSuffix = false;
 
     // 6. Add CoreInterface(IContentFormatter etc) on inline
     var emitCoreInterface = true;
@@ -128,13 +128,13 @@
         })
         .ToArray();
 #>
-using UnityEngine;
+using LightNode.Core;
 using System.Collections;
-using System;
 using System.Text;
 using System.IO;
-using LightNode.Core;
 using System.Collections.Generic;
+using UniRx;
+using UnityEngine;
 <#= string.Join("\r\n", usingNamespaces.Select(x => "using " + x + ";")) #>
 <# if(emitCoreInterface) { #>
 
@@ -146,7 +146,7 @@ namespace LightNode.Core
         string Ext { get; }
         System.Text.Encoding Encoding { get; }
         void Serialize(System.IO.Stream stream, object obj);
-        object Deserialize(Type type, System.IO.Stream stream);
+        object Deserialize(System.Type type, System.IO.Stream stream);
     }
 }
 
@@ -208,7 +208,7 @@ namespace LightNode.Formatter
             }
         }
 
-        public object Deserialize(Type type, System.IO.Stream stream)
+        public object Deserialize(System.Type type, System.IO.Stream stream)
         {
             using (var sr = new StreamReader(stream, Encoding ?? System.Text.Encoding.UTF8))
             {
@@ -250,6 +250,8 @@ namespace <#= namespaceName #>
 
         partial void OnAfterInitialized();
 
+        partial void AddAdditionalFlow<T>(ref IObservable<T> operation);
+
 <# foreach(var contract in contracts) { #>
         public <#= contract.InterfaceName #> <#= contract.RootName #> { get { return this; } }
 <# } #>
@@ -261,87 +263,32 @@ namespace <#= namespaceName #>
             OnAfterInitialized();
         }
 
-        Hash MergeHeaders(Hash contentHeaders)
+        protected virtual IObservable<Unit> _PostAsync(string method, WWWForm content, IProgress<float> reportProgress)
         {
-            if (defaultHeaders == null) return contentHeaders;
-
-            foreach (HashEntry item in defaultHeaders)
-            {
-                contentHeaders.Add(item.Key, item.Value);
-            }
-            return contentHeaders;
+            var postObservable = (defaultHeaders == null) 
+                ? ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, reportProgress)
+                : ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, defaultHeaders, reportProgress);
+            var operation = postObservable.Select(_ => Unit.Default);
+            AddAdditionalFlow(ref operation);
+            return operation;
         }
 
-        protected virtual IEnumerator _PostAsync(string method, WWWForm content, Action<Exception> onError, Action<float> reportProgress)
+        protected virtual IObservable<T> _PostAsync<T>(string method, WWWForm content, IProgress<float> reportProgress)
         {
-            using (var www = new WWW(rootEndPoint + method, content.data, MergeHeaders(content.headers)))
-            {
-                while (!www.isDone)
-	            {
-                    if (reportProgress != null)
-                    {
-                        try
-                        {
-                            reportProgress(www.progress);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (onError != null) onError(ex);
-                            yield break;
-                        }
-                    }
-                    yield return null;
-	            }
-
-                if (www.error != null)
+            var postObservable = (defaultHeaders == null) 
+                ? ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, reportProgress)
+                : ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, defaultHeaders, reportProgress);
+            var operation = postObservable
+                .Select(x =>
                 {
-                    if (onError != null) onError(new Exception(www.error ?? ""));
-                }
-            }
-        }
-
-        protected virtual IEnumerator _PostAsync<T>(string method, WWWForm content, Action<T> onCompleted, Action<Exception> onError, Action<float> reportProgress)
-        {
-            using (var www = new WWW(rootEndPoint + method, content.data, MergeHeaders(content.headers)))
-            {
-                while (!www.isDone)
-	            {
-                    if (reportProgress != null)
+                    using (var ms = new MemoryStream(x))
                     {
-                        try
-                        {
-                            reportProgress(www.progress);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (onError != null) onError(ex);
-                            yield break;
-                        }
+                        var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
+                        return value;
                     }
-                    yield return null;
-	            }
-                
-                if (www.error != null)
-                {
-                    var ex = new Exception(www.error ?? "");
-                    if (onError != null) onError(ex);
-                }
-                else
-                {
-                    try
-                    {
-                        using (var ms = new MemoryStream(www.bytes))
-                        {
-                            var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
-                            onCompleted(value);
-                        }
-                    }
-                    catch(Exception ex)
-                    {
-                        if (onError != null) onError(ex);
-                    }
-                }
-            }
+                });
+            AddAdditionalFlow(ref operation);
+            return operation;
         }
 
 <# foreach(var contract in contracts) { #>
@@ -349,9 +296,9 @@ namespace <#= namespaceName #>
 
 <# foreach(var operation in contract.Operations) { #>
 <# if (operation.ReturnType == typeof(void)) { #>
-        IEnumerator <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #><#= operation.Parameters.Any() ? ", " : "" #>Action<Exception> onError, Action<float> reportProgress)
+        IObservable<Unit> <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #><#= operation.Parameters.Any() ? ", " : "" #>IProgress<float> reportProgress)
 <# } else { #>
-        IEnumerator <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #><#= operation.Parameters.Any() ? ", " : "" #>Action<<#= BeautifyType(operation.ReturnType) #>> onCompleted, Action<Exception> onError, Action<float> reportProgress)
+        IObservable<<#= BeautifyType(operation.ReturnType) #>> <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #><#= operation.Parameters.Any() ? ", " : "" #>IProgress<float> reportProgress)
 <# } #>
         {
             var form = new WWWForm();
@@ -366,9 +313,9 @@ namespace <#= namespaceName #>
 <# } #>
 
 <# if (operation.ReturnType != typeof(void)) { #>
-            return _PostAsync<#= "<" + BeautifyType(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", form, onCompleted, onError, reportProgress);
+            return _PostAsync<#= "<" + BeautifyType(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", form, reportProgress);
 <# } else { #>
-            return _PostAsync("/<#= contract.RootName #>/<#= operation.OperationName #>", form, onError, reportProgress);
+            return _PostAsync("/<#= contract.RootName #>/<#= operation.OperationName #>", form, reportProgress);
 <# } #>
         }
 
@@ -383,9 +330,9 @@ namespace <#= namespaceName #>
     {
 <# foreach(var operation in contract.Operations) { #>
 <# if (operation.ReturnType == typeof(void)) { #>
-        IEnumerator <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #><#= operation.Parameters.Any() ? ", " : "" #>Action<Exception> onError = null, Action<float> reportProgress = null);
+        IObservable<Unit> <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #><#= operation.Parameters.Any() ? ", " : "" #>IProgress<float> reportProgress = null);
 <# } else { #>
-        IEnumerator <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #><#= operation.Parameters.Any() ? ", " : "" #>Action<<#= BeautifyType(operation.ReturnType) #>> onCompleted, Action<Exception> onError = null, Action<float> reportProgress = null);
+        IObservable<<#= BeautifyType(operation.ReturnType) #>> <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #><#= operation.Parameters.Any() ? ", " : "" #>IProgress<float> reportProgress = null);
 <# } #>
 <# } #>
     }
