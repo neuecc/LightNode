@@ -129,30 +129,38 @@ namespace LightNode.Client
 
         protected virtual IObservable<Unit> _PostAsync(string method, WWWForm content, IProgress<float> reportProgress)
         {
-            var postObservable = (defaultHeaders == null) 
-                ? ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, reportProgress)
-                : ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, defaultHeaders, reportProgress);
-            var operation = postObservable.Select(_ => Unit.Default);
-            AddAdditionalFlow(ref operation);
-            return operation;
+            var deferredOperation = Observable.Defer(() =>
+            {
+                var postObservable = (defaultHeaders == null)
+                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, reportProgress)
+                    : ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, defaultHeaders, reportProgress);
+                var operation = postObservable.Select(_ => Unit.Default);
+                return operation;
+            });
+            AddAdditionalFlow(ref deferredOperation);
+            return deferredOperation;
         }
 
         protected virtual IObservable<T> _PostAsync<T>(string method, WWWForm content, IProgress<float> reportProgress)
         {
-            var postObservable = (defaultHeaders == null) 
-                ? ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, reportProgress)
-                : ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, defaultHeaders, reportProgress);
-            var operation = postObservable
-                .Select(x =>
-                {
-                    using (var ms = new MemoryStream(x))
+            var deferredOperation = Observable.Defer(() =>
+            {
+                var postObservable = (defaultHeaders == null)
+                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, reportProgress)
+                    : ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, defaultHeaders, reportProgress);
+                var operation = postObservable
+                    .Select(x =>
                     {
-                        var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
-                        return value;
-                    }
-                });
-            AddAdditionalFlow(ref operation);
-            return operation;
+                        using (var ms = new MemoryStream(x))
+                        {
+                            var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
+                            return value;
+                        }
+                    });
+                return operation;
+            });
+            AddAdditionalFlow(ref deferredOperation);
+            return deferredOperation;
         }
 
         #region _IPerf
