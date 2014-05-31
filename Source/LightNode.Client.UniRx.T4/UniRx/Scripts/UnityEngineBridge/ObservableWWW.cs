@@ -76,7 +76,7 @@ namespace UniRx
 
                 if (cancel.IsCancellationRequested) yield break;
 
-                if (www.error != null)
+                if (!string.IsNullOrEmpty(www.error))
                 {
                     observer.OnError(new Exception(www.error));
                 }
@@ -111,7 +111,7 @@ namespace UniRx
 
                 if (cancel.IsCancellationRequested) yield break;
 
-                if (www.error != null)
+                if (!string.IsNullOrEmpty(www.error))
                 {
                     observer.OnError(new Exception(www.error));
                 }

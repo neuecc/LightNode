@@ -30,7 +30,17 @@ namespace LightNode.Server
             if (Interlocked.Increment(ref alreadyRegistered) != 0) return;
 
             var contractTypes = hostAssemblies
-                .SelectMany(x => x.GetTypes())
+                .SelectMany(x =>
+                {
+                    try
+                    {
+                        return x.GetTypes();
+                    }
+                    catch (ReflectionTypeLoadException ex)
+                    {
+                        return ex.Types.Where(t => t != null);
+                    }
+                })
                 .Where(x => typeof(LightNodeContract).IsAssignableFrom(x))
                 .Where(x => !x.IsAbstract);
 
