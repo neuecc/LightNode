@@ -116,7 +116,7 @@ namespace LightNode.Client
 
         partial void OnAfterInitialized();
 
-        partial void AddAdditionalFlow<T>(ref IObservable<T> operation);
+        partial void AddAdditionalFlow<T>(string contractName, string operationName, ref IObservable<T> operation);
 
         public _IPerf Perf { get { return this; } }
 
@@ -127,28 +127,28 @@ namespace LightNode.Client
             OnAfterInitialized();
         }
 
-        protected virtual IObservable<Unit> _PostAsync(string method, WWWForm content, IProgress<float> reportProgress)
+        protected virtual IObservable<Unit> _PostAsync(string contract, string operation, WWWForm content, IProgress<float> reportProgress)
         {
             var deferredOperation = Observable.Defer(() =>
             {
                 var postObservable = (defaultHeaders == null)
-                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, reportProgress)
-                    : ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, defaultHeaders, reportProgress);
-                var operation = postObservable.Select(_ => Unit.Default);
-                return operation;
+                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
+                    : ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, defaultHeaders, reportProgress);
+                var weboperation = postObservable.Select(_ => Unit.Default);
+                return weboperation;
             });
-            AddAdditionalFlow(ref deferredOperation);
+            AddAdditionalFlow(contract, operation, ref deferredOperation);
             return deferredOperation;
         }
 
-        protected virtual IObservable<T> _PostAsync<T>(string method, WWWForm content, IProgress<float> reportProgress)
+        protected virtual IObservable<T> _PostAsync<T>(string contract, string operation, WWWForm content, IProgress<float> reportProgress)
         {
             var deferredOperation = Observable.Defer(() =>
             {
-                var postObservable = (defaultHeaders == null)
-                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, reportProgress)
-                    : ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, defaultHeaders, reportProgress);
-                var operation = postObservable
+                var postObservable = (defaultHeaders == null) 
+                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
+                    : ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, defaultHeaders, reportProgress);
+                var weboperation = postObservable
                     .Select(x =>
                     {
                         using (var ms = new MemoryStream(x))
@@ -157,9 +157,10 @@ namespace LightNode.Client
                             return value;
                         }
                     });
-                return operation;
+
+                return weboperation;
             });
-            AddAdditionalFlow(ref deferredOperation);
+            AddAdditionalFlow(contract, operation, ref deferredOperation);
             return deferredOperation;
         }
 
@@ -173,7 +174,7 @@ namespace LightNode.Client
             form.AddField("y", y.ToString());
             form.AddField("e", ((System.Int32)e).ToString());
 
-            return _PostAsync<LightNode.Performance.MyClass>("/Perf/Echo", form, reportProgress);
+            return _PostAsync<LightNode.Performance.MyClass>("Perf", "Echo", form, reportProgress);
         }
 
         IObservable<Unit> _IPerf.Test(System.String a, System.Nullable<System.Int32> x, System.Nullable<LightNode.Performance.MyEnum2> z, IProgress<float> reportProgress)
@@ -183,14 +184,14 @@ namespace LightNode.Client
             if (x != null) form.AddField("x", x.ToString());
             if (z != null) form.AddField("z", ((System.UInt64)z).ToString());
 
-            return _PostAsync("/Perf/Test", form, reportProgress);
+            return _PostAsync("Perf", "Test", form, reportProgress);
         }
 
         IObservable<Unit> _IPerf.Te(IProgress<float> reportProgress)
         {
             var form = new WWWForm();
 
-            return _PostAsync("/Perf/Te", form, reportProgress);
+            return _PostAsync("Perf", "Te", form, reportProgress);
         }
 
         IObservable<Unit> _IPerf.TestArray(System.String[] array, System.Int32[] array2, LightNode.Performance.MyEnum[] array3, IProgress<float> reportProgress)
@@ -200,14 +201,14 @@ namespace LightNode.Client
             if (array2 != null) foreach (var ___x in array2) form.AddField("array2", ___x.ToString());
             if (array3 != null) foreach (var ___x in array3) form.AddField("array3", ((System.Int32)___x).ToString());
 
-            return _PostAsync("/Perf/TestArray", form, reportProgress);
+            return _PostAsync("Perf", "TestArray", form, reportProgress);
         }
 
         IObservable<Unit> _IPerf.TeVoid(IProgress<float> reportProgress)
         {
             var form = new WWWForm();
 
-            return _PostAsync("/Perf/TeVoid", form, reportProgress);
+            return _PostAsync("Perf", "TeVoid", form, reportProgress);
         }
 
         IObservable<System.String> _IPerf.Te4(System.String xs, IProgress<float> reportProgress)
@@ -215,7 +216,7 @@ namespace LightNode.Client
             var form = new WWWForm();
             if (xs != null) form.AddField("xs", xs);
 
-            return _PostAsync<System.String>("/Perf/Te4", form, reportProgress);
+            return _PostAsync<System.String>("Perf", "Te4", form, reportProgress);
         }
 
         #endregion

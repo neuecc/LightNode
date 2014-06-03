@@ -250,7 +250,7 @@ namespace <#= namespaceName #>
 
         partial void OnAfterInitialized();
 
-        partial void AddAdditionalFlow<T>(ref IObservable<T> operation);
+        partial void AddAdditionalFlow<T>(string contractName, string operationName, ref IObservable<T> operation);
 
 <# foreach(var contract in contracts) { #>
         public <#= contract.InterfaceName #> <#= contract.RootName #> { get { return this; } }
@@ -263,32 +263,41 @@ namespace <#= namespaceName #>
             OnAfterInitialized();
         }
 
-        protected virtual IObservable<Unit> _PostAsync(string method, WWWForm content, IProgress<float> reportProgress)
+        protected virtual IObservable<Unit> _PostAsync(string contract, string operation, WWWForm content, IProgress<float> reportProgress)
         {
-            var postObservable = (defaultHeaders == null) 
-                ? ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, reportProgress)
-                : ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, defaultHeaders, reportProgress);
-            var operation = postObservable.Select(_ => Unit.Default);
-            AddAdditionalFlow(ref operation);
-            return operation;
+            var deferredOperation = Observable.Defer(() =>
+            {
+                var postObservable = (defaultHeaders == null)
+                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
+                    : ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, defaultHeaders, reportProgress);
+                var weboperation = postObservable.Select(_ => Unit.Default);
+                return weboperation;
+            });
+            AddAdditionalFlow(contract, operation, ref deferredOperation);
+            return deferredOperation;
         }
 
-        protected virtual IObservable<T> _PostAsync<T>(string method, WWWForm content, IProgress<float> reportProgress)
+        protected virtual IObservable<T> _PostAsync<T>(string contract, string operation, WWWForm content, IProgress<float> reportProgress)
         {
-            var postObservable = (defaultHeaders == null) 
-                ? ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, reportProgress)
-                : ObservableWWW.PostAndGetBytes(rootEndPoint + method, content, defaultHeaders, reportProgress);
-            var operation = postObservable
-                .Select(x =>
-                {
-                    using (var ms = new MemoryStream(x))
+            var deferredOperation = Observable.Defer(() =>
+            {
+                var postObservable = (defaultHeaders == null) 
+                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
+                    : ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, defaultHeaders, reportProgress);
+                var weboperation = postObservable
+                    .Select(x =>
                     {
-                        var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
-                        return value;
-                    }
-                });
-            AddAdditionalFlow(ref operation);
-            return operation;
+                        using (var ms = new MemoryStream(x))
+                        {
+                            var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
+                            return value;
+                        }
+                    });
+
+                return weboperation;
+            });
+            AddAdditionalFlow(contract, operation, ref deferredOperation);
+            return deferredOperation;
         }
 
 <# foreach(var contract in contracts) { #>
@@ -313,9 +322,9 @@ namespace <#= namespaceName #>
 <# } #>
 
 <# if (operation.ReturnType != typeof(void)) { #>
-            return _PostAsync<#= "<" + BeautifyType(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", form, reportProgress);
+            return _PostAsync<#= "<" + BeautifyType(operation.ReturnType) + ">" #>("<#= contract.RootName #>", "<#= operation.OperationName #>", form, reportProgress);
 <# } else { #>
-            return _PostAsync("/<#= contract.RootName #>/<#= operation.OperationName #>", form, reportProgress);
+            return _PostAsync("<#= contract.RootName #>", "<#= operation.OperationName #>", form, reportProgress);
 <# } #>
         }
 
