@@ -65,6 +65,7 @@
             }
             return false;
         })
+        .Where(x => !x.IsAbstract)
         .Select(x =>
         {
             var methods = x.GetMethods(BindingFlags.Public | BindingFlags.Instance)
