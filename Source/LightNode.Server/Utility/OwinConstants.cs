@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace LightNode.Server.Utility
 {
     // Owin Spec 1.0.0
-    // http://owin.org/spec/owin-1.0.0.html
+    // http://owin.org/spec/spec/owin-1.0.0.html
     internal static class OwinConstants
     {
         // 3.2.1 Request Data

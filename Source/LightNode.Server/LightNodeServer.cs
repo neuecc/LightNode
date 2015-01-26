@@ -1,6 +1,8 @@
 ﻿using LightNode.Core;
+using LightNode.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -69,6 +71,8 @@ namespace LightNode.Server
                         continue;
                     }
 
+                    var sw = Stopwatch.StartNew();
+
                     // create handler
                     var handler = new OperationHandler(options, classType, methodInfo);
                     lock (handlers)
@@ -81,6 +85,9 @@ namespace LightNode.Server
                         }
                         handlers.Add(path, handler);
                     }
+
+                    sw.Stop();
+                    LightNodeEventSource.Log.RegisiterOperation(handler.ClassName, handler.MethodName, sw.Elapsed.TotalMilliseconds);
                 }
             });
         }
@@ -90,9 +97,10 @@ namespace LightNode.Server
             // out default
             verb = AcceptVerbs.Get;
             ext = "";
+            var path = environment["owin.RequestPath"] as string;
 
             // verb check
-            var method = environment["owin.RequestMethod"];
+            var method = environment["owin.RequestMethod"] as string;
             if (StringComparer.OrdinalIgnoreCase.Equals(method, "GET"))
             {
                 verb = AcceptVerbs.Get;
@@ -103,17 +111,20 @@ namespace LightNode.Server
             }
             else
             {
-                environment.EmitMethodNotAllowed();
-                return null;
+                goto VERB_MISSING;
+            }
+
+            // more verb check
+            if (!options.DefaultAcceptVerb.HasFlag(verb))
+            {
+                goto VERB_MISSING;
             }
 
             // extract path
-            var path = environment["owin.RequestPath"] as string;
             var keyBase = path.Trim('/').Split('/');
             if (keyBase.Length != 2)
             {
-                environment.EmitNotFound();
-                return null;
+                goto NOT_FOUND;
             }
 
             // extract "extension" for media type
@@ -130,11 +141,43 @@ namespace LightNode.Server
             OperationHandler handler;
             if (handlers.TryGetValue(key, out handler))
             {
+                // TODO:more more operationContext VerbCheck
                 return handler;
             }
             else
             {
+                goto NOT_FOUND;
+            }
+
+        VERB_MISSING:
+            LightNodeEventSource.Log.MethodNotAllowed(OperationMissingKind.MethodNotAllowed, path, method);
+            if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
+            {
+                throw new MethodNotAllowdException(OperationMissingKind.MethodNotAllowed, path, method);
+            }
+            else
+            {
+                environment.EmitMethodNotAllowed();
+                if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails)
+                {
+                    environment.EmitStringMessage("MethodNotAllowed:" + method);
+                }
+                return null;
+            }
+
+        NOT_FOUND:
+            LightNodeEventSource.Log.OperationNotFound(OperationMissingKind.OperationNotFound, path);
+            if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
+            {
+                throw new OperationNotFoundException(OperationMissingKind.MethodNotAllowed, path);
+            }
+            else
+            {
                 environment.EmitNotFound();
+                if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails)
+                {
+                    environment.EmitStringMessage("OperationNotFound:" + path);
+                }
                 return null;
             }
         }
@@ -154,7 +197,19 @@ namespace LightNode.Server
 
                 if (selectedFormatter == null)
                 {
-                    environment.EmitNotAcceptable();
+                    LightNodeEventSource.Log.NegotiateFormatFailed(OperationMissingKind.NegotiateFormatFailed, ext);
+                    if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
+                    {
+                        throw new NegotiateFormatFailedException(OperationMissingKind.NegotiateFormatFailed, ext);
+                    }
+                    else
+                    {
+                        environment.EmitNotAcceptable();
+                        if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails)
+                        {
+                            environment.EmitStringMessage("NegotiateFormat failed, ext:" + ext);
+                        }
+                    }
                     return null;
                 }
                 formatter = selectedFormatter.fmt;
@@ -178,29 +233,22 @@ namespace LightNode.Server
         // Routing -> ParameterBinding -> Execute
         public async Task ProcessRequest(IDictionary<string, object> environment)
         {
+            AcceptVerbs verb;
+            string ext;
+            var handler = SelectHandler(environment, out verb, out ext);
+            if (handler == null) return;
+
+            // Parameter binding
+            var valueProvider = new ValueProvider(environment, verb);
+            var methodParameters = ParameterBinder.BindParameter(environment, options, valueProvider, handler.Arguments);
+            if (methodParameters == null) return;
+
+            // select formatter
+            var formatter = NegotiateFormat(environment, ext);
+            if (formatter == null) return;
+
             try
             {
-                AcceptVerbs verb;
-                string ext;
-                var handler = SelectHandler(environment, out verb, out ext);
-                if (handler == null) return;
-
-                // verb check | TODO:check operation verb attribute
-                if (!options.DefaultAcceptVerb.HasFlag(verb))
-                {
-                    environment.EmitMethodNotAllowed();
-                    return;
-                }
-
-                // Parameter binding
-                var valueProvider = new ValueProvider(environment, verb);
-                var methodParameters = ParameterBinder.BindParameter(environment, options, valueProvider, handler.Arguments);
-                if (methodParameters == null) return;
-
-                // select formatter
-                var formatter = NegotiateFormat(environment, ext);
-                if (formatter == null) return;
-
                 // Operation execute
                 var context = new OperationContext(environment, handler.ClassName, handler.MethodName, verb)
                 {

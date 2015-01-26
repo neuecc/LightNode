@@ -32,6 +32,7 @@ namespace LightNode.Server.Tests
             var mockEnv = new Dictionary<string, object>();
             mockEnv["owin.RequestQueryString"] = "a=huga&b=nano&c=tako&a=takotyop";
             mockEnv["owin.RequestBody"] = ms;
+            mockEnv["owin.RequestHeaders"] = new Dictionary<string, string[]>() { { "Content-Type", new[] { "application/x-www-form-urlencoded" } } };
 
             var provider = new ValueProvider(mockEnv, AcceptVerbs.Post);
             provider.GetValue("a").IsInstanceOf<List<string>>().Is("huga", "takotyop");

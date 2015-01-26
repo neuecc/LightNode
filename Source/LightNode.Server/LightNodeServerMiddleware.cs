@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace LightNode.Server
 {
+    using LightNode.Diagnostics;
+    using System.Diagnostics;
     using AppFunc = Func<IDictionary<string, object>, Task>;
 
     public class LightNodeServerMiddleware
@@ -24,7 +26,10 @@ namespace LightNode.Server
             this.next = next;
             this.useOtherMiddleware = options.UseOtherMiddleware;
             this.engine = new LightNodeServer(options);
+
+            var sw = Stopwatch.StartNew();
             this.engine.RegisterHandler(hostAssemblies);
+            LightNodeEventSource.Log.InitializeComplete(sw.Elapsed.TotalMilliseconds);
         }
 
         public async Task Invoke(IDictionary<string, object> environment)

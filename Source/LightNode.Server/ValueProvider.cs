@@ -27,12 +27,13 @@ namespace LightNode.Server
                 {
                     if (contentType.Any(x => x.Contains("application/x-www-form-urlencoded")))
                     {
-                        using (var sr = new StreamReader((environment["owin.RequestBody"] as Stream)))
+                        var requestStream = environment["owin.RequestBody"] as Stream;
+                        using (var sr = new StreamReader(new UnclosableStream(requestStream)))
                         {
                             var formUrlEncoded = sr.ReadToEnd();
                             AppendValues(formUrlEncoded);
                         }
-                        (environment["owin.RequestBody"] as Stream).Position = 0;
+                        requestStream.Position = 0; // rewind for custom use
                     }
                 }
             }

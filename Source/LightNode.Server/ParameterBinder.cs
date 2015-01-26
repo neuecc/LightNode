@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LightNode.Diagnostics;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +10,6 @@ namespace LightNode.Server
 {
     internal static class ParameterBinder
     {
-
         internal static object[] BindParameter(IDictionary<string, object> environment, LightNodeOptions options, ValueProvider valueProvider, ParameterInfoSlim[] arguments)
         {
             var methodParameters = new object[arguments.Length];
@@ -36,12 +36,20 @@ namespace LightNode.Server
                     }
                     else
                     {
-                        environment.EmitBadRequest();
-                        if (options.ErrorHandlingPolicy == ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails)
+                        LightNodeEventSource.Log.ParameterBindMissing(OperationMissingKind.LackOfParameter, item.Name);
+                        if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
                         {
-                            environment.EmitStringMessage("Lack of Parameter:" + item.Name);
+                            throw new ParameterMissingException(OperationMissingKind.LackOfParameter, item.Name);
                         }
-                        return null;
+                        else
+                        {
+                            environment.EmitBadRequest();
+                            if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails)
+                            {
+                                environment.EmitStringMessage("Lack of Parameter:" + item.Name);
+                            }
+                            return null;
+                        }
                     }
                 }
                 else if (!item.ParameterTypeIsArray)
@@ -67,12 +75,20 @@ namespace LightNode.Server
                     }
                     else
                     {
-                        environment.EmitBadRequest();
-                        if (options.ErrorHandlingPolicy == ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails)
+                        LightNodeEventSource.Log.ParameterBindMissing(OperationMissingKind.MissmatchParameterType, item.Name);
+                        if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
                         {
-                            environment.EmitStringMessage("Mismatch Parameter Type:" + item.Name);
+                            throw new ParameterMissingException(OperationMissingKind.MissmatchParameterType, item.Name);
                         }
-                        return null;
+                        else
+                        {
+                            environment.EmitBadRequest();
+                            if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails)
+                            {
+                                environment.EmitStringMessage("Mismatch ParameterType:" + item.Name);
+                            }
+                            return null;
+                        }
                     }
                 }
 
