@@ -222,6 +222,7 @@ namespace LightNode.Server
                 {
                     case ErrorHandlingPolicy.ReturnInternalServerError:
                         environment.EmitInternalServerError();
+                        environment.EmitStringMessage("500 InternalServerError");
                         return;
                     case ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails:
                         environment.EmitInternalServerError();

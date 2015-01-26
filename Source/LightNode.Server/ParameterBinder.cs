@@ -37,7 +37,10 @@ namespace LightNode.Server
                     else
                     {
                         environment.EmitBadRequest();
-                        environment.EmitStringMessage("Lack of Parameter:" + item.Name);
+                        if (options.ErrorHandlingPolicy == ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails)
+                        {
+                            environment.EmitStringMessage("Lack of Parameter:" + item.Name);
+                        }
                         return null;
                     }
                 }
@@ -65,7 +68,10 @@ namespace LightNode.Server
                     else
                     {
                         environment.EmitBadRequest();
-                        environment.EmitStringMessage("Mismatch Parameter Type:" + item.Name);
+                        if (options.ErrorHandlingPolicy == ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails)
+                        {
+                            environment.EmitStringMessage("Mismatch Parameter Type:" + item.Name);
+                        }
                         return null;
                     }
                 }

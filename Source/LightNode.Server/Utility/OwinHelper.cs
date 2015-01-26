@@ -34,16 +34,19 @@ namespace LightNode.Server
         public static void EmitNotFound(this IDictionary<string, object> environment)
         {
             environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.NotFound; // 404
+            environment.EmitStringMessage("404 NotFound");
         }
 
         public static void EmitMethodNotAllowed(this IDictionary<string, object> environment)
         {
             environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.MethodNotAllowed; // 405
+            environment.EmitStringMessage("405 MethodNotAllowed");
         }
 
         public static void EmitNotAcceptable(this IDictionary<string, object> environment)
         {
             environment["owin.ResponseStatusCode"] = (int)System.Net.HttpStatusCode.NotAcceptable; // 406
+            environment.EmitStringMessage("406 NotAcceptable");
         }
 
         public static void EmitUnsupportedMediaType(this IDictionary<string, object> environment)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LightNode.Server.Utility;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,10 +21,19 @@ namespace LightNode.Server
 
             if (verb != AcceptVerbs.Get)
             {
-                using (var sr = new StreamReader((environment["owin.RequestBody"] as Stream)))
+                var requestHeader = environment[OwinConstants.RequestHeaders] as IDictionary<string, string[]>;
+                string[] contentType;
+                if (requestHeader.TryGetValue("Content-Type", out contentType))
                 {
-                    var formUrlEncoded = sr.ReadToEnd();
-                    AppendValues(formUrlEncoded);
+                    if (contentType.Any(x => x.Contains("application/x-www-form-urlencoded")))
+                    {
+                        using (var sr = new StreamReader((environment["owin.RequestBody"] as Stream)))
+                        {
+                            var formUrlEncoded = sr.ReadToEnd();
+                            AppendValues(formUrlEncoded);
+                        }
+                        (environment["owin.RequestBody"] as Stream).Position = 0;
+                    }
                 }
             }
         }
