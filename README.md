@@ -221,8 +221,13 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 ReleaseNote
 ---    ---
 0.4.0 - 2014-05-12
-* Add Unity T4 Template
-* Some fixes for Unity T4 Template
+* Add UniRx T4 Template
+* Add LightNodeEventSource logging
+* Add IgnoreClientGenerateAttribute
+* Add LightNodeOptions.OperationMissingHandlingPolicy
+* Add OperationOptionAttribute
+* Fix failed assembly load when depend assembly is not found
+* CodeGenerate ignore Abstract Contract
 * Improvement perforamnce
 
 0.3.0 - 2014-05-12

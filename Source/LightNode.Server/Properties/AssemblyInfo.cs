@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: Guid("a8480342-8d48-46ec-af7b-a220bc5b6b8b")]
 
 [assembly: AssemblyCopyright("Copyright (C)  2014")]
-[assembly: AssemblyVersion("0.2.0.0")]
-[assembly: AssemblyFileVersion("0.2.0.0")]
+[assembly: AssemblyVersion("0.4.0.0")]
+[assembly: AssemblyFileVersion("0.4.0.0")]
 
 [assembly: InternalsVisibleTo("LightNode.Server.Tests")]

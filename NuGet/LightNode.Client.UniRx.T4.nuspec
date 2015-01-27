@@ -1,19 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
-        <id>LightNode.Client.Unity.T4</id>
+        <id>LightNode.Client.UniRx.T4</id>
         <version>0.4.0</version>
-        <title>LightNode.Client.Unity.T4</title>
+        <title>LightNode.Client.UniRx.T4</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>LightNode(as Micro REST/RPC Framework) Client for Unity.</description>
+        <description>LightNode(as Micro REST/RPC Framework) Client for Unity with UniRx.</description>
         <language>en-US</language>
         <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
         <projectUrl>https://github.com/neuecc/LightNode</projectUrl>
         <tags>Owin Rest RPC Unity</tags>
     </metadata>
     <files>
-        <file src="..\Source\LightNode.Client.Unity.T4\LightNodeClient.tt" target="Content" />
+        <file src="..\Source\LightNode.Client.UniRx.T4\LightNodeClient.tt" target="Content" />
     </files>
 </package>

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1D780B80-C034-4AF9-8A47-3C4C3708E198}"
 	ProjectSection(SolutionItems) = preProject
@@ -50,6 +50,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{52DEAA6E-C
 	ProjectSection(SolutionItems) = preProject
 		LICENSE = LICENSE
 		NuGet\LightNode.Client.PCL.T4.nuspec = NuGet\LightNode.Client.PCL.T4.nuspec
+		NuGet\LightNode.Client.UniRx.T4.nuspec = NuGet\LightNode.Client.UniRx.T4.nuspec
 		NuGet\LightNode.Client.Unity.T4.nuspec = NuGet\LightNode.Client.Unity.T4.nuspec
 		NuGet\LightNode.Core.nuspec = NuGet\LightNode.Core.nuspec
 		NuGet\LightNode.Formatter.JsonNet.nuspec = NuGet\LightNode.Formatter.JsonNet.nuspec
