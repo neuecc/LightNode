@@ -44,6 +44,16 @@ namespace LightNode.Performance
         {
             return xs;
         }
+
+        [LightNode.Server.IgnoreOperation]
+        public void Ignore(string a)
+        {
+        }
+
+        [LightNode.Server.IgnoreClientGenerate]
+        public void IgnoreClient(string a)
+        {
+        }
     }
 
     public class MyClass

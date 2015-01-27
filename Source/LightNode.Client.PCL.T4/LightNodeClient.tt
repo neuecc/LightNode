@@ -63,12 +63,13 @@
             }
             return false;
         })
-        .Where(x => !x.IsAbstract)
+        .Where(x => !x.IsAbstract && x.GetCustomAttributes(true).All(y => y.GetType().FullName != "LightNode.Server.IgnoreOperationAttribute" && y.GetType().FullName != "LightNode.Server.IgnoreClientGenerateAttribute"))
         .Select(x =>
         {
             var methods = x.GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Where(methodInfo => !(methodInfo.IsSpecialName && (methodInfo.Name.StartsWith("set_") || methodInfo.Name.StartsWith("get_"))))
                 .Where(methodInfo => !ignoreMethods.Contains(methodInfo.Name))
+                .Where(methodInfo => methodInfo.GetCustomAttributes(true).All(y => y.GetType().FullName != "LightNode.Server.IgnoreOperationAttribute" && y.GetType().FullName != "LightNode.Server.IgnoreClientGenerateAttribute"))
                 .Select(methodInfo =>
                 {
                     var retType = methodInfo.ReturnType;

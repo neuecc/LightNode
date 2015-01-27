@@ -219,7 +219,12 @@ Build/Test Status
 LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit test status.
 
 ReleaseNote
----
+---    ---
+0.4.0 - 2014-05-12
+* Add Unity T4 Template
+* Some fixes for Unity T4 Template
+* Improvement perforamnce
+
 0.3.0 - 2014-05-12
 * Add Unity T4 Template
 * Some fixes for PCL.T4 Template

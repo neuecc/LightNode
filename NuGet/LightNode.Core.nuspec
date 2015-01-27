@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>LightNode.Core</id>
-        <version>0.3.0</version>
+        <version>0.4.0</version>
         <title>LightNode.Core</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
