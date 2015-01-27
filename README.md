@@ -220,7 +220,7 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---    ---
-0.4.0 - 2014-05-12
+0.4.0 - 2015-01-27
 * Add UniRx T4 Template
 * Add LightNodeEventSource logging
 * Add IgnoreClientGenerateAttribute
