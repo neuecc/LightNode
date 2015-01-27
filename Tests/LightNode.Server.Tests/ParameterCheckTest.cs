@@ -152,7 +152,7 @@ namespace LightNode.Server.Tests
 
             var dict2 = typeof(TypeBinder).GetField("convertArrayTypeDictionary", System.Reflection.BindingFlags.GetField | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
                 .GetValue(null);
-            var count2 = ((Dictionary<Type, Func<IEnumerable<string>, object>>)dict2).Count;
+            var count2 = ((Dictionary<Type, Func<IList<string>, object>>)dict2).Count;
             count2.Is(16);
         }
     }

@@ -50,174 +50,174 @@ namespace LightNode.Server
             {typeof(Nullable<Byte>),(string x, out object result) => { Byte @out; result =  Byte.TryParse(x, out @out)? (object)@out:null; return true; }},
         };
 
-        static readonly Dictionary<Type, Func<IEnumerable<string>, object>> convertArrayTypeDictionary = new Dictionary<Type, Func<IEnumerable<string>, object>>(16)
+        static readonly Dictionary<Type, Func<IList<string>, object>> convertArrayTypeDictionary = new Dictionary<Type, Func<IList<string>, object>>(16)
         {
             // NOTE:unsupport byte[] because request message will be very large. use Base64 instead of byte[].
-            {typeof(string[]), (IEnumerable<string> xs) => (object)xs.ToArray()},
-            {typeof(DateTime[]), (IEnumerable<string> xs) =>
+            {typeof(string[]), (IList<string> xs) => (object)xs.ToArray()},
+            {typeof(DateTime[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new DateTime[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     DateTime @out;
-                    if(!DateTime.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new DateTime[0];
+                    if (DateTime.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new DateTime[0];
+                }
+                return result;
             }},
-            {typeof(DateTimeOffset[]), (IEnumerable<string> xs) =>
+            {typeof(DateTimeOffset[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new DateTimeOffset[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     DateTimeOffset @out;
-                    if(!DateTimeOffset.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new DateTimeOffset[0];
+                    if (DateTimeOffset.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new DateTimeOffset[0];
+                }
+                return result;
             }},
-            {typeof(Boolean[]), (IEnumerable<string> xs) =>
+            {typeof(Boolean[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new Boolean[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     Boolean @out;
-                    if(!Boolean.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new Boolean[0];
+                    if (Boolean.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new Boolean[0];
+                }
+                return result;
             }},
-            {typeof(Decimal[]), (IEnumerable<string> xs) =>
+            {typeof(Decimal[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new Decimal[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     Decimal @out;
-                    if(!Decimal.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new Decimal[0];
+                    if (Decimal.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new Decimal[0];
+                }
+                return result;
             }},
-            {typeof(Char[]), (IEnumerable<string> xs) =>
+            {typeof(Char[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new Char[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     Char @out;
-                    if(!Char.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new Char[0];
+                    if (Char.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new Char[0];
+                }
+                return result;
             }},
-            {typeof(TimeSpan[]), (IEnumerable<string> xs) =>
+            {typeof(TimeSpan[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new TimeSpan[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     TimeSpan @out;
-                    if(!TimeSpan.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new TimeSpan[0];
+                    if (TimeSpan.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new TimeSpan[0];
+                }
+                return result;
             }},
-            {typeof(Int16[]), (IEnumerable<string> xs) =>
+            {typeof(Int16[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new Int16[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     Int16 @out;
-                    if(!Int16.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new Int16[0];
+                    if (Int16.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new Int16[0];
+                }
+                return result;
             }},
-            {typeof(Int32[]), (IEnumerable<string> xs) =>
+            {typeof(Int32[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new Int32[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     Int32 @out;
-                    if(!Int32.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new Int32[0];
+                    if (Int32.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new Int32[0];
+                }
+                return result;
             }},
-            {typeof(Int64[]), (IEnumerable<string> xs) =>
+            {typeof(Int64[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new Int64[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     Int64 @out;
-                    if(!Int64.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new Int64[0];
+                    if (Int64.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new Int64[0];
+                }
+                return result;
             }},
-            {typeof(UInt16[]), (IEnumerable<string> xs) =>
+            {typeof(UInt16[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new UInt16[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     UInt16 @out;
-                    if (!UInt16.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new UInt16[0];
+                    if (UInt16.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new UInt16[0];
+                }
+                return result;
             }},
-            {typeof(UInt32[]), (IEnumerable<string> xs) =>
+            {typeof(UInt32[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new UInt32[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     UInt32 @out;
-                    if(!UInt32.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new UInt32[0];
+                    if (UInt32.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new UInt32[0];
+                }
+                return result;
             }},
-            {typeof(UInt64[]), (IEnumerable<string> xs) =>
+            {typeof(UInt64[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new UInt64[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     UInt64 @out;
-                    if(!UInt64.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new UInt64[0];
+                    if (UInt64.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new UInt64[0];
+                }
+                return result;
             }},
-            {typeof(Single[]), (IEnumerable<string> xs) =>
+            {typeof(Single[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new Single[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     Single @out;
-                    if(!Single.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new Single[0];
+                    if (Single.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new Single[0];
+                }
+                return result;
             }},
-            {typeof(Double[]), (IEnumerable<string> xs) =>
+            {typeof(Double[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new Double[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     Double @out;
-                    if(!Double.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new Double[0];
+                    if (Double.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new Double[0];
+                }
+                return result;
             }},
-            {typeof(SByte[]), (IEnumerable<string> xs) =>
+            {typeof(SByte[]), (IList<string> xs) =>
             {
-                bool success = true;
-                var result = xs.Select(x =>
+                var result = new SByte[xs.Count];
+                for (int i = 0; i < xs.Count; i++)
                 {
                     SByte @out;
-                    if(!SByte.TryParse(x, out @out)) success = false;
-                    return @out;
-                }).ToArray();
-                return (success) ? (object)result : new SByte[0];
+                    if (SByte.TryParse(xs[i], out @out)) result[i] = @out;
+                    else return new SByte[0];
+                }
+                return result;
             }}
         };
 
@@ -257,9 +257,9 @@ namespace LightNode.Server
             return result;
         }
 
-        internal static Func<IEnumerable<string>, object> GetArrayConverter(Type targetType, bool enumStrictParse)
+        internal static Func<IList<string>, object> GetArrayConverter(Type targetType, bool enumStrictParse)
         {
-            Func<IEnumerable<string>, object> f;
+            Func<IList<string>, object> f;
             var result = convertArrayTypeDictionary.TryGetValue(targetType, out f)
                 ? f
                 : null;
@@ -276,31 +276,19 @@ namespace LightNode.Server
                     return Expression.Lambda<Func<int, Array>>(Expression.NewArrayBounds(_type, length), length).Compile();
                 });
 
-                return new Func<IEnumerable<string>, object>((IEnumerable<string> xs) =>
+                return new Func<IList<string>, object>((IList<string> xs) =>
                 {
-                    var success = true;
-                    var array = xs.Select(x =>
+                    var array = new object[xs.Count];
+                    for (int i = 0; i < xs.Count; i++)
                     {
                         object @out;
-                        if (!tryParse(x, out @out))
-                        {
-                            success = false;
-                        }
-
-                        return (success) ? @out : null;
-                    })
-                    .ToArray();
-
-                    if (success)
-                    {
-                        var resultArray = arrayInitializer(array.Length);
-                        Array.Copy(array, resultArray, array.Length);
-                        return resultArray;
+                        if (tryParse(xs[i], out @out)) array[i] = @out;
+                        else return arrayInitializer(0);
                     }
-                    else
-                    {
-                        return arrayInitializer(0);
-                    }
+
+                    var resultArray = arrayInitializer(array.Length);
+                    Array.Copy(array, resultArray, array.Length);
+                    return resultArray;
                 });
             }
 

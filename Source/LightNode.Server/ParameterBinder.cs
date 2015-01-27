@@ -95,7 +95,7 @@ namespace LightNode.Server
                 var arrayConv = TypeBinder.GetArrayConverter(item.ParameterType, !options.ParameterEnumAllowsFieldNameParse);
                 if (arrayConv == null) throw new InvalidOperationException("critical:register code is broken");
 
-                methodParameters[i] = arrayConv((values != null) ? values : (value != null) ? new[] { value } : Enumerable.Empty<string>());
+                methodParameters[i] = arrayConv((values != null) ? values : (value != null) ? new[] { value } : (IList<string>)new string[0]);
                 continue;
             }
 
