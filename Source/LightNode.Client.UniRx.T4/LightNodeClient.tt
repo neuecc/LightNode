@@ -104,7 +104,7 @@
                                 (p.DefaultValue == null) ? "null"
                               : (p.DefaultValue is string) ? "\"" + p.DefaultValue + "\"" 
                               : (p.DefaultValue is CancellationToken) ? "default(CancellationToken)"
-                              : p.DefaultValue);
+                              : p.DefaultValue.ToString().ToLower());
                         }
                         return @base;
                     }));
@@ -251,7 +251,9 @@ namespace <#= namespaceName #>
 
         partial void OnAfterInitialized();
 
-        partial void AddAdditionalFlow<T>(string contractName, string operationName, ref IObservable<T> operation);
+        partial void OnBeforeRequest(string contractName, string operationName, List<KeyValuePair<string, string[]>> contentList, ref Hash headerForUse);
+
+        partial void ResultFilter<T>(ref IObservable<T> source);
 
 <# foreach(var contract in contracts) { #>
         public <#= contract.InterfaceName #> <#= contract.RootName #> { get { return this; } }
@@ -264,40 +266,61 @@ namespace <#= namespaceName #>
             OnAfterInitialized();
         }
 
-        protected virtual IObservable<Unit> _PostAsync(string contract, string operation, WWWForm content, IProgress<float> reportProgress)
+        Hash CopyHeaders()
+        {
+            if(defaultHeaders == null) return defaultHeaders;
+            var hash = new Hash();
+            foreach(HashEntry item in defaultHeaders) hash.Add(item.Key, item.Value);
+            return hash;
+        }
+
+        protected virtual IObservable<Unit> _PostAsync(string contract, string operation, WWWForm content, List<KeyValuePair<string, string[]>> contentList, IProgress<float> reportProgress)
         {
             var deferredOperation = Observable.Defer(() =>
             {
-                var postObservable = (defaultHeaders == null)
-                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
-                    : ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, defaultHeaders, reportProgress);
-                var weboperation = postObservable.Select(_ => Unit.Default);
+                var headers = CopyHeaders();
+                if (contentList.Count == 0) content.AddField("_", "_"); // Unity's WWW - POST request with a zero-sized post buffer is not supported!
+
+                OnBeforeRequest(contract, operation, contentList, ref headers);
+                var postObservable = (headers == null)
+                    ? ObservableWWW.PostWWW(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
+                    : ObservableWWW.PostWWW(rootEndPoint + "/" + contract + "/" + operation, content, headers, reportProgress);
+                 var weboperation = postObservable
+                    .Select(_ =>
+                    {
+                        return Unit.Default;
+                    });
+                ResultFilter(ref weboperation);
+
                 return weboperation;
             });
-            AddAdditionalFlow(contract, operation, ref deferredOperation);
             return deferredOperation;
         }
 
-        protected virtual IObservable<T> _PostAsync<T>(string contract, string operation, WWWForm content, IProgress<float> reportProgress)
+        protected virtual IObservable<T> _PostAsync<T>(string contract, string operation, WWWForm content, List<KeyValuePair<string, string[]>> contentList, IProgress<float> reportProgress)
         {
             var deferredOperation = Observable.Defer(() =>
             {
-                var postObservable = (defaultHeaders == null) 
-                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
-                    : ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, defaultHeaders, reportProgress);
+                var headers = CopyHeaders();
+                if (contentList.Count == 0) content.AddField("_", "_"); // add dummy
+
+                OnBeforeRequest(contract, operation, contentList, ref headers);
+                var postObservable = (headers == null) 
+                    ? ObservableWWW.PostWWW(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
+                    : ObservableWWW.PostWWW(rootEndPoint + "/" + contract + "/" + operation, content, headers, reportProgress);
                 var weboperation = postObservable
                     .Select(x =>
                     {
-                        using (var ms = new MemoryStream(x))
+                        using (var ms = new MemoryStream(x.bytes))
                         {
                             var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
                             return value;
                         }
                     });
+                ResultFilter(ref weboperation);
 
                 return weboperation;
             });
-            AddAdditionalFlow(contract, operation, ref deferredOperation);
             return deferredOperation;
         }
 
@@ -311,21 +334,36 @@ namespace <#= namespaceName #>
         IObservable<<#= BeautifyType(operation.ReturnType) #>> <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #><#= operation.Parameters.Any() ? ", " : "" #>IProgress<float> reportProgress)
 <# } #>
         {
+            var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
 <# foreach(var parameter in operation.Parameters) { #>
 <# if (parameter.ParameterType.IsArray) { #>
-            if (<#= parameter.Name #> != null) foreach (var ___x in <#= parameter.Name #>) form.AddField("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType.GetElementType(), "___x"); #>);
+            if (<#= parameter.Name #> != null)
+            {
+                var l2 = new List<string>();
+                foreach (var ___x in <#= parameter.Name #>)
+                {
+                    form.AddField("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType.GetElementType(), "___x"); #>);
+                    l2.Add(<# WriteParameter(parameter.ParameterType.GetElementType(), "___x"); #>);
+                }
+                list.Add(new KeyValuePair<string, string[]>("<#= parameter.Name #>", l2.ToArray()));
+            }
 <# } else if(parameter.ParameterType.IsClass || (parameter.ParameterType.IsGenericType && parameter.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>))) { #>
-            if (<#= parameter.Name #> != null) form.AddField("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType, parameter.Name); #>);
+            if (<#= parameter.Name #> != null)
+            {
+                form.AddField("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType, parameter.Name); #>);
+                list.Add(new KeyValuePair<string, string[]>("<#= parameter.Name #>", new[] { <# WriteParameter(parameter.ParameterType, parameter.Name); #> }));
+            }
 <# } else { #>
             form.AddField("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType, parameter.Name); #>);
+            list.Add(new KeyValuePair<string, string[]>("<#= parameter.Name #>", new[] { <# WriteParameter(parameter.ParameterType, parameter.Name); #> }));
 <# } #>
 <# } #>
 
 <# if (operation.ReturnType != typeof(void)) { #>
-            return _PostAsync<#= "<" + BeautifyType(operation.ReturnType) + ">" #>("<#= contract.RootName #>", "<#= operation.OperationName #>", form, reportProgress);
+            return _PostAsync<#= "<" + BeautifyType(operation.ReturnType) + ">" #>("<#= contract.RootName #>", "<#= operation.OperationName #>", form, list, reportProgress);
 <# } else { #>
-            return _PostAsync("<#= contract.RootName #>", "<#= operation.OperationName #>", form, reportProgress);
+            return _PostAsync("<#= contract.RootName #>", "<#= operation.OperationName #>", form, list, reportProgress);
 <# } #>
         }
 

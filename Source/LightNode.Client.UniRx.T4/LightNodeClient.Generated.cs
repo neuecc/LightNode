@@ -87,10 +87,14 @@ namespace LightNode.Formatter
 
 namespace LightNode.Client
 {
-#if !(UNITY_METRO || UNITY_WP8)
+#if !(UNITY_METRO || UNITY_WP8) && (UNITY_4_4 || UNITY_4_3 || UNITY_4_2 || UNITY_4_1 || UNITY_4_0_1 || UNITY_4_0 || UNITY_3_5 || UNITY_3_4 || UNITY_3_3 || UNITY_3_2 || UNITY_3_1 || UNITY_3_0_0 || UNITY_3_0 || UNITY_2_6_1 || UNITY_2_6)
+    // Fallback for Unity versions below 4.5
     using Hash = System.Collections.Hashtable;
-    using HashEntry = System.Collections.DictionaryEntry;
+    using HashEntry = System.Collections.DictionaryEntry;    
 #else
+    // Unity 4.5 release notes: 
+    // WWW: deprecated 'WWW(string url, byte[] postData, Hashtable headers)', 
+    // use 'public WWW(string url, byte[] postData, Dictionary<string, string> headers)' instead.
     using Hash = System.Collections.Generic.Dictionary<string, string>;
     using HashEntry = System.Collections.Generic.KeyValuePair<string, string>;
 #endif
@@ -116,7 +120,9 @@ namespace LightNode.Client
 
         partial void OnAfterInitialized();
 
-        partial void AddAdditionalFlow<T>(string contractName, string operationName, ref IObservable<T> operation);
+        partial void OnBeforeRequest(string contractName, string operationName, List<KeyValuePair<string, string[]>> contentList, ref Hash headerForUse);
+
+        partial void ResultFilter<T>(ref IObservable<T> source);
 
         public _IPerf Perf { get { return this; } }
 
@@ -127,40 +133,61 @@ namespace LightNode.Client
             OnAfterInitialized();
         }
 
-        protected virtual IObservable<Unit> _PostAsync(string contract, string operation, WWWForm content, IProgress<float> reportProgress)
+        Hash CopyHeaders()
+        {
+            if(defaultHeaders == null) return defaultHeaders;
+            var hash = new Hash();
+            foreach(HashEntry item in defaultHeaders) hash.Add(item.Key, item.Value);
+            return hash;
+        }
+
+        protected virtual IObservable<Unit> _PostAsync(string contract, string operation, WWWForm content, List<KeyValuePair<string, string[]>> contentList, IProgress<float> reportProgress)
         {
             var deferredOperation = Observable.Defer(() =>
             {
-                var postObservable = (defaultHeaders == null)
-                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
-                    : ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, defaultHeaders, reportProgress);
-                var weboperation = postObservable.Select(_ => Unit.Default);
+                var headers = CopyHeaders();
+                if (contentList.Count == 0) content.AddField("_", "_"); // Unity's WWW - POST request with a zero-sized post buffer is not supported!
+
+                OnBeforeRequest(contract, operation, contentList, ref headers);
+                var postObservable = (headers == null)
+                    ? ObservableWWW.PostWWW(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
+                    : ObservableWWW.PostWWW(rootEndPoint + "/" + contract + "/" + operation, content, headers, reportProgress);
+                 var weboperation = postObservable
+                    .Select(_ =>
+                    {
+                        return Unit.Default;
+                    });
+                ResultFilter(ref weboperation);
+
                 return weboperation;
             });
-            AddAdditionalFlow(contract, operation, ref deferredOperation);
             return deferredOperation;
         }
 
-        protected virtual IObservable<T> _PostAsync<T>(string contract, string operation, WWWForm content, IProgress<float> reportProgress)
+        protected virtual IObservable<T> _PostAsync<T>(string contract, string operation, WWWForm content, List<KeyValuePair<string, string[]>> contentList, IProgress<float> reportProgress)
         {
             var deferredOperation = Observable.Defer(() =>
             {
-                var postObservable = (defaultHeaders == null) 
-                    ? ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
-                    : ObservableWWW.PostAndGetBytes(rootEndPoint + "/" + contract + "/" + operation, content, defaultHeaders, reportProgress);
+                var headers = CopyHeaders();
+                if (contentList.Count == 0) content.AddField("_", "_"); // add dummy
+
+                OnBeforeRequest(contract, operation, contentList, ref headers);
+                var postObservable = (headers == null) 
+                    ? ObservableWWW.PostWWW(rootEndPoint + "/" + contract + "/" + operation, content, reportProgress)
+                    : ObservableWWW.PostWWW(rootEndPoint + "/" + contract + "/" + operation, content, headers, reportProgress);
                 var weboperation = postObservable
                     .Select(x =>
                     {
-                        using (var ms = new MemoryStream(x))
+                        using (var ms = new MemoryStream(x.bytes))
                         {
                             var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
                             return value;
                         }
                     });
+                ResultFilter(ref weboperation);
 
                 return weboperation;
             });
-            AddAdditionalFlow(contract, operation, ref deferredOperation);
             return deferredOperation;
         }
 
@@ -168,55 +195,111 @@ namespace LightNode.Client
 
         IObservable<LightNode.Performance.MyClass> _IPerf.Echo(System.String name, System.Int32 x, System.Int32 y, LightNode.Performance.MyEnum e, IProgress<float> reportProgress)
         {
+            var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
-            if (name != null) form.AddField("name", name);
+            if (name != null)
+            {
+                form.AddField("name", name);
+                list.Add(new KeyValuePair<string, string[]>("name", new[] { name }));
+            }
             form.AddField("x", x.ToString());
+            list.Add(new KeyValuePair<string, string[]>("x", new[] { x.ToString() }));
             form.AddField("y", y.ToString());
+            list.Add(new KeyValuePair<string, string[]>("y", new[] { y.ToString() }));
             form.AddField("e", ((System.Int32)e).ToString());
+            list.Add(new KeyValuePair<string, string[]>("e", new[] { ((System.Int32)e).ToString() }));
 
-            return _PostAsync<LightNode.Performance.MyClass>("Perf", "Echo", form, reportProgress);
+            return _PostAsync<LightNode.Performance.MyClass>("Perf", "Echo", form, list, reportProgress);
         }
 
         IObservable<Unit> _IPerf.Test(System.String a, System.Nullable<System.Int32> x, System.Nullable<LightNode.Performance.MyEnum2> z, IProgress<float> reportProgress)
         {
+            var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
-            if (a != null) form.AddField("a", a);
-            if (x != null) form.AddField("x", x.ToString());
-            if (z != null) form.AddField("z", ((System.UInt64)z).ToString());
+            if (a != null)
+            {
+                form.AddField("a", a);
+                list.Add(new KeyValuePair<string, string[]>("a", new[] { a }));
+            }
+            if (x != null)
+            {
+                form.AddField("x", x.ToString());
+                list.Add(new KeyValuePair<string, string[]>("x", new[] { x.ToString() }));
+            }
+            if (z != null)
+            {
+                form.AddField("z", ((System.UInt64)z).ToString());
+                list.Add(new KeyValuePair<string, string[]>("z", new[] { ((System.UInt64)z).ToString() }));
+            }
 
-            return _PostAsync("Perf", "Test", form, reportProgress);
+            return _PostAsync("Perf", "Test", form, list, reportProgress);
         }
 
         IObservable<Unit> _IPerf.Te(IProgress<float> reportProgress)
         {
+            var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
 
-            return _PostAsync("Perf", "Te", form, reportProgress);
+            return _PostAsync("Perf", "Te", form, list, reportProgress);
         }
 
         IObservable<Unit> _IPerf.TestArray(System.String[] array, System.Int32[] array2, LightNode.Performance.MyEnum[] array3, IProgress<float> reportProgress)
         {
+            var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
-            if (array != null) foreach (var ___x in array) form.AddField("array", ___x);
-            if (array2 != null) foreach (var ___x in array2) form.AddField("array2", ___x.ToString());
-            if (array3 != null) foreach (var ___x in array3) form.AddField("array3", ((System.Int32)___x).ToString());
+            if (array != null)
+            {
+                var l2 = new List<string>();
+                foreach (var ___x in array)
+                {
+                    form.AddField("array", ___x);
+                    l2.Add(___x);
+                }
+                list.Add(new KeyValuePair<string, string[]>("array", l2.ToArray()));
+            }
+            if (array2 != null)
+            {
+                var l2 = new List<string>();
+                foreach (var ___x in array2)
+                {
+                    form.AddField("array2", ___x.ToString());
+                    l2.Add(___x.ToString());
+                }
+                list.Add(new KeyValuePair<string, string[]>("array2", l2.ToArray()));
+            }
+            if (array3 != null)
+            {
+                var l2 = new List<string>();
+                foreach (var ___x in array3)
+                {
+                    form.AddField("array3", ((System.Int32)___x).ToString());
+                    l2.Add(((System.Int32)___x).ToString());
+                }
+                list.Add(new KeyValuePair<string, string[]>("array3", l2.ToArray()));
+            }
 
-            return _PostAsync("Perf", "TestArray", form, reportProgress);
+            return _PostAsync("Perf", "TestArray", form, list, reportProgress);
         }
 
         IObservable<Unit> _IPerf.TeVoid(IProgress<float> reportProgress)
         {
+            var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
 
-            return _PostAsync("Perf", "TeVoid", form, reportProgress);
+            return _PostAsync("Perf", "TeVoid", form, list, reportProgress);
         }
 
         IObservable<System.String> _IPerf.Te4(System.String xs, IProgress<float> reportProgress)
         {
+            var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
-            if (xs != null) form.AddField("xs", xs);
+            if (xs != null)
+            {
+                form.AddField("xs", xs);
+                list.Add(new KeyValuePair<string, string[]>("xs", new[] { xs }));
+            }
 
-            return _PostAsync<System.String>("Perf", "Te4", form, reportProgress);
+            return _PostAsync<System.String>("Perf", "Te4", form, list, reportProgress);
         }
 
         #endregion
