@@ -98,27 +98,7 @@ namespace LightNode.Server
             verb = AcceptVerbs.Get;
             ext = "";
             var path = environment["owin.RequestPath"] as string;
-
-            // verb check
             var method = environment["owin.RequestMethod"] as string;
-            if (StringComparer.OrdinalIgnoreCase.Equals(method, "GET"))
-            {
-                verb = AcceptVerbs.Get;
-            }
-            else if (StringComparer.OrdinalIgnoreCase.Equals(method, "POST"))
-            {
-                verb = AcceptVerbs.Post;
-            }
-            else
-            {
-                goto VERB_MISSING;
-            }
-
-            // more verb check
-            if (!options.DefaultAcceptVerb.HasFlag(verb))
-            {
-                goto VERB_MISSING;
-            }
 
             // extract path
             var keyBase = path.Trim('/').Split('/');
@@ -141,8 +121,26 @@ namespace LightNode.Server
             OperationHandler handler;
             if (handlers.TryGetValue(key, out handler))
             {
-                // TODO:more more operationContext VerbCheck
-                return handler;
+                // verb check
+                if (StringComparer.OrdinalIgnoreCase.Equals(method, "GET"))
+                {
+                    verb = AcceptVerbs.Get;
+                }
+                else if (StringComparer.OrdinalIgnoreCase.Equals(method, "POST"))
+                {
+                    verb = AcceptVerbs.Post;
+                }
+                else
+                {
+                    goto VERB_MISSING;
+                }
+
+                if (!handler.AcceptVerb.HasFlag(verb))
+                {
+                    goto VERB_MISSING;
+                }
+
+                return handler; // OK
             }
             else
             {
@@ -244,8 +242,12 @@ namespace LightNode.Server
             if (methodParameters == null) return;
 
             // select formatter
-            var formatter = NegotiateFormat(environment, ext);
-            if (formatter == null) return;
+            var formatter = handler.ForceUseFormatter;
+            if (formatter == null)
+            {
+                formatter = NegotiateFormat(environment, ext);
+                if (formatter == null) return;
+            }
 
             try
             {

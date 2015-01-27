@@ -5,6 +5,7 @@ using Owin;
 using System;
 using System.Threading.Tasks;
 using LightNode.Formatter;
+using LightNode.Core;
 
 namespace LightNode.Sample.Server.SelfHost
 {
@@ -30,6 +31,12 @@ namespace LightNode.Sample.Server.SelfHost
         }
     }
 
+    public class Person
+    {
+        public int Age { get; set; }
+        public string Name { get; set; }
+    }
+
     public class My : LightNodeContract
     {
         public string Echo(string x)
@@ -40,6 +47,25 @@ namespace LightNode.Sample.Server.SelfHost
         public Task<int> Sum(int x, int? y, int z = 1000)
         {
             return Task.Run(() => x + y.Value + z);
+        }
+
+        public Person Person()
+        {
+            return new Person { Age = 10, Name = "aaa" };
+        }
+
+        [OperationOption(typeof(HtmlContentFormatterFactory))]
+        public string HtmlText()
+        {
+            return "<html><head></head><body>aaa</body></html>";
+        }
+    }
+
+    public class HtmlContentFormatterFactory : IContentFormatterFactory
+    {
+        public IContentFormatter CreateFormatter()
+        {
+            return new HtmlContentFormatter();
         }
     }
 

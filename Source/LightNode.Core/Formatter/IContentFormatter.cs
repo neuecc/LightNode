@@ -12,4 +12,9 @@ namespace LightNode.Core
         void Serialize(Stream stream, object obj);
         object Deserialize(Type type, Stream stream);
     }
+
+    public interface IContentFormatterFactory
+    {
+        IContentFormatter CreateFormatter();
+    }
 }

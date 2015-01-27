@@ -22,6 +22,10 @@ namespace LightNode.Server
 
         public ILookup<Type, Attribute> AttributeLookup { get; private set; }
 
+        // internal use
+        internal AcceptVerbs AcceptVerb { get; private set; }
+        internal IContentFormatter ForceUseFormatter { get; private set; }
+
         readonly LightNodeFilterAttribute[] filters;
 
         readonly HandlerBodyType handlerBodyType;
@@ -50,6 +54,14 @@ namespace LightNode.Server
                 .Concat(methodInfo.GetCustomAttributes<LightNodeFilterAttribute>(true))
                 .OrderBy(x => x.Order)
                 .ToArray();
+
+            var operationOption = methodInfo.GetCustomAttributes<OperationOptionAttribute>(true).FirstOrDefault();
+            this.AcceptVerb = (operationOption != null && operationOption.AcceptVerbs != null)
+                ? operationOption.AcceptVerbs.Value
+                : options.DefaultAcceptVerb;
+            this.ForceUseFormatter = (operationOption != null && operationOption.ContentFormatter != null)
+                ? operationOption.ContentFormatter
+                : null;
 
             this.AttributeLookup = classType.GetCustomAttributes(true)
                 .Concat(methodInfo.GetCustomAttributes(true))

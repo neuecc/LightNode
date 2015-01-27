@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Diagnostics\LightNodeEventSource.cs" />
+    <Compile Include="OperationOptionAttribute.cs" />
     <Compile Include="TypeBinder.cs" />
     <Compile Include="IgnoreOperationAttribute.cs" />
     <Compile Include="LightNodeFilterAttribute.cs" />

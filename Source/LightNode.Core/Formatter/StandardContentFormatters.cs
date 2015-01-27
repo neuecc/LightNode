@@ -61,7 +61,7 @@ namespace LightNode.Formatter
                 stream.Write(bytes, 0, bytes.Length);
                 return;
             }
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("TextContentFormatter only supports string");
         }
 
         public override object Deserialize(Type type, Stream stream)
