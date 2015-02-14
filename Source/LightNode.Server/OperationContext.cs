@@ -18,9 +18,10 @@ namespace LightNode.Server
 
         // internal use
 
-        internal IContentFormatter ContentFormatter { get; set; }
+        public IContentFormatter ContentFormatter { get; internal set; }
 
-        internal object[] Parameters { get; set; }
+        public IReadOnlyList<object> Parameters { get; internal set; } // object[]
+        public IReadOnlyList<string> ParameterNames { get; internal set; }
 
         // Type as typeof(Attribute)
         internal ILookup<Type, Attribute> Attributes { get; set; }
@@ -56,6 +57,11 @@ namespace LightNode.Server
         public IEnumerable<Attribute> GetAllAttributes()
         {
             return Attributes.SelectMany(xs => xs);
+        }
+
+        public override string ToString()
+        {
+            return ContractName + "/" + OperationName;
         }
     }
 }

@@ -17,6 +17,7 @@ namespace LightNode.Server
         public string MethodName { get; private set; }
 
         public ParameterInfoSlim[] Arguments { get; private set; }
+        public IReadOnlyList<string> ParameterNames { get; private set; }
 
         public Type ReturnType { get; private set; }
 
@@ -47,6 +48,7 @@ namespace LightNode.Server
             this.Arguments = methodInfo.GetParameters()
                 .Select(x => new ParameterInfoSlim(x))
                 .ToArray();
+            this.ParameterNames = Arguments.Select(x => x.Name).ToList().AsReadOnly();
             this.ReturnType = methodInfo.ReturnType;
 
             this.filters = options.Filters
@@ -159,31 +161,33 @@ namespace LightNode.Server
 
         public Task Execute(LightNodeOptions options, OperationContext context)
         {
-            int index = -1;
-            Func<Task> invokeRecursive = null;
-            invokeRecursive = () =>
-            {
-                index += 1;
-                if (filters.Length != index)
-                {
-                    // chain next filter
-                    return filters[index].Invoke(context, invokeRecursive);
-                }
-                else
-                {
-                    // execute operation
-                    return ExecuteOperation(options, context);
-                }
-            };
-            return invokeRecursive();
+            var coordinator = options.OperationCoordinator;
+            var targetFilters = coordinator.GetFilters(options, context, filters);
+
+            return InvokeRecursive(-1, targetFilters, options, context);
         }
 
-        async Task ExecuteOperation(LightNodeOptions options, OperationContext context)
+        Task InvokeRecursive(int index, IReadOnlyList<LightNodeFilterAttribute> filters, LightNodeOptions options, OperationContext context)
+        {
+            index += 1;
+            if (filters.Count != index)
+            {
+                // chain next filter
+                return filters[index].Invoke(context, () => InvokeRecursive(index, filters, options, context));
+            }
+            else
+            {
+                // execute operation
+                return options.OperationCoordinator.ExecuteOperation(options, context, ExecuteOperation);
+            }
+        }
+
+        async Task<object> ExecuteOperation(LightNodeOptions options, OperationContext context)
         {
             // prepare
             var handler = this;
             var environment = context.Environment;
-            var methodParameters = context.Parameters;
+            var methodParameters = (object[])context.Parameters;
 
             bool isVoid = true;
             object result = null;
@@ -242,12 +246,12 @@ namespace LightNode.Server
                     }
                 }
 
-                return;
+                return result;
             }
             else
             {
                 environment.EmitNoContent();
-                return;
+                return null;
             }
         }
     }

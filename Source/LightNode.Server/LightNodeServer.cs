@@ -255,6 +255,7 @@ namespace LightNode.Server
                 var context = new OperationContext(environment, handler.ClassName, handler.MethodName, verb)
                 {
                     Parameters = methodParameters,
+                    ParameterNames = handler.ParameterNames,
                     ContentFormatter = formatter,
                     Attributes = handler.AttributeLookup
                 };

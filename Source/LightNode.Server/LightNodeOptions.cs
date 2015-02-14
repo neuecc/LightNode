@@ -13,6 +13,7 @@ namespace LightNode.Server
         public bool UseOtherMiddleware { get; set; }
         public bool ParameterStringImplicitNullAsDefault { get; set; }
         public bool ParameterEnumAllowsFieldNameParse { get; set; }
+        public IOperationCoordinator OperationCoordinator { get; set; }
 
         /// <summary>
         /// <pre>Use buffering when content formatter serialize, Default is BufferAndWrite.</pre>
@@ -37,6 +38,7 @@ namespace LightNode.Server
             ErrorHandlingPolicy = Server.ErrorHandlingPolicy.ThrowException;
             OperationMissingHandlingPolicy = Server.OperationMissingHandlingPolicy.ReturnErrorStatusCode;
             Filters = new LightNodeFilterCollection();
+            OperationCoordinator = new DefaultOperationCoordinator();
         }
 
         public LightNodeOptions ConfigureWith(Action<LightNodeOptions> @this)
