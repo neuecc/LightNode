@@ -289,7 +289,7 @@ ReleaseNote
 * ContentFormatter supports handling ContentEncoding
 * More LightNodeEventSource logging  
 
-1.0.0 - 2015-01-27
+0.4.0 - 2015-01-27
 * Add UniRx T4 Template
 * Add LightNodeEventSource logging
 * Add IgnoreClientGenerateAttribute
