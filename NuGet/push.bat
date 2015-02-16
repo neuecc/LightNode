@@ -5,5 +5,5 @@ nuget push LightNode.Client.UniRx.T4.1.0.0.nupkg
 nuget push LightNode.Formatter.ProtoBuf.1.0.0.nupkg
 nuget push LightNode.Formatter.MsgPack.1.0.0.nupkg
 nuget push LightNode.Formatter.JsonNet.1.0.0.nupkg
-nuget pack LightNode.Formatter.Jil.1.0.0.nupkg
-nuget pack LightNode.Formatter.Jil.LZ4.1.0.0.nupkg
+nuget push LightNode.Formatter.Jil.1.0.1.nupkg
+nuget push LightNode.Formatter.Jil.LZ4.1.0.1.nupkg

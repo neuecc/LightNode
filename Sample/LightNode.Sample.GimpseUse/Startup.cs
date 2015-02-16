@@ -10,7 +10,7 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 
-[assembly: OwinStartup(typeof(LightNode.Sample.GlimpseUse.Startup))]
+[assembly: Microsoft.Owin.OwinStartup(typeof(LightNode.Sample.GlimpseUse.Startup))]
 
 namespace LightNode.Sample.GlimpseUse
 {

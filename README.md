@@ -130,7 +130,7 @@ If encounts exception, LightNode tab shows exception on Result.
 
 My recommended glimpse configuration.
 
-```
+```xml
 <!-- sometimes Glimpse rewrite response for display tab, but API no needs, set RuntimePolicy PersitResults -->
 <glimpse defaultRuntimePolicy="PersistResults" endpointBaseUri="~/Glimpse.axd">
     <tabs>
