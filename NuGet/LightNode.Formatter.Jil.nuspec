@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>LightNode.Formatter.Jil</id>
+        <version>1.0.0</version>
+        <title>LightNode.Formatter.Jil</title>
+        <authors>neuecc</authors>
+        <owners>neuecc</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>LightNode(as Micro REST/RPC Framework) Formatter for JSON by Jil.</description>
+        <language>en-US</language>
+        <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+        <projectUrl>https://github.com/neuecc/LightNode</projectUrl>
+        <tags>Owin Rest RPC</tags>
+        <dependencies>
+            <dependency id="LightNode.Core" version="1.0.0" />
+            <dependency id="Jil" version="2.8.0"  />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\Source\LightNode.Formatter.Jil\bin\Release\LightNode.Formatter.Jil.dll" target="lib" />
+    </files>
+</package>

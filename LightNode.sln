@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.30516.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1D780B80-C034-4AF9-8A47-3C4C3708E198}"
 	ProjectSection(SolutionItems) = preProject
@@ -48,11 +48,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceStack", "Performance
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{52DEAA6E-C4C7-4F7A-99A4-DF8FDE08736E}"
 	ProjectSection(SolutionItems) = preProject
+		NuGet\Glimpse.LightNode.nuspec = NuGet\Glimpse.LightNode.nuspec
 		LICENSE = LICENSE
 		NuGet\LightNode.Client.PCL.T4.nuspec = NuGet\LightNode.Client.PCL.T4.nuspec
 		NuGet\LightNode.Client.UniRx.T4.nuspec = NuGet\LightNode.Client.UniRx.T4.nuspec
-		NuGet\LightNode.Client.Unity.T4.nuspec = NuGet\LightNode.Client.Unity.T4.nuspec
 		NuGet\LightNode.Core.nuspec = NuGet\LightNode.Core.nuspec
+		NuGet\LightNode.Formatter.Jil.LZ4.nuspec = NuGet\LightNode.Formatter.Jil.LZ4.nuspec
+		NuGet\LightNode.Formatter.Jil.nuspec = NuGet\LightNode.Formatter.Jil.nuspec
 		NuGet\LightNode.Formatter.JsonNet.nuspec = NuGet\LightNode.Formatter.JsonNet.nuspec
 		NuGet\LightNode.Formatter.MsgPack.nuspec = NuGet\LightNode.Formatter.MsgPack.nuspec
 		NuGet\LightNode.Formatter.ProtoBuf.nuspec = NuGet\LightNode.Formatter.ProtoBuf.nuspec
@@ -60,6 +62,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{52DEAA6E-C
 		NuGet\pack.bat = NuGet\pack.bat
 		NuGet\push.bat = NuGet\push.bat
 		README.md = README.md
+		NuGet\ReadMe.txt = NuGet\ReadMe.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WcfService", "Performance\WcfService\WcfService.csproj", "{7F1DBA87-5AEF-4DE4-AA67-A08B87D88900}"
@@ -70,13 +73,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Helios", "Perform
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.SelfHost", "Performance\LightNode.SelfHost\LightNode.SelfHost.csproj", "{9E4C02D4-BFC8-48F5-BAE8-5AD88B384961}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Client.Unity.T4", "Source\LightNode.Client.Unity.T4\LightNode.Client.Unity.T4.csproj", "{8B0BB999-5876-44BA-AC5A-58443149A12C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Client.UniRx.T4", "Source\LightNode.Client.UniRx.T4\LightNode.Client.UniRx.T4.csproj", "{20B6FCE4-B03F-4889-AB87-8E60FA78EE4B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Glimpse.LightNode", "Source\Glimpse.LightNode\Glimpse.LightNode.csproj", "{14607312-EC6D-49B2-9B99-AF38897D4468}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Sample.GimpseUse", "Sample\LightNode.Sample.GimpseUse\LightNode.Sample.GimpseUse.csproj", "{4B0914D8-6360-487E-8EB4-89CC1DB112F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Formatter.Jil", "Source\LightNode.Formatter.Jil\LightNode.Formatter.Jil.csproj", "{2B06F536-00BA-465C-AD09-0903DFC84EB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Formatter.Jil.LZ4", "Source\LightNode.Formatter.Jil.LZ4\LightNode.Formatter.Jil.LZ4.csproj", "{897A5A2A-8941-4223-8DA8-DE0DB6D358F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Sample.WithMvc", "Sample\LightNode.Sample.WithMvc\LightNode.Sample.WithMvc.csproj", "{40973720-F6FC-49BA-835B-7E93E0AC4FD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -164,10 +171,6 @@ Global
 		{9E4C02D4-BFC8-48F5-BAE8-5AD88B384961}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E4C02D4-BFC8-48F5-BAE8-5AD88B384961}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E4C02D4-BFC8-48F5-BAE8-5AD88B384961}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B0BB999-5876-44BA-AC5A-58443149A12C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B0BB999-5876-44BA-AC5A-58443149A12C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B0BB999-5876-44BA-AC5A-58443149A12C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B0BB999-5876-44BA-AC5A-58443149A12C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{20B6FCE4-B03F-4889-AB87-8E60FA78EE4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{20B6FCE4-B03F-4889-AB87-8E60FA78EE4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20B6FCE4-B03F-4889-AB87-8E60FA78EE4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -180,6 +183,18 @@ Global
 		{4B0914D8-6360-487E-8EB4-89CC1DB112F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B0914D8-6360-487E-8EB4-89CC1DB112F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B0914D8-6360-487E-8EB4-89CC1DB112F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B06F536-00BA-465C-AD09-0903DFC84EB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B06F536-00BA-465C-AD09-0903DFC84EB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B06F536-00BA-465C-AD09-0903DFC84EB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B06F536-00BA-465C-AD09-0903DFC84EB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{897A5A2A-8941-4223-8DA8-DE0DB6D358F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{897A5A2A-8941-4223-8DA8-DE0DB6D358F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{897A5A2A-8941-4223-8DA8-DE0DB6D358F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{897A5A2A-8941-4223-8DA8-DE0DB6D358F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40973720-F6FC-49BA-835B-7E93E0AC4FD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40973720-F6FC-49BA-835B-7E93E0AC4FD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40973720-F6FC-49BA-835B-7E93E0AC4FD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40973720-F6FC-49BA-835B-7E93E0AC4FD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -199,5 +214,6 @@ Global
 		{3AB75B9A-EDCE-4761-A71C-612E9BA48AC3} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 		{9E4C02D4-BFC8-48F5-BAE8-5AD88B384961} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 		{4B0914D8-6360-487E-8EB4-89CC1DB112F6} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
+		{40973720-F6FC-49BA-835B-7E93E0AC4FD4} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
 	EndGlobalSection
 EndGlobal

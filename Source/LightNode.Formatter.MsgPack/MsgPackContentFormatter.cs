@@ -1,4 +1,5 @@
-﻿using MsgPack.Serialization;
+﻿using LightNode.Core;
+using MsgPack.Serialization;
 using System;
 
 namespace LightNode.Formatter
@@ -34,6 +35,14 @@ namespace LightNode.Formatter
                 var serializer = serializationContext.GetSerializer(type);
                 return serializer.UnpackFrom(packer);
             }
+        }
+    }
+
+    public class MsgPackContentFormatterFactory : IContentFormatterFactory
+    {
+        public IContentFormatter CreateFormatter()
+        {
+            return new MsgPackContentFormatter();
         }
     }
 }

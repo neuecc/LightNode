@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyCopyright("Copyright (C)  2014")]
 [assembly: NeutralResourcesLanguage("en")]
-[assembly: AssemblyVersion("0.4.0.0")]
-[assembly: AssemblyFileVersion("0.4.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

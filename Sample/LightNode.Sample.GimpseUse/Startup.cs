@@ -1,20 +1,24 @@
-﻿using Glimpse.Core.Framework;
+﻿using CloudStructures;
+using Glimpse.CloudStructures.Redis;
 using Glimpse.LightNode;
 using LightNode.Formatter;
+using LightNode.Formatter.Jil;
 using LightNode.Server;
 using Microsoft.Owin;
 using Owin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 
 [assembly: OwinStartup(typeof(LightNode.Sample.GlimpseUse.Startup))]
 
 namespace LightNode.Sample.GlimpseUse
 {
+    public static class Redis
+    {
+        public static RedisSettings Settings = new RedisSettings("127.0.0.1,allowAdmin=true", tracerFactory: () => new GlimpseRedisCommandTracer());
+    }
+
     public class Startup
     {
         public void Configuration(Owin.IAppBuilder app)
@@ -22,32 +26,70 @@ namespace LightNode.Sample.GlimpseUse
             app.EnableGlimpse();
             app.MapWhen(x => !x.Request.Path.Value.StartsWith("/glimpse.axd", StringComparison.OrdinalIgnoreCase), x =>
             {
-                x.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
-                    new JavaScriptContentFormatter()) { OperationCoordinator = new GlimpseProfilingOperationCoordinator() });
+                x.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new JilContentFormatter(), new GZipJilContentFormatter())
+                {
+                    OperationCoordinatorFactory = new GlimpseProfilingOperationCoordinatorFactory(),
+                    StreamWriteOption = StreamWriteOption.BufferAndWrite
+                });
             });
-
-
-
         }
     }
 
-    [MyAtrr]
-    public class MyClass : LightNodeContract
+    public class Sample : LightNodeContract
     {
-        public Person Echo(string x)
+        // use specified content formatter
+        [OperationOption(AcceptVerbs.Get, typeof(HtmlContentFormatterFactory))]
+        public string Html()
         {
-            //if (x == "hoge") throw new ReturnStatusCodeException(System.Net.HttpStatusCode.SeeOther);
-            //if (x == "huga") throw new InvalidOperationException("nanika");
-
-            return new Person { Age = 21, FirstName = x, LastName = x };
+            return "<html><body>aaa</body></html>";
         }
     }
 
-    public class MyAtrr : LightNodeFilterAttribute
+
+    [Authentication(Order = 1)]
+    [Session(Order = 2)]
+    public class Member : LightNodeContract
     {
-        public override Task Invoke(OperationContext operationContext, Func<Task> next)
+        public async Task<Person> Random(int seed)
         {
-            return next();
+            //await Redis.Settings.String<string>("Person?Seed=" + seed).Get();
+            var rand = new Random(seed);
+            await Task.Delay(TimeSpan.FromMilliseconds(2));
+            var nameSeed = "abcdefghijklmnopqrstuvwxyz";
+            var f = new StringBuilder();
+            var l = new StringBuilder();
+            for (int i = 0; i < 10; i++)
+            {
+                f.Append(nameSeed[rand.Next(0, nameSeed.Length)]);
+                l.Append(nameSeed[rand.Next(0, nameSeed.Length)]);
+            }
+            // var _ = nameSeed[1000]; // exception
+
+            return new Person { Age = rand.Next(10, 40), FirstName = f.ToString(), LastName = l.ToString() };
+        }
+    }
+
+    // dummy
+    public class AuthenticationAttribute : LightNodeFilterAttribute
+    {
+        public override async Task Invoke(OperationContext operationContext, Func<Task> next)
+        {
+            //await Redis.Settings.String<string>("Auth:1").Get();
+            await Task.Delay(TimeSpan.FromMilliseconds(2));
+            await next();
+        }
+    }
+
+    // dummy
+    public class SessionAttribute : LightNodeFilterAttribute
+    {
+        public override async Task Invoke(OperationContext operationContext, Func<Task> next)
+        {
+            //await Redis.Settings.Dictionary<string, string>("Session:1").GetAll();
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
+            await next();
+            //await Redis.Settings.Dictionary<string, string>("Session:1").Set("a", "b");
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
         }
     }
 

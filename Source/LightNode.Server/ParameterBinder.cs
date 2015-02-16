@@ -10,7 +10,7 @@ namespace LightNode.Server
 {
     internal static class ParameterBinder
     {
-        internal static object[] BindParameter(IDictionary<string, object> environment, LightNodeOptions options, ValueProvider valueProvider, ParameterInfoSlim[] arguments)
+        internal static object[] BindParameter(IDictionary<string, object> environment, ILightNodeOptions options,IOperationCoordinator coordinator,  ValueProvider valueProvider, ParameterInfoSlim[] arguments)
         {
             var methodParameters = new object[arguments.Length];
             for (int i = 0; i < arguments.Length; i++)
@@ -36,6 +36,7 @@ namespace LightNode.Server
                     }
                     else
                     {
+                        coordinator.OnProcessInterrupt(options, environment, InterruptReason.ParameterBindMissing, "Lack of Parameter:" + item.Name);
                         LightNodeEventSource.Log.ParameterBindMissing(OperationMissingKind.LackOfParameter, item.Name);
                         if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
                         {
@@ -75,6 +76,7 @@ namespace LightNode.Server
                     }
                     else
                     {
+                        coordinator.OnProcessInterrupt(options, environment, InterruptReason.ParameterBindMissing, "Mismatch ParameterType:" + item.Name);
                         LightNodeEventSource.Log.ParameterBindMissing(OperationMissingKind.MissmatchParameterType, item.Name);
                         if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
                         {

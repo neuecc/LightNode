@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Linq.Expressions;
 using LightNode.Core;
+using LightNode.Diagnostics;
 
 namespace LightNode.Server
 {
@@ -29,6 +30,11 @@ namespace LightNode.Server
 
         readonly LightNodeFilterAttribute[] filters;
 
+        // formatter cache
+        readonly ILookup<string, IContentFormatter> formatterByExt;
+        readonly ILookup<string, IContentFormatter> formatterByMediaType;
+        readonly ILookup<string, IContentFormatter> formatterByContentEncoding;
+
         readonly HandlerBodyType handlerBodyType;
 
         // MethodCache Delegate => environment, arguments, returnType
@@ -41,7 +47,7 @@ namespace LightNode.Server
 
         readonly Func<IDictionary<string, object>, object[], Task> methodAsyncActionBody;
 
-        public OperationHandler(LightNodeOptions options, Type classType, MethodInfo methodInfo)
+        public OperationHandler(ILightNodeOptions options, Type classType, MethodInfo methodInfo)
         {
             this.ClassName = classType.Name;
             this.MethodName = methodInfo.Name;
@@ -64,6 +70,10 @@ namespace LightNode.Server
             this.ForceUseFormatter = (operationOption != null && operationOption.ContentFormatter != null)
                 ? operationOption.ContentFormatter
                 : null;
+            var formatterChoiceBase = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters).Where(x => x != null).ToArray();
+            this.formatterByExt = formatterChoiceBase.SelectMany(x => (x.Ext ?? "").Split('|'), (fmt, ext) => new { fmt, ext }).ToLookup(x => x.ext, x => x.fmt, StringComparer.OrdinalIgnoreCase);
+            this.formatterByMediaType = formatterChoiceBase.ToLookup(x => x.MediaType, StringComparer.OrdinalIgnoreCase);
+            this.formatterByContentEncoding = formatterChoiceBase.ToLookup(x => x.ContentEncoding, StringComparer.OrdinalIgnoreCase);
 
             this.AttributeLookup = classType.GetCustomAttributes(true)
                 .Concat(methodInfo.GetCustomAttributes(true))
@@ -159,30 +169,104 @@ namespace LightNode.Server
             }
         }
 
-        public Task Execute(LightNodeOptions options, OperationContext context)
+        internal IContentFormatter NegotiateFormat(IDictionary<string, object> environment, string ext, ILightNodeOptions options, IOperationCoordinator coorinator)
         {
-            var coordinator = options.OperationCoordinator;
-            var targetFilters = coordinator.GetFilters(options, context, filters);
+            var requestHeader = environment["owin.RequestHeaders"] as IDictionary<string, string[]>;
 
-            return InvokeRecursive(-1, targetFilters, options, context);
+            string[] accepts;
+            if (ForceUseFormatter != null) return ForceUseFormatter;
+            if (!string.IsNullOrWhiteSpace(ext))
+            {
+                // Ext match -> ContentEncoding match
+                var selectedFormatters = formatterByExt[ext];
+                if (!selectedFormatters.Any())
+                {
+                    coorinator.OnProcessInterrupt(options, environment, InterruptReason.NegotiateFormatFailed, "Ext:" + ext);
+                    LightNodeEventSource.Log.NegotiateFormatFailed(OperationMissingKind.NegotiateFormatFailed, ext);
+                    if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
+                    {
+                        throw new NegotiateFormatFailedException(OperationMissingKind.NegotiateFormatFailed, ext);
+                    }
+                    else
+                    {
+                        environment.EmitNotAcceptable();
+                        if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails)
+                        {
+                            environment.EmitStringMessage("NegotiateFormat failed, ext:" + ext);
+                        }
+                    }
+                    return null;
+                }
+
+                string[] encodings;
+                requestHeader.TryGetValue("Accept-Encoding", out encodings);
+                encodings = (encodings == null || encodings.Length == 0) ? null : encodings[0].Split(',');
+                if (encodings == null || encodings.Length == 0) return selectedFormatters.First();
+
+                var formatter = selectedFormatters.FirstOrDefault(x => Array.Exists(encodings, enc => enc.Equals(x.ContentEncoding, StringComparison.OrdinalIgnoreCase)));
+                if (formatter == null) return selectedFormatters.First();
+                return formatter;
+            }
+            else if (requestHeader.TryGetValue("Accept", out accepts))
+            {
+                if (formatterByMediaType.Count == 1) return options.DefaultFormatter; // optimize path, defaultFormatter only
+
+                // MediaType match -> ContentEncoding match
+                var contentType = accepts[0];
+                // ex: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+                // note:ignore q
+                var formatters = contentType.Split(',').SelectMany(x => formatterByMediaType[x]).ToArray();
+
+                if (formatters.Length == 0) return options.DefaultFormatter;
+
+                string[] encodings;
+                requestHeader.TryGetValue("Accept-Encoding", out encodings);
+                encodings = (encodings == null || encodings.Length == 0) ? null : encodings[0].Split(',');
+                if (encodings == null || encodings.Length == 0) return formatters.First();
+
+                var formatter = formatters.FirstOrDefault(x => Array.Exists(encodings, enc => enc.Equals(x.ContentEncoding, StringComparison.OrdinalIgnoreCase)));
+                if (formatter == null) return formatters.First();
+                return formatter;
+            }
+            else
+            {
+                if (formatterByContentEncoding.Count == 1) return options.DefaultFormatter; // optimize path, defaultFormatter only
+
+                // ContentEncoding match
+                string[] encodings;
+                requestHeader.TryGetValue("Accept-Encoding", out encodings);
+                encodings = (encodings == null || encodings.Length == 0) ? null : encodings[0].Split(',');
+                if (encodings == null || encodings.Length == 0) return options.DefaultFormatter;
+
+                var formatter = encodings.SelectMany(x => formatterByContentEncoding[x]).FirstOrDefault();
+                if (formatter == null) return options.DefaultFormatter;
+                return formatter;
+            }
         }
 
-        Task InvokeRecursive(int index, IReadOnlyList<LightNodeFilterAttribute> filters, LightNodeOptions options, OperationContext context)
+        public Task Execute(ILightNodeOptions options, OperationContext context, IOperationCoordinator coordinator)
+        {
+            var targetFilters = coordinator.GetFilters(options, context, filters);
+
+            return InvokeRecursive(-1, targetFilters, options, context, coordinator);
+        }
+
+        Task InvokeRecursive(int index, IReadOnlyList<LightNodeFilterAttribute> filters, ILightNodeOptions options, OperationContext context, IOperationCoordinator coordinator)
         {
             index += 1;
             if (filters.Count != index)
             {
                 // chain next filter
-                return filters[index].Invoke(context, () => InvokeRecursive(index, filters, options, context));
+                return filters[index].Invoke(context, () => InvokeRecursive(index, filters, options, context, coordinator));
             }
             else
             {
                 // execute operation
-                return options.OperationCoordinator.ExecuteOperation(options, context, ExecuteOperation);
+                return coordinator.ExecuteOperation(options, context, ExecuteOperation);
             }
         }
 
-        async Task<object> ExecuteOperation(LightNodeOptions options, OperationContext context)
+        async Task<object> ExecuteOperation(ILightNodeOptions options, OperationContext context)
         {
             // prepare
             var handler = this;
@@ -221,6 +305,10 @@ namespace LightNode.Server
                 var responseHeader = environment["owin.ResponseHeaders"] as IDictionary<string, string[]>;
                 var encoding = context.ContentFormatter.Encoding;
                 responseHeader["Content-Type"] = new[] { context.ContentFormatter.MediaType + ((encoding == null) ? "" : "; charset=" + encoding.WebName) };
+                if (!string.IsNullOrWhiteSpace(context.ContentFormatter.ContentEncoding))
+                {
+                    responseHeader["Content-Encoding"] = new[] { context.ContentFormatter.ContentEncoding };
+                }
                 environment.EmitOK();
 
                 var responseStream = environment["owin.ResponseBody"] as Stream;

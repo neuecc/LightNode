@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LightNode.Server.Utility
+namespace LightNode.Server
 {
     // Owin Spec 1.0.0
     // http://owin.org/spec/spec/owin-1.0.0.html

@@ -22,7 +22,7 @@ namespace LightNode.Diagnostics
         {
             public const EventKeywords Regisiter = (EventKeywords)1;
             public const EventKeywords OperationMissing = (EventKeywords)2;
-            // 4, 8,...
+            public const EventKeywords ProcessRequest = (EventKeywords)4;
         }
 
         [Event(1, Level = EventLevel.Verbose, Keywords = Keywords.Regisiter)]
@@ -59,6 +59,24 @@ namespace LightNode.Diagnostics
         public void OperationNotFound(OperationMissingKind kind, string path)
         {
             WriteEvent(6, kind, path ?? "");
+        }
+
+        [Event(7, Level = EventLevel.Verbose, Keywords = Keywords.ProcessRequest)]
+        public void ProcessRequestStart(string path)
+        {
+            WriteEvent(7, path ?? "");
+        }
+
+        [Event(8, Level = EventLevel.Verbose, Keywords = Keywords.ProcessRequest)]
+        public void ExecuteStart(string path)
+        {
+            WriteEvent(8, path ?? "");
+        }
+
+        [Event(9, Level = EventLevel.Verbose, Keywords = Keywords.ProcessRequest)]
+        public void ExecuteFinished(string path, bool interrupted, double elapsed)
+        {
+            WriteEvent(9, path ?? "", interrupted, elapsed);
         }
     }
 }

@@ -74,6 +74,10 @@
       <Project>{072d35ef-af4a-4da0-849a-6b0b9196c959}</Project>
       <Name>LightNode.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Source\LightNode.Formatter.Jil\LightNode.Formatter.Jil.csproj">
+      <Project>{2b06f536-00ba-465c-ad09-0903dfc84eb1}</Project>
+      <Name>LightNode.Formatter.Jil</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Source\LightNode.Server\LightNode.Server.csproj">
       <Project>{cabc7913-f7c9-4e89-8312-f9ae523b9f41}</Project>
       <Name>LightNode.Server</Name>

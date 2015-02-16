@@ -34,6 +34,12 @@ namespace LightNode.Formatter
         {
             get { return encoding; }
         }
+
+        public virtual string ContentEncoding
+        {
+            get { return null; }
+        }
+
         public abstract void Serialize(Stream stream, object obj);
 
         public abstract object Deserialize(Type type, Stream stream);
@@ -73,6 +79,14 @@ namespace LightNode.Formatter
         }
     }
 
+    public class TextContentFormatterFactory : IContentFormatterFactory
+    {
+        public IContentFormatter CreateFormatter()
+        {
+            return new TextContentFormatter();
+        }
+    }
+
     public class HtmlContentFormatter : TextContentFormatter
     {
         public HtmlContentFormatter(string mediaType = "text/html", string ext = "htm|html")
@@ -84,6 +98,14 @@ namespace LightNode.Formatter
         public HtmlContentFormatter(Encoding encoding, string mediaType = "text/html", string ext = "htm|html")
             : base(encoding, mediaType, ext)
         {
+        }
+    }
+
+    public class HtmlContentFormatterFactory: IContentFormatterFactory
+    {
+        public IContentFormatter CreateFormatter()
+        {
+            return new HtmlContentFormatter();
         }
     }
 
@@ -116,6 +138,14 @@ namespace LightNode.Formatter
         }
     }
 
+    public class RawOctetStreamContentFormatterFactory : IContentFormatterFactory
+    {
+        public IContentFormatter CreateFormatter()
+        {
+            return new RawOctetStreamContentFormatter();
+        }
+    }
+
     public class XmlContentFormatter : ContentFormatterBase
     {
         public XmlContentFormatter(string mediaType = "application/xml", string ext = "xml")
@@ -131,6 +161,14 @@ namespace LightNode.Formatter
         public override object Deserialize(Type type, Stream stream)
         {
             return new System.Xml.Serialization.XmlSerializer(type).Deserialize(stream);
+        }
+    }
+
+    public class XmlContentFormatterFactory : IContentFormatterFactory
+    {
+        public IContentFormatter CreateFormatter()
+        {
+            return new XmlContentFormatter();
         }
     }
 
@@ -154,6 +192,14 @@ namespace LightNode.Formatter
         }
     }
 
+    public class DataContractContentFormatterFactory : IContentFormatterFactory
+    {
+        public IContentFormatter CreateFormatter()
+        {
+            return new DataContractContentFormatter();
+        }
+    }
+
     public class DataContractJsonContentFormatter : ContentFormatterBase
     {
         public DataContractJsonContentFormatter(string mediaType = "application/json", string ext = "json")
@@ -171,6 +217,14 @@ namespace LightNode.Formatter
         {
             var serializer = new System.Runtime.Serialization.Json.DataContractJsonSerializer(type);
             return serializer.ReadObject(stream);
+        }
+    }
+
+    public class DataContractJsonContentFormatterFactory : IContentFormatterFactory
+    {
+        public IContentFormatter CreateFormatter()
+        {
+            return new DataContractJsonContentFormatter();
         }
     }
 }

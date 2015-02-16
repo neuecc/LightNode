@@ -40,11 +40,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CloudStructures">
+      <HintPath>..\..\packages\CloudStructures.1.0.0\lib\CloudStructures.dll</HintPath>
+    </Reference>
     <Reference Include="Glimpse.AspNet">
       <HintPath>..\..\packages\Glimpse.AspNet.1.9.2\lib\net45\Glimpse.AspNet.dll</HintPath>
     </Reference>
+    <Reference Include="Glimpse.CloudStructures.Redis">
+      <HintPath>..\..\packages\Glimpse.CloudStructures.Redis.1.0.0\lib\Glimpse.CloudStructures.Redis.dll</HintPath>
+    </Reference>
     <Reference Include="Glimpse.Core">
       <HintPath>..\..\packages\Glimpse.1.8.6\lib\net45\Glimpse.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Jil, Version=2.7.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Jil.2.7.2\lib\net45\Jil.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Owin">
@@ -59,6 +69,14 @@
     <Reference Include="Owin">
       <HintPath>..\..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
+    <Reference Include="Sigil, Version=4.4.0.0, Culture=neutral, PublicKeyToken=2d06c3494341c8ab, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Sigil.4.4.0\lib\net45\Sigil.dll</HintPath>
+    </Reference>
+    <Reference Include="StackExchange.Redis">
+      <HintPath>..\..\packages\StackExchange.Redis.1.0.394\lib\net45\StackExchange.Redis.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -100,6 +118,10 @@
     <ProjectReference Include="..\..\Source\LightNode.Core\LightNode.Core.csproj">
       <Project>{072d35ef-af4a-4da0-849a-6b0b9196c959}</Project>
       <Name>LightNode.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\LightNode.Formatter.Jil\LightNode.Formatter.Jil.csproj">
+      <Project>{2b06f536-00ba-465c-ad09-0903dfc84eb1}</Project>
+      <Name>LightNode.Formatter.Jil</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Source\LightNode.Server\LightNode.Server.csproj">
       <Project>{cabc7913-f7c9-4e89-8312-f9ae523b9f41}</Project>

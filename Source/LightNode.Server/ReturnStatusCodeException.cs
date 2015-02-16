@@ -33,5 +33,10 @@ namespace LightNode.Server
                 responseStream.Write(bytes, 0, bytes.Length);
             }
         }
+
+        public override string ToString()
+        {
+            return "ReturnStatusCode:" + (int)StatusCode + " " + StatusCode.ToString();
+        }
     }
 }

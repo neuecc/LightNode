@@ -1,8 +1,9 @@
-nuget push LightNode.Core.0.4.0.nupkg
-nuget push LightNode.Server.0.4.0.nupkg
-nuget push LightNode.Client.PCL.T4.0.4.0.nupkg
-nuget push LightNode.Client.Unity.T4.0.4.0.nupkg
-nuget push LightNode.Client.UniRx.T4.0.4.0.nupkg
-nuget push LightNode.Formatter.ProtoBuf.0.4.0.nupkg
-nuget push LightNode.Formatter.MsgPack.0.4.0.nupkg
-nuget push LightNode.Formatter.JsonNet.0.4.0.nupkg
+nuget push LightNode.Core.1.0.0.nupkg
+nuget push LightNode.Server.1.0.0.nupkg
+nuget push LightNode.Client.PCL.T4.1.0.0.nupkg
+nuget push LightNode.Client.UniRx.T4.1.0.0.nupkg
+nuget push LightNode.Formatter.ProtoBuf.1.0.0.nupkg
+nuget push LightNode.Formatter.MsgPack.1.0.0.nupkg
+nuget push LightNode.Formatter.JsonNet.1.0.0.nupkg
+nuget pack LightNode.Formatter.Jil.1.0.0.nupkg
+nuget pack LightNode.Formatter.Jil.LZ4.1.0.0.nupkg

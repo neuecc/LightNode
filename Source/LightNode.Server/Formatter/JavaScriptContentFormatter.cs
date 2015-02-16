@@ -7,12 +7,12 @@ namespace LightNode.Formatter
 {
     public class JavaScriptContentFormatter : ContentFormatterBase
     {
-        public JavaScriptContentFormatter(string mediaType = "application/json; charset=utf-8", string ext = "json")
+        public JavaScriptContentFormatter(string mediaType = "application/json", string ext = "json")
             : this(null, mediaType, ext)
         {
 
         }
-        public JavaScriptContentFormatter(Encoding encoding, string mediaType = "application/json; charset=utf-8", string ext = "json")
+        public JavaScriptContentFormatter(Encoding encoding, string mediaType = "application/json", string ext = "json")
             : base(mediaType, ext, encoding ?? Encoding.UTF8)
         {
 

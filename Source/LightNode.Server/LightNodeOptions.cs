@@ -1,10 +1,26 @@
 ﻿using LightNode.Core;
+using LightNode.Formatter;
 using System;
 using System.Collections.Generic;
 
 namespace LightNode.Server
 {
-    public class LightNodeOptions
+    public interface ILightNodeOptions
+    {
+        AcceptVerbs DefaultAcceptVerb { get; }
+        LightNode.Core.IContentFormatter DefaultFormatter { get; }
+        ErrorHandlingPolicy ErrorHandlingPolicy { get; }
+        LightNodeFilterCollection Filters { get; }
+        IOperationCoordinatorFactory OperationCoordinatorFactory { get; }
+        OperationMissingHandlingPolicy OperationMissingHandlingPolicy { get; }
+        bool ParameterEnumAllowsFieldNameParse { get; }
+        bool ParameterStringImplicitNullAsDefault { get; }
+        LightNode.Core.IContentFormatter[] SpecifiedFormatters { get; }
+        StreamWriteOption StreamWriteOption { get; }
+        bool UseOtherMiddleware { get; }
+    }
+
+    public class LightNodeOptions : ILightNodeOptions
     {
         public AcceptVerbs DefaultAcceptVerb { get; private set; }
         public IContentFormatter DefaultFormatter { get; private set; }
@@ -13,7 +29,7 @@ namespace LightNode.Server
         public bool UseOtherMiddleware { get; set; }
         public bool ParameterStringImplicitNullAsDefault { get; set; }
         public bool ParameterEnumAllowsFieldNameParse { get; set; }
-        public IOperationCoordinator OperationCoordinator { get; set; }
+        public IOperationCoordinatorFactory OperationCoordinatorFactory { get; set; }
 
         /// <summary>
         /// <pre>Use buffering when content formatter serialize, Default is BufferAndWrite.</pre>
@@ -25,6 +41,12 @@ namespace LightNode.Server
         public OperationMissingHandlingPolicy OperationMissingHandlingPolicy { get; set; }
 
         public LightNodeFilterCollection Filters { get; private set; }
+
+        public LightNodeOptions()
+            : this(AcceptVerbs.Get | AcceptVerbs.Post, new JavaScriptContentFormatter())
+        {
+
+        }
 
         public LightNodeOptions(AcceptVerbs defaultAcceptVerb, IContentFormatter defaultFormatter, params IContentFormatter[] specifiedFormatters)
         {
@@ -38,7 +60,7 @@ namespace LightNode.Server
             ErrorHandlingPolicy = Server.ErrorHandlingPolicy.ThrowException;
             OperationMissingHandlingPolicy = Server.OperationMissingHandlingPolicy.ReturnErrorStatusCode;
             Filters = new LightNodeFilterCollection();
-            OperationCoordinator = new DefaultOperationCoordinator();
+            OperationCoordinatorFactory = new DefaultOperationCoordinatorFactory();
         }
 
         public LightNodeOptions ConfigureWith(Action<LightNodeOptions> @this)

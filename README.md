@@ -1,6 +1,6 @@
 LightNode
 =========
-LightNode is Micro RPC/REST Framework built on OWIN provides both server and client. Server is lightweight and performant implementation. Client is code generation(T4) based auto generated RPC Client based on HttpClient, of course everything return Task. And client code generation for Unity3D(WWW base). We will provide for TypeScript. 
+LightNode is a Micro RPC/REST Framework built on OWIN. LightNode is a good alternative to the ASP.NET Web API and Nacy if you make a mobile API. Implementation of the API is super simple, powerful debugging supports with [Glimpse](http://getglimpse.com/), client code generation by T4 for PCL(HttpClient) and Unity3D.  
 
 Installation
 ---
@@ -10,43 +10,17 @@ binary from NuGet, [LightNode.Server](https://nuget.org/packages/LightNode.Serve
 PM> Install-Package LightNode.Server
 ```
 
-Client for Portable Client Library [LightNode.Client.PCL.T4](https://nuget.org/packages/LightNode.Client.PCL.T4/)
-
-```
-PM> Install-Package LightNode.Client.PCL.T4
-```
-
-Client for Unity3D [LightNode.Client.Unity.T4](https://nuget.org/packages/LightNode.Client.Unity.T4/)
-
-```
-PM> Install-Package LightNode.Client.Unity.T4
-```
-
-ContentFormatters(for JsonNet, ProtoBuf, MsgPack)
-```
-PM> Install-Package LightNode.Formatter.JsonNet
-PM> Install-Package LightNode.Formatter.ProtoBuf
-PM> Install-Package LightNode.Formatter.MsgPack
-```
-
-Lightweight Server
+Implement Server
 ---
 Server implementation is very easy, built up Owin and implements `LightNodeContract`.
 
 ```csharp
-// Owin Code
+// Owin Startup
 public class Startup
 {
-    public void Configuration(Owin.IAppBuilder app)
+    public void Configuration(IAppBuilder app)
     {
-        // UseLightNode = AcceptVerbs.Get | Post, JavaScriptContentFormatter
         app.UseLightNode();
-    
-        // Details Option
-        // global configuration, select your primary/secondary formatters(JsonNet/ProtoBuf/MsgPack/Xml/etc...)
-        // app.UseLightNode(new LightNodeOptions(
-        //     AcceptVerbs.Get | AcceptVerbs.Post, 
-        //     new JsonNetContentFormatter()));
     }
 }
 
@@ -55,7 +29,7 @@ public class Startup
 // Ex. http://localhost/My/Echo?x=test
 public class My : LightNodeContract
 {
-    // return value is response body serialized by ContentTypeFormatter.    
+    // return value is response body serialized by ContentTypeFormatter(default is JSON).    
     public string Echo(string x)
     {
         return x;
@@ -69,12 +43,12 @@ public class My : LightNodeContract
     }
 }
 ```
- 
-Server API rule is very simple.
+
+Compile, run, very quick! LightNode calls class as Contract, method as Operation.
 
 > Parameter model bindings supports only basic pattern, can't use complex type. allow types are "string, DateTime, DateTimeOffset, Boolean, Decimal, Char, TimeSpan, Int16, Int32, Int64, UInt16, UInt32, UInt64, Single, Double, SByte, Byte and each Nullable types and array(except byte[]. If you want to use byte[], use Base64 string instead of byte[])
 
-Return type allows all serializable(ContentFormatter support) type.
+> Return type allows all serializable(ContentFormatter support) type.
 
 Filter
 ---
@@ -113,54 +87,142 @@ Difference between Middleware and Filter is who knows operation context. Filter 
 
 Control StatusCode
 ---
-The default status code, can't find operation returns 404, failed operation returns 500, success and has value returns 200, success and no value returns 204. If returns arbitrary status code, throw ReturnStatusCodeException.
+The default status code, can't find operation returns 404, failed operation returns 500, success and has value returns 200, success and no value returns 204. If returns arbitrary status code, throw `ReturnStatusCodeException`.
 
 ```csharp
 throw new ReturnStatusCodeException(System.Net.HttpStatusCode.Unauthorized);
 ```
 
-Authenticate, Routing, Session, etc...
+Glimpse plugin
 ---
-You can use other owin middleware. For example, Auth:Microsoft.Owin.Security.*, Session:[Owin.RedisSession](https://github.com/neuecc/Owin.RedisSession/), Context:[OwinRequestScopeContext](https://github.com/neuecc/OwinRequestScopeContext), etc...
+LightNode fully supports [Glimpse](http://getglimpse.com/)! Currently Glimpse does not support Owin but if you host on `Microsoft.Owin.Host.SystemWeb` Glimpse works. You can download Glimpse plugin from NuGet. 
 
-Routing and versioning example.
+* PM> Install-Package [Glimpse.LightNode](https://nuget.org/packages/Glimpse.LightNode/)
+
+There are configuration sample.
+
 ```csharp
-// Conditional Use
-app.MapWhen(x => x.Request.Path.Value.StartsWith("/v1/"), ap =>
+public void Configuration(Owin.IAppBuilder app)
 {
-   // Trim Version Path
-   ap.Use((context, next) =>
-   {
-        context.Request.Path = new Microsoft.Owin.PathString(
-            Regex.Replace(context.Request.Path.Value, @"^/v[1-9]/", "/"));
-        return next();
-   });
- 
-    // use v1 assembly
-    ap.UseLightNode(new LightNodeOptions(AcceptVerbs.Post, new JsonNetContentFormatter()),
-        typeof(v1Contract).Assembly);
-});
- 
-app.MapWhen(x => x.Request.Path.Value.StartsWith("/v2/"), ap =>
-{
-   // copy and paste:)
-   ap.Use((context, next) =>
-   {
-        context.Request.Path = new Microsoft.Owin.PathString(
-            Regex.Replace(context.Request.Path.Value, @"^/v[1-9]/", "/"));
-        return next();
-   });
-   
-   // use v2 assembly
-   ap.UseLightNode(new LightNodeOptions(AcceptVerbs.Post, new JsonNetContentFormatter()),
-    typeof(v2Contract).Assembly);
-});
+    app.EnableGlimpse(); // This is Glimpse.LightNode's helper for enable Glimpse
+    app.MapWhen(x => !x.Request.Path.Value.StartsWith("/glimpse.axd", StringComparison.OrdinalIgnoreCase), x =>
+    {
+        x.UseLightNode(new LightNodeOptions()
+        {
+            // for Glimpse Profiling
+            OperationCoordinatorFactory = new GlimpseProfilingOperationCoordinatorFactory()
+        });
+    });
+}
 ```
-Composability is owin's nice feature.
 
-Lightweight Client
+Access glimpse.axd and Click Standalone Glimpse Launch Now! Click History window and Inspect. You can see Filter and Execution elapsed on Timeline tab.
+
+![](Img/glimpse_lightnode_timeline.jpg)
+
+Check the LightNode tab, you can monitor everything. Parameters, Result, Exectuion Phase, Response, and LightNodeOptions.
+
+![](Img/lightnode_glimpse_infotab.jpg)
+
+If encounts exception, LightNode tab shows exception on Result.
+
+![](Img/glimpse_infotab_exception.jpg)
+
+My recommended glimpse configuration.
+
+```
+<!-- sometimes Glimpse rewrite response for display tab, but API no needs, set RuntimePolicy PersitResults -->
+<glimpse defaultRuntimePolicy="PersistResults" endpointBaseUri="~/Glimpse.axd">
+    <tabs>
+        <ignoredTypes>
+            <!-- no needs only Owin -->
+            <add type="Glimpse.AspNet.Tab.Cache, Glimpse.AspNet" />
+            <add type="Glimpse.AspNet.Tab.Routes, Glimpse.AspNet" />
+            <add type="Glimpse.AspNet.Tab.Session, Glimpse.AspNet" />
+        </ignoredTypes>
+    </tabs>
+    <runtimePolicies>
+        <ignoredTypes>
+            <!-- If API's client no use cookie, ignore control cookie -->
+            <add type="Glimpse.Core.Policy.ControlCookiePolicy, Glimpse.Core" />
+            <!-- for improvement LightNode debugging -->
+            <add type="Glimpse.Core.Policy.StatusCodePolicy, Glimpse.Core" />
+            <!-- If not Ajax -->
+            <add type="Glimpse.Core.Policy.AjaxPolicy, Glimpse.Core" />
+            <!-- If run on remote -->
+            <add type="Glimpse.AspNet.Policy.LocalPolicy, Glimpse.AspNet" />
+        </ignoredTypes>
+    </runtimePolicies>
+</glimpse>
+```
+
+Ignore ControlCookiePolicy is very important. But we can't indistinguishable request. Glimpse handle group by cookie. You can add glimpseid cookie for example 
+
+```csharp
+var req = WebRequest.CreateHttp("http://localhost:41932/Member/Random?seed=13");
+
+req.CookieContainer = new CookieContainer();
+req.CookieContainer.Add(new Uri("http://localhost:41932"), new Cookie("glimpseid", "UserId:4"));
+```
+![](Img/glimpse_history_clientgrouping.jpg)
+
+with ASP.NET MVC
+---
+You can use LightNode with ASP.NET MVC. A simple solution is to change the root path.
+
+```csharp
+public void Configuration(IAppBuilder app)
+{
+    app.Map("/api",  x =>
+    {
+        x.UseLightNode();
+    });
+}
+```
+
+More ContentFormatter
+---
+Default content formatter is `JavaScriptContentFormatter`(application/json) and bundling formatters are `TextContentFormatter`(text/plain), `HtmlContentFormatter`(text/html), `RawOctetStreamContentFormatter`(application/octet-straem), `XmlContentFormatter`(application/xml), `DataContractContentFormatter`(application/xml), `DataContractJsonContentFormatter`(application/json).
+
+More useful ContentFormatters(for JsonNet(JSON), Jil(JSON/JSON+GZip), Jil+LZ4, ProtoBuf, MsgPack) are available.
+
+* PM> Install-Package [LightNode.Formatter.JsonNet](https://nuget.org/packages/LightNode.Formatter.JsonNet/)
+* PM> Install-Package [LightNode.Formatter.Jil](https://nuget.org/packages/LightNode.Formatter.Jil/)
+* PM> Install-Package [LightNode.Formatter.Jil.LZ4](https://nuget.org/packages/LightNode.Formatter.Jil.LZ4/) 
+* PM> Install-Package [LightNode.Formatter.ProtoBuf](https://nuget.org/packages/LightNode.Formatter.ProtoBuf/)
+* PM> Install-Package [LightNode.Formatter.MsgPack](https://nuget.org/packages/LightNode.Formatter.MsgPack/)
+
+Configuration sample
+
+```csharp
+public class Startup
+{
+    public void Configuration(Owin.IAppBuilder app)
+    {
+        // default is Json, If Accept-Encoding=gzip then Json+GZip
+        app.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post,
+            new JilContentFormatter(), new GZipJilContentFormatter()));
+    }
+}
+
+public class Sample : LightNodeContract
+{
+    // use specified content formatter
+    [OperationOption(AcceptVerbs.Get, typeof(HtmlContentFormatterFactory))]
+    public string Html()
+    {
+        return "<html><body>aaa</body></html>";
+    }
+}
+```
+
+Language Interoperability
+---
+LightNode is like RPC but REST. Public API follows a simple rule. Address is `{ClassName}/{MethodName}`, and it's case insensitive. GET parameter use QueryString. POST parameter use x-www-form-urlencoded. Response type follows configured ContentFormatter. Receiver can select response type use url extension(.xml, .json etc...) or Accept header.
+
+Client code generation
 --- 
-Implementation of the REST API is often painful. LightNode solves by T4 code generation.
+Client side implementation of the REST API is often painful. LightNode solves by T4 code generation.
 
 ```csharp
 // Open .tt file and configure four steps.
@@ -196,13 +258,12 @@ await client.Me.EchoAsync("test");
 var sum = await client.Me.SumAsync(1, 10, 100);
 ```
 
-Client is very simple, too.
+Client is very simple but very easy for use. Currently code generation provides for Portable Class Library(HttpClinet) and Unity3D(with [UniRx](https://github.com/neuecc/UniRx)).
 
-> Currently provides for Portable Class Library and Unity3D. We plan for TypeScript.
+You can download from NuGet. 
 
-Language Interoperability
----
-LightNode is like RPC but REST. Public API follows a simple rule. Address is `{ClassName}/{MethodName}`, and it's case insensitive. GET parameter use QueryString. POST parameter use x-www-form-urlencoded. Response type follows configured ContentFormatter. Receiver can select response type use url extension(.xml, .json etc...) or Accept header.
+* PM> Install-Package [LightNode.Client.PCL.T4](https://nuget.org/packages/LightNode.Client.PCL.T4/)
+* PM> Install-Package [LightNode.Client.UniRx.T4](https://nuget.org/packages/LightNode.Client.UniRx.T4/)
 
 Performance
 ---
@@ -219,8 +280,16 @@ Build/Test Status
 LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit test status.
 
 ReleaseNote
----    ---
-0.4.0 - 2015-01-27
+---
+1.0.0 - 2015-02-16
+* Add Glimpse.LightNode
+* Add LightNode.Formatter.Jil
+* Add LightNode.Formatter.Jil.LZ4
+* Add LightNodeOptions.OperationCoordinatorFactory
+* ContentFormatter supports handling ContentEncoding
+* More LightNodeEventSource logging  
+
+1.0.0 - 2015-01-27
 * Add UniRx T4 Template
 * Add LightNodeEventSource logging
 * Add IgnoreClientGenerateAttribute

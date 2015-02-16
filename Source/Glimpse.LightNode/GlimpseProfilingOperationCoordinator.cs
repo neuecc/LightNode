@@ -4,19 +4,25 @@ using Glimpse.Core.Message;
 using LightNode.Server;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Glimpse.LightNode
 {
+    public class GlimpseProfilingOperationCoordinatorFactory : IOperationCoordinatorFactory
+    {
+        public IOperationCoordinator Create()
+        {
+            return new GlimpseProfilingOperationCoordinator();
+        }
+    }
+
     public class GlimpseProfilingOperationCoordinator : IOperationCoordinator
     {
-        static readonly TimelineCategoryItem FilterCategory = new TimelineCategoryItem("LightNodeFilter", "#00a0dc", "#01adee");
-        static readonly TimelineCategoryItem OperationCategory = new TimelineCategoryItem("LightNodeOperation", "#00c0dc", "#01adee");
+        static readonly TimelineCategoryItem FilterCategory = new TimelineCategoryItem("LightNodeFilter", "#dcc000", "#dcc000");
+        static readonly TimelineCategoryItem OperationCategory = new TimelineCategoryItem("LightNodeOperation", "#dc9f00", "#dc9f00");
 
         private IMessageBroker _messageBroker;
-        private IExecutionTimer _timerStrategy;
+        private IExecutionTimer _timer;
 
 #pragma warning disable 618
 
@@ -26,18 +32,28 @@ namespace Glimpse.LightNode
             set { _messageBroker = value; }
         }
 
-        internal IExecutionTimer TimerStrategy
+        internal IExecutionTimer Timer
         {
-            get { return _timerStrategy ?? (_timerStrategy = GlimpseConfiguration.GetConfiguredTimerStrategy()()); }
-            set { _timerStrategy = value; }
+            get { return _timer ?? (_timer = GlimpseConfiguration.GetConfiguredTimerStrategy()()); }
+            set { _timer = value; }
         }
 
 #pragma warning restore 618
 
-
-        public IReadOnlyList<LightNodeFilterAttribute> GetFilters(LightNodeOptions options, OperationContext context, IReadOnlyList<LightNodeFilterAttribute> originalFilters)
+        public bool OnStartProcessRequest(ILightNodeOptions options, IDictionary<string, object> environment)
         {
-            if (MessageBroker == null || TimerStrategy == null) return originalFilters;
+            MessageBroker.Publish(new ProcessStartMessage() { Options = options, Environment = environment });
+            return true;
+        }
+
+        public void OnProcessInterrupt(ILightNodeOptions options, IDictionary<string, object> environment, InterruptReason reason, string detail)
+        {
+            MessageBroker.Publish(new InterruptMessage() { Reason = reason, Detail = detail });
+        }
+
+        public IReadOnlyList<LightNodeFilterAttribute> GetFilters(ILightNodeOptions options, OperationContext context, IReadOnlyList<LightNodeFilterAttribute> originalFilters)
+        {
+            if (MessageBroker == null || Timer == null) return originalFilters;
             MessageBroker.Publish(context);
 
             if (originalFilters.Count == 0) return originalFilters;
@@ -45,7 +61,7 @@ namespace Glimpse.LightNode
             var array = new LightNodeFilterAttribute[originalFilters.Count];
             for (int i = 0; i < originalFilters.Count; i++)
             {
-                array[i] = new FilterWrapper(MessageBroker, TimerStrategy, originalFilters[i]);
+                array[i] = new FilterWrapper(MessageBroker, Timer, originalFilters[i]);
             }
 
             return array;
@@ -98,7 +114,7 @@ namespace Glimpse.LightNode
                         }
                     });
                 }
-                catch
+                catch (Exception ex)
                 {
                     var msg = new LightNodeFilterResultMessage()
                         {
@@ -106,7 +122,7 @@ namespace Glimpse.LightNode
                             OperationName = operationContext.OperationName,
                             FilterName = filterName,
                             Order = originalFilter.Order,
-                            Phase = OperationPhase.Exception,
+                            Phase = (ex is ReturnStatusCodeException) ? OperationPhase.ReturnStatusCode : OperationPhase.Exception,
                             FromRequestStart = timer.Point().Offset
                         }
                         .AsTimelineMessage(filterName, FilterCategory, "Exception")
@@ -131,17 +147,18 @@ namespace Glimpse.LightNode
             }
         }
 
-        public async Task<object> ExecuteOperation(LightNodeOptions options, OperationContext context, Func<LightNodeOptions, OperationContext, Task<object>> originalOperation)
+        public async Task<object> ExecuteOperation(ILightNodeOptions options, OperationContext context, Func<ILightNodeOptions, OperationContext, Task<object>> originalOperation)
         {
-            if (MessageBroker == null || TimerStrategy == null) return await originalOperation(options, context);
+            if (MessageBroker == null || Timer == null) return await originalOperation(options, context);
+            var timer = Timer;
 
             object result;
-            var start = TimerStrategy.Start();
+            var start = timer.Start();
             try
             {
                 result = await originalOperation(options, context);
 
-                var stop = TimerStrategy.Stop(start);
+                var stop = timer.Stop(start);
 
                 var message = new LightNodeExecuteResultMessage()
                     {
@@ -149,7 +166,9 @@ namespace Glimpse.LightNode
                         OperationName = context.OperationName,
                         Result = result,
                         Environment = context.Environment,
-                        FromRequestStart = TimerStrategy.Point().Offset,
+                        UsedContentFormatter = context.ContentFormatter,
+                        Options = options,
+                        FromRequestStart = timer.Point().Offset,
                         Phase = OperationPhase.Operation
                     }
                     .AsTimelineMessage(context.ToString(), OperationCategory)
@@ -159,7 +178,7 @@ namespace Glimpse.LightNode
             }
             catch (Exception ex)
             {
-                var stop = TimerStrategy.Stop(start);
+                var stop = timer.Stop(start);
 
                 var message = new LightNodeExecuteResultMessage()
                     {
@@ -167,8 +186,10 @@ namespace Glimpse.LightNode
                         OperationName = context.OperationName,
                         Result = ex.ToString(),
                         Environment = context.Environment,
-                        FromRequestStart = TimerStrategy.Point().Offset,
-                        Phase = OperationPhase.Exception
+                        UsedContentFormatter = context.ContentFormatter,
+                        Options = options,
+                        FromRequestStart = timer.Point().Offset,
+                        Phase = (ex is ReturnStatusCodeException) ? OperationPhase.ReturnStatusCode : OperationPhase.Exception
                     }
                     .AsTimelineMessage(context.ToString(), OperationCategory)
                     .AsTimedMessage(stop);

@@ -7,6 +7,7 @@ namespace LightNode.Core
     public interface IContentFormatter
     {
         string MediaType { get; }
+        string ContentEncoding { get; }
         string Ext { get; }
         Encoding Encoding { get; }
         void Serialize(Stream stream, object obj);

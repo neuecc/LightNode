@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using LightNode.Core;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Text;
@@ -44,6 +45,14 @@ namespace LightNode.Formatter
             {
                 return serializer.Deserialize(sr, type);
             }
+        }
+    }
+
+    public class JsonNetContentFormatterFactory : IContentFormatterFactory
+    {
+        public IContentFormatter CreateFormatter()
+        {
+            return new JsonNetContentFormatter();
         }
     }
 }

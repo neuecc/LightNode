@@ -17,11 +17,11 @@ namespace LightNode.Server
     {
         readonly Dictionary<RequestPath, OperationHandler> handlers = new Dictionary<RequestPath, OperationHandler>();
 
-        readonly LightNodeOptions options;
+        readonly ILightNodeOptions options;
 
         int alreadyRegistered = -1;
 
-        public LightNodeServer(LightNodeOptions options)
+        public LightNodeServer(ILightNodeOptions options)
         {
             this.options = options;
         }
@@ -92,7 +92,7 @@ namespace LightNode.Server
             });
         }
 
-        OperationHandler SelectHandler(IDictionary<string, object> environment, out AcceptVerbs verb, out string ext)
+        OperationHandler SelectHandler(IDictionary<string, object> environment, IOperationCoordinator coorinator, out AcceptVerbs verb, out string ext)
         {
             // out default
             verb = AcceptVerbs.Get;
@@ -148,6 +148,7 @@ namespace LightNode.Server
             }
 
         VERB_MISSING:
+            coorinator.OnProcessInterrupt(options, environment, InterruptReason.MethodNotAllowed, "MethodName:" + method);
             LightNodeEventSource.Log.MethodNotAllowed(OperationMissingKind.MethodNotAllowed, path, method);
             if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
             {
@@ -164,6 +165,7 @@ namespace LightNode.Server
             }
 
         NOT_FOUND:
+            coorinator.OnProcessInterrupt(options, environment, InterruptReason.OperationNotFound, "SearchedPath:" + path);
             LightNodeEventSource.Log.OperationNotFound(OperationMissingKind.OperationNotFound, path);
             if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
             {
@@ -180,72 +182,31 @@ namespace LightNode.Server
             }
         }
 
-        IContentFormatter NegotiateFormat(IDictionary<string, object> environment, string ext)
-        {
-            var requestHeader = environment["owin.RequestHeaders"] as IDictionary<string, string[]>;
-            string[] accepts;
-
-            var formatter = options.DefaultFormatter;
-            if (ext != "")
-            {
-                // TODO:need performance improvement
-                var selectedFormatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
-                    .SelectMany(x => (x.Ext ?? "").Split('|'), (fmt, xt) => new { fmt, xt })
-                    .FirstOrDefault(x => x.xt == ext);
-
-                if (selectedFormatter == null)
-                {
-                    LightNodeEventSource.Log.NegotiateFormatFailed(OperationMissingKind.NegotiateFormatFailed, ext);
-                    if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
-                    {
-                        throw new NegotiateFormatFailedException(OperationMissingKind.NegotiateFormatFailed, ext);
-                    }
-                    else
-                    {
-                        environment.EmitNotAcceptable();
-                        if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails)
-                        {
-                            environment.EmitStringMessage("NegotiateFormat failed, ext:" + ext);
-                        }
-                    }
-                    return null;
-                }
-                formatter = selectedFormatter.fmt;
-            }
-            else if (requestHeader.TryGetValue("Accept", out accepts))
-            {
-                // TODO:parse accept header q, */*, etc...
-                var contentType = accepts[0];
-                formatter = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters)
-                    .FirstOrDefault(x => contentType.Contains(x.MediaType));
-
-                if (formatter == null)
-                {
-                    formatter = options.DefaultFormatter; // through...
-                }
-            }
-
-            return formatter;
-        }
-
         // Routing -> ParameterBinding -> Execute
         public async Task ProcessRequest(IDictionary<string, object> environment)
         {
+            LightNodeEventSource.Log.ProcessRequestStart(environment.AsRequestPath());
+
+            var coordinator = options.OperationCoordinatorFactory.Create();
+            if (!coordinator.OnStartProcessRequest(options, environment))
+            {
+                return;
+            }
+
             AcceptVerbs verb;
             string ext;
-            var handler = SelectHandler(environment, out verb, out ext);
+            var handler = SelectHandler(environment, coordinator, out verb, out ext);
             if (handler == null) return;
 
             // Parameter binding
             var valueProvider = new ValueProvider(environment, verb);
-            var methodParameters = ParameterBinder.BindParameter(environment, options, valueProvider, handler.Arguments);
+            var methodParameters = ParameterBinder.BindParameter(environment, options, coordinator, valueProvider, handler.Arguments);
             if (methodParameters == null) return;
 
             // select formatter
-            var formatter = handler.ForceUseFormatter;
+            var formatter = handler.NegotiateFormat(environment, ext, options, coordinator);
             if (formatter == null)
             {
-                formatter = NegotiateFormat(environment, ext);
                 if (formatter == null) return;
             }
 
@@ -259,7 +220,24 @@ namespace LightNode.Server
                     ContentFormatter = formatter,
                     Attributes = handler.AttributeLookup
                 };
-                await handler.Execute(options, context).ConfigureAwait(false);
+                var executionPath = context.ToString();
+                LightNodeEventSource.Log.ExecuteStart(executionPath);
+                var sw = Stopwatch.StartNew();
+                var interrupted = false;
+                try
+                {
+                    await handler.Execute(options, context, coordinator).ConfigureAwait(false);
+                }
+                catch
+                {
+                    interrupted = true;
+                    throw;
+                }
+                finally
+                {
+                    sw.Stop();
+                    LightNodeEventSource.Log.ExecuteFinished(executionPath, interrupted, sw.Elapsed.TotalMilliseconds);
+                }
                 return;
             }
             catch (ReturnStatusCodeException statusException)
@@ -269,6 +247,8 @@ namespace LightNode.Server
             }
             catch (Exception ex)
             {
+                var exString = ex.ToString();
+                coordinator.OnProcessInterrupt(options, environment, InterruptReason.ExecuteFailed, exString);
                 switch (options.ErrorHandlingPolicy)
                 {
                     case ErrorHandlingPolicy.ReturnInternalServerError:
@@ -277,10 +257,11 @@ namespace LightNode.Server
                         return;
                     case ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails:
                         environment.EmitInternalServerError();
-                        environment.EmitStringMessage(ex.ToString());
+                        environment.EmitStringMessage(exString);
                         return;
                     case ErrorHandlingPolicy.ThrowException:
                     default:
+                        environment.EmitInternalServerError();
                         throw;
                 }
             }

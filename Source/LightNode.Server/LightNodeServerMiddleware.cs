@@ -16,12 +16,12 @@ namespace LightNode.Server
         readonly bool useOtherMiddleware;
         readonly AppFunc next;
 
-        public LightNodeServerMiddleware(AppFunc next, LightNodeOptions options)
+        public LightNodeServerMiddleware(AppFunc next, ILightNodeOptions options)
             : this(next, options, AppDomain.CurrentDomain.GetAssemblies())
         {
         }
 
-        public LightNodeServerMiddleware(AppFunc next, LightNodeOptions options, Assembly[] hostAssemblies)
+        public LightNodeServerMiddleware(AppFunc next, ILightNodeOptions options, Assembly[] hostAssemblies)
         {
             this.next = next;
             this.useOtherMiddleware = options.UseOtherMiddleware;
@@ -53,15 +53,15 @@ namespace Owin
     {
         public static IAppBuilder UseLightNode(this IAppBuilder app)
         {
-            return UseLightNode(app, new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new LightNode.Formatter.JavaScriptContentFormatter()));
+            return UseLightNode(app, new LightNodeOptions());
         }
 
-        public static IAppBuilder UseLightNode(this IAppBuilder app, LightNodeOptions options)
+        public static IAppBuilder UseLightNode(this IAppBuilder app, ILightNodeOptions options)
         {
             return app.Use(typeof(LightNodeServerMiddleware), options);
         }
 
-        public static IAppBuilder UseLightNode(this IAppBuilder app, LightNodeOptions options, params Assembly[] hostAssemblies)
+        public static IAppBuilder UseLightNode(this IAppBuilder app, ILightNodeOptions options, params Assembly[] hostAssemblies)
         {
             return app.Use(typeof(LightNodeServerMiddleware), options, hostAssemblies);
         }

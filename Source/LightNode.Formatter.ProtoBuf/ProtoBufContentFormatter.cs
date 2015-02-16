@@ -1,4 +1,5 @@
-﻿using ProtoBuf.Meta;
+﻿using LightNode.Core;
+using ProtoBuf.Meta;
 using System;
 
 namespace LightNode.Formatter
@@ -25,6 +26,14 @@ namespace LightNode.Formatter
         public override object Deserialize(Type type, System.IO.Stream stream)
         {
             return runtimeTypeModel.Deserialize(stream, null, type);
+        }
+    }
+
+    public class ProtoBufContentFormatterFactory : IContentFormatterFactory
+    {
+        public IContentFormatter CreateFormatter()
+        {
+            return new ProtoBufContentFormatter();
         }
     }
 }
