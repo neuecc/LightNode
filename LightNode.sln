@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30516.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1D780B80-C034-4AF9-8A47-3C4C3708E198}"
 	ProjectSection(SolutionItems) = preProject
@@ -82,8 +82,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Formatter.Jil", "Source\LightNode.Formatter.Jil\LightNode.Formatter.Jil.csproj", "{2B06F536-00BA-465C-AD09-0903DFC84EB1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Formatter.Jil.LZ4", "Source\LightNode.Formatter.Jil.LZ4\LightNode.Formatter.Jil.LZ4.csproj", "{897A5A2A-8941-4223-8DA8-DE0DB6D358F9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Sample.WithMvc", "Sample\LightNode.Sample.WithMvc\LightNode.Sample.WithMvc.csproj", "{40973720-F6FC-49BA-835B-7E93E0AC4FD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -191,10 +189,6 @@ Global
 		{897A5A2A-8941-4223-8DA8-DE0DB6D358F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{897A5A2A-8941-4223-8DA8-DE0DB6D358F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{897A5A2A-8941-4223-8DA8-DE0DB6D358F9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{40973720-F6FC-49BA-835B-7E93E0AC4FD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{40973720-F6FC-49BA-835B-7E93E0AC4FD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{40973720-F6FC-49BA-835B-7E93E0AC4FD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{40973720-F6FC-49BA-835B-7E93E0AC4FD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -214,6 +208,5 @@ Global
 		{3AB75B9A-EDCE-4761-A71C-612E9BA48AC3} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 		{9E4C02D4-BFC8-48F5-BAE8-5AD88B384961} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 		{4B0914D8-6360-487E-8EB4-89CC1DB112F6} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
-		{40973720-F6FC-49BA-835B-7E93E0AC4FD4} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
 	EndGlobalSection
 EndGlobal
