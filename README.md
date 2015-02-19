@@ -207,7 +207,7 @@ public class Startup
 
 public class Sample : LightNodeContract
 {
-    // use specified content formatter
+    // use specified content formatter, select verb per operation(or contract)
     [OperationOption(AcceptVerbs.Get, typeof(HtmlContentFormatterFactory))]
     public string Html()
     {
@@ -219,6 +219,10 @@ public class Sample : LightNodeContract
 Language Interoperability
 ---
 LightNode is like RPC but REST. Public API follows a simple rule. Address is `{ClassName}/{MethodName}`, and it's case insensitive. GET parameter use QueryString. POST parameter use x-www-form-urlencoded. Response type follows configured ContentFormatter. Receiver can select response type use url extension(.xml, .json etc...) or Accept header.
+
+Authentication, Session, Caching, Routing, etc
+---
+You can use other OWIN Middleware. LightNode can copmose with there. LightNode provides only core framework.
 
 Client code generation
 --- 
