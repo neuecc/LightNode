@@ -130,6 +130,18 @@ namespace LightNode.Server
                 {
                     verb = AcceptVerbs.Post;
                 }
+                else if (StringComparer.OrdinalIgnoreCase.Equals(method, "PUT"))
+                {
+                    verb = AcceptVerbs.Put;
+                }
+                else if (StringComparer.OrdinalIgnoreCase.Equals(method, "DELETE"))
+                {
+                    verb = AcceptVerbs.Delete;
+                }
+                else if (StringComparer.OrdinalIgnoreCase.Equals(method, "PATCH"))
+                {
+                    verb = AcceptVerbs.Patch;
+                }
                 else
                 {
                     goto VERB_MISSING;

@@ -74,7 +74,10 @@ namespace LightNode.Server
     public enum AcceptVerbs
     {
         Get = 1,
-        Post = 2
+        Post = 2,
+        Put = 4,
+        Delete = 8,
+        Patch = 16
     }
 
     public enum StreamWriteOption

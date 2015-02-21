@@ -67,6 +67,13 @@ namespace LightNode.Server
             this.AcceptVerb = (operationOption != null && operationOption.AcceptVerbs != null)
                 ? operationOption.AcceptVerbs.Value
                 : options.DefaultAcceptVerb;
+
+            var verbSpecifiedAttr = methodInfo.GetCustomAttributes<HttpVerbAttribtue>(true).FirstOrDefault();
+            if (verbSpecifiedAttr != null)
+            {
+                this.AcceptVerb = verbSpecifiedAttr.AcceptVerbs;
+            }
+
             this.ForceUseFormatter = (operationOption != null && operationOption.ContentFormatter != null)
                 ? operationOption.ContentFormatter
                 : null;

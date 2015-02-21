@@ -50,4 +50,50 @@ namespace LightNode.Server
             }
         }
     }
+
+    [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
+    public abstract class HttpVerbAttribtue : Attribute
+    {
+        public abstract AcceptVerbs AcceptVerbs { get; }
+    }
+
+    public sealed class GetAttribute : HttpVerbAttribtue
+    {
+        public override AcceptVerbs AcceptVerbs
+        {
+            get { return AcceptVerbs.Get; }
+        }
+    }
+
+    public sealed class PostAttribute : HttpVerbAttribtue
+    {
+        public override AcceptVerbs AcceptVerbs
+        {
+            get { return AcceptVerbs.Post; }
+        }
+    }
+
+    public sealed class PutAttribute : HttpVerbAttribtue
+    {
+        public override AcceptVerbs AcceptVerbs
+        {
+            get { return AcceptVerbs.Put; }
+        }
+    }
+
+    public sealed class DeleteAttribute : HttpVerbAttribtue
+    {
+        public override AcceptVerbs AcceptVerbs
+        {
+            get { return AcceptVerbs.Delete; }
+        }
+    }
+
+    public sealed class PatchAttribute : HttpVerbAttribtue
+    {
+        public override AcceptVerbs AcceptVerbs
+        {
+            get { return AcceptVerbs.Patch; }
+        }
+    }
 }

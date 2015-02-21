@@ -207,11 +207,20 @@ public class Startup
 
 public class Sample : LightNodeContract
 {
-    // use specified content formatter, select verb per operation(or contract)
+    // use specified content formatter, select verb per operation
     [OperationOption(AcceptVerbs.Get, typeof(HtmlContentFormatterFactory))]
     public string Html()
     {
         return "<html><body>aaa</body></html>";
+    }
+    
+    // LightNode's default is GET | POST and default can customize.
+    // change per operation verb by OperationOption(AcceptVerbs)
+    // [Get/Post/Put/Delete/Patch]Attribute for its shortcut
+    [Post]
+    public int PostOnly()
+    {
+        return 0;
     }
 }
 ```
@@ -268,6 +277,8 @@ You can download from NuGet.
 
 * PM> Install-Package [LightNode.Client.PCL.T4](https://nuget.org/packages/LightNode.Client.PCL.T4/)
 * PM> Install-Package [LightNode.Client.UniRx.T4](https://nuget.org/packages/LightNode.Client.UniRx.T4/)
+
+Note:Client generation currently supports POST only. 
 
 Performance
 ---

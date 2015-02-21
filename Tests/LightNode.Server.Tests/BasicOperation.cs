@@ -120,6 +120,14 @@ namespace LightNode.Server.Tests
             MockEnv.CreateRequest("/Hello/Echo").PostAndGetString(new StringKeyValuePairCollection { { "x", "あいうえお" } })
                 .Is("\"あいうえお\"");
         }
+
+        [TestMethod]
+        public void VerbOption()
+        {
+            MockEnv.CreateRequest("/TestContract/PutOnly").GetAsync().Result.StatusCode.Is(System.Net.HttpStatusCode.MethodNotAllowed);
+            MockEnv.CreateRequest("/TestContract/PutOnly").SendAsync("PUT").Result.StatusCode.Is(System.Net.HttpStatusCode.NoContent);
+            MockEnv.CreateRequest("/TestContract/PatchOnly").SendAsync("PATCH").Result.StatusCode.Is(System.Net.HttpStatusCode.NoContent);
+        }
     }
 
     public class Hello : LightNodeContract
@@ -177,6 +185,16 @@ namespace LightNode.Server.Tests
             Environment.IsNotNull();
             await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
             VoidBeforeAfter[guid] = after;
+        }
+
+        [OperationOption(AcceptVerbs.Put)]
+        public void PutOnly()
+        {
+        }
+
+        [Patch]
+        public void PatchOnly()
+        {
         }
     }
 
