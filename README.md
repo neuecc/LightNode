@@ -46,7 +46,7 @@ public class My : LightNodeContract
 
 Compile, run, very quick! LightNode calls class as Contract, method as Operation.
 
-> Parameter model bindings supports only basic pattern, can't use complex type. allow types are "string, DateTime, DateTimeOffset, Boolean, Decimal, Char, TimeSpan, Int16, Int32, Int64, UInt16, UInt32, UInt64, Single, Double, SByte, Byte and each Nullable types and array(except byte[]. If you want to use byte[], use Base64 string instead of byte[] or see [send byte[] section](#sendor-receive-byte))
+> Parameter model bindings supports only basic pattern, can't use complex type. allow types are "string, DateTime, DateTimeOffset, Boolean, Decimal, Char, TimeSpan, Int16, Int32, Int64, UInt16, UInt32, UInt64, Single, Double, SByte, Byte and each Nullable types and array(except byte[]. If you want to use byte[], use Base64 string instead of byte[] or see [receive byte[] section](#receiveor-send-byte))
 
 > Return type allows all serializable(ContentFormatter support) type.
 
@@ -225,7 +225,7 @@ public class Sample : LightNodeContract
 }
 ```
 
-Send(or Receive) byte[]
+Receive(or Send) byte[]
 ---
 LightNode isn't allow byte[] argument. If you want to send byte that use Base64 string instead of byte[]. But you needs to avoid Base64, you can take raw stream from `Environment`.
 
