@@ -33,16 +33,6 @@ namespace LightNode.Sample.GlimpseUse
                     StreamWriteOption = StreamWriteOption.BufferAndWrite
                 });
             });
-            
-app.Map("/v1", x =>
-{
-    x.UseLightNode(new LightNodeOptions(), typeof(v1Contract).Assembly);
-});
-
-app.Map("/v2", x =>
-{
-    x.UseLightNode(new LightNodeOptions(), typeof(v2Contract).Assembly);
-});
         }
     }
 
