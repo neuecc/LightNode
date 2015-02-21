@@ -7,6 +7,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Collections.Specialized;
 using System.Collections.Concurrent;
+using System.IO;
+using System.Text;
+using LightNode.Formatter;
 
 namespace LightNode.Server.Tests
 {
@@ -128,6 +131,22 @@ namespace LightNode.Server.Tests
             MockEnv.CreateRequest("/TestContract/PutOnly").SendAsync("PUT").Result.StatusCode.Is(System.Net.HttpStatusCode.NoContent);
             MockEnv.CreateRequest("/TestContract/PatchOnly").SendAsync("PATCH").Result.StatusCode.Is(System.Net.HttpStatusCode.NoContent);
         }
+
+        [TestMethod]
+        public void RawBody()
+        {
+            var sendBytes = Encoding.UTF8.GetBytes("dファdfasfzjew３ふぁｚｆｄｆｓｆうぇｗ"); // japanese hiragana:)
+
+            // echo
+            var req = MockEnv.CreateRequest("/TestContract/EchoByte")
+                .And(x => { x.Content = new ByteArrayContent(sendBytes); });
+            req.PostAsync().Result.Content.ReadAsByteArrayAsync().Result.IsStructuralEqual(sendBytes);
+
+            // length
+            var req2 = MockEnv.CreateRequest("/TestContract/PostByte")
+                .And(x => { x.Content = new ByteArrayContent(sendBytes); });
+            req2.PostAsync().Result.Content.ReadAsStringAsync().Result.Is(sendBytes.Length.ToString());
+        }
     }
 
     public class Hello : LightNodeContract
@@ -196,6 +215,37 @@ namespace LightNode.Server.Tests
         public void PatchOnly()
         {
         }
+
+        [Post, IgnoreClientGenerate]
+        public int PostByte()
+        {
+            // Take raw stream
+            var body = this.Environment["owin.RequestBody"] as Stream;
+            byte[] bodyBytes;
+            using (var ms = new MemoryStream())
+            {
+                body.CopyTo(ms);
+                bodyBytes = ms.ToArray();
+            }
+            return bodyBytes.Length;
+        }
+
+
+        [IgnoreClientGenerate]
+        [OperationOption(AcceptVerbs.Post, typeof(RawOctetStreamContentFormatterFactory))]
+        public byte[] EchoByte()
+        {
+            // Take row stream
+            var body = this.Environment["owin.RequestBody"] as Stream;
+            byte[] bodyBytes;
+            using (var ms = new MemoryStream())
+            {
+                body.CopyTo(ms);
+                bodyBytes = ms.ToArray();
+            }
+            return bodyBytes;
+        }
+
     }
 
     public class ArrayContract : LightNodeContract

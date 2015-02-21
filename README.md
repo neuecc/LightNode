@@ -46,7 +46,7 @@ public class My : LightNodeContract
 
 Compile, run, very quick! LightNode calls class as Contract, method as Operation.
 
-> Parameter model bindings supports only basic pattern, can't use complex type. allow types are "string, DateTime, DateTimeOffset, Boolean, Decimal, Char, TimeSpan, Int16, Int32, Int64, UInt16, UInt32, UInt64, Single, Double, SByte, Byte and each Nullable types and array(except byte[]. If you want to use byte[], use Base64 string instead of byte[])
+> Parameter model bindings supports only basic pattern, can't use complex type. allow types are "string, DateTime, DateTimeOffset, Boolean, Decimal, Char, TimeSpan, Int16, Int32, Int64, UInt16, UInt32, UInt64, Single, Double, SByte, Byte and each Nullable types and array(except byte[]. If you want to use byte[], use Base64 string instead of byte[] or see )
 
 > Return type allows all serializable(ContentFormatter support) type.
 
@@ -223,6 +223,45 @@ public class Sample : LightNodeContract
         return 0;
     }
 }
+```
+
+Send(or Receive) byte[]
+---
+LightNode isn't allow byte[] argument. If you want to send byte that use Base64 string instead of byte[]. But you needs to avoid Base64, you can take raw stream from `Environment`.
+
+```csharp
+[Post, IgnoreClientGenerate]
+public int PostByte() // zero argument
+{
+    // Take raw stream
+    var body = this.Environment["owin.RequestBody"] as Stream;
+    byte[] bodyBytes;
+    using (var ms = new MemoryStream())
+    {
+        body.CopyTo(ms);
+        bodyBytes = ms.ToArray();
+    }
+    return bodyBytes.Length;
+}
+```
+
+If you return byte[] array, you maybe should avoid Json(or other) ContentFormatter. You can use `RawOctetStreamContentFormatterFactory`.
+
+```csharp
+[IgnoreClientGenerate]
+[OperationOption(AcceptVerbs.Post, typeof(RawOctetStreamContentFormatterFactory))]
+public byte[] EchoByte()
+{
+    var body = this.Environment["owin.RequestBody"] as Stream;
+    byte[] bodyBytes;
+    using (var ms = new MemoryStream())
+    {
+        body.CopyTo(ms);
+        bodyBytes = ms.ToArray();
+    }
+    return bodyBytes;
+}
+
 ```
 
 Language Interoperability
