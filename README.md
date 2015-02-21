@@ -222,7 +222,7 @@ LightNode is like RPC but REST. Public API follows a simple rule. Address is `{C
 
 Authentication, Session, Caching, Routing, etc
 ---
-You can use other OWIN Middleware. LightNode can copmose with there. LightNode provides only core framework.
+You can use other OWIN Middleware(for example [ASP.NET Identity](http://www.asp.net/identity)). LightNode can copmose with there. LightNode provides only core framework.
 
 Client code generation
 --- 
