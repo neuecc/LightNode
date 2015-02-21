@@ -245,6 +245,13 @@ public int PostByte() // zero argument
 }
 ```
 
+If you want to receive `multipart/form-data`, you can parse by [ReadAsMultipartAsync](https://msdn.microsoft.com/ja-jp/library/hh944544.aspx) of `System.Net.Http.Formatting.dll`. 
+
+```csharp
+var body = this.Environment["owin.RequestBody"] as Stream;
+var multipart = await new StreamContent(body).ReadAsMultipartAsync();
+```
+
 If you return byte[] array, you maybe should avoid Json(or other) ContentFormatter. You can use `RawOctetStreamContentFormatterFactory`.
 
 ```csharp
@@ -261,7 +268,6 @@ public byte[] EchoByte()
     }
     return bodyBytes;
 }
-
 ```
 
 Language Interoperability
