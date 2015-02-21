@@ -346,6 +346,10 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.1.0 - 2015-02-21
+* Add AcceptVerbs.Put/Delete/Patch 
+* Add HttpVerbAttributes([GET/POST/Put/Delete/Patch]Attribute)
+
 1.0.0 - 2015-02-16
 * Add Glimpse.LightNode
 * Add LightNode.Formatter.Jil
