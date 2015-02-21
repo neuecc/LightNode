@@ -330,6 +330,20 @@ Diagnostics
 LightNode expose [LightNode.Diagnostics.LightNodeEventSource](https://github.com/neuecc/LightNode/blob/master/Source/LightNode.Server/Diagnostics/LightNodeEventSource.cs) for log diagnostics. It's using [Systen.Diagnostics.Tracing.EventSource](https://msdn.microsoft.com/ja-jp/library/system.diagnostics.tracing.eventsource.aspx), it's send to ETW(EventTrace for Windows) and you can subscribe easily by Microsoft's [Semantic Logging Application Block](https://github.com/mspnp/semantic-logging)
  Library.
  
+If throws unhandled exception, LightNode's default no handles exception and pass thru other middleware. This option is useful for debugging with Glimpse or other diagnostics middleware such as Microsoft.Owin.Diagnostics's  UseErrorPage. You can also use LightNode's Builtin diagnostics system -  LightNodeOptions.ErrorHandlingPolicy `ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails`. It's show simply error string.
+
+If LightNode can't create OperationContext(for example 404), default returns StatusCode and description string. This can customize `OperationMissingHandlingPolicy`, If `ThrowException` then throws `OperationNotFoundException`.
+
+```csharp
+// Default
+var option = new LightNodeOptions()
+{
+    ErrorHandlingPolicy = ErrorHandlingPolicy.ThrowException,
+    OperationMissingHandlingPolicy = OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails,
+};
+app.UseLightNode(option);
+```
+ 
 Performance
 ---
 LightNode is fastest framework.
