@@ -227,7 +227,7 @@ public class Sample : LightNodeContract
 
 Receive(or Send) byte[]
 ---
-LightNode isn't allow byte[] argument. If you want to send byte that use Base64 string instead of byte[]. But you needs to avoid Base64, you can take raw stream from `Environment`.
+LightNode isn't allow byte[] argument. If you want to receive byte[] that use Base64 string instead of byte[]. But you needs to avoid Base64, you can take raw stream from `Environment`.
 
 ```csharp
 [Post, IgnoreClientGenerate]
