@@ -274,9 +274,23 @@ Language Interoperability
 ---
 LightNode is like RPC but REST. Public API follows a simple rule. Address is `{ClassName}/{MethodName}`, and it's case insensitive. GET parameter use QueryString. POST parameter use x-www-form-urlencoded. Response type follows configured ContentFormatter. Receiver can select response type use url extension(.xml, .json etc...) or Accept header.
 
-Authentication, Session, Caching, Routing, etc
+Authentication, Session, Caching, Routing, Versioning, etc
 ---
 You can use other OWIN Middleware(for example [ASP.NET Identity](http://www.asp.net/identity)). LightNode can copmose with there. LightNode provides only core framework.
+
+LightNode can enable per assembly. For the versioning strategy with project separating.  
+
+```csharp
+app.Map("/v1", x =>
+{
+    x.UseLightNode(new LightNodeOptions(), typeof(v1Contract).Assembly);
+});
+
+app.Map("/v2", x =>
+{
+    x.UseLightNode(new LightNodeOptions(), typeof(v2Contract).Assembly);
+});
+```
 
 Client code generation
 --- 
