@@ -24,11 +24,15 @@ namespace Glimpse.LightNode
             {
                 var context = (state as HttpContext);
                 if (context == null) return;
-                
+
                 var runtime = context.Application["__GlimpseRuntime"] as IGlimpseRuntime;
                 if (runtime == null) return;
-                
-                runtime.EndRequest();
+
+                try
+                {
+                    runtime.EndRequest();
+                }
+                catch { }
             }, System.Web.HttpContext.Current);
         }
     }
