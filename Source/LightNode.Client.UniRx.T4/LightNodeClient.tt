@@ -35,6 +35,12 @@
     // 7. Emit Json.NET(Unity) ContentFormatter on inline
     var emitJsonNetFormatter = true;
 
+    // 8. Specify contract base type names to exclude from output
+    var excludedBaseContractTypes = new string[]
+    {
+        "Orange.Service.OrangeEditorContractBase",
+    };
+
     // ----------End T4 Configuration ------------- //
 
     Func<Type, string> BeautifyType = null;
@@ -60,18 +66,18 @@
         {
             while (x != typeof(object) && x != null)
             {
+                if (excludedBaseContractTypes.Contains(x.FullName)) return false;
                 if (x.FullName == "LightNode.Server.LightNodeContract") return true;
                 x = x.BaseType;
             }
             return false;
         })
-        .Where(x => !x.IsAbstract && x.GetCustomAttributes(true).All(y => y.GetType().FullName != "LightNode.Server.IgnoreOperationAttribute" && y.GetType().FullName != "LightNode.Server.IgnoreClientGenerateAttribute"))
+        .Where(x => !x.IsAbstract)
         .Select(x =>
         {
             var methods = x.GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Where(methodInfo => !(methodInfo.IsSpecialName && (methodInfo.Name.StartsWith("set_") || methodInfo.Name.StartsWith("get_"))))
                 .Where(methodInfo => !ignoreMethods.Contains(methodInfo.Name))
-                .Where(methodInfo => methodInfo.GetCustomAttributes(true).All(y => y.GetType().FullName != "LightNode.Server.IgnoreOperationAttribute" && y.GetType().FullName != "LightNode.Server.IgnoreClientGenerateAttribute"))
                 .Select(methodInfo =>
                 {
                     var retType = methodInfo.ReturnType;
@@ -223,21 +229,13 @@ namespace LightNode.Formatter
 <# } #>
 namespace <#= namespaceName #>
 {
-#if !(UNITY_METRO || UNITY_WP8) && (UNITY_4_4 || UNITY_4_3 || UNITY_4_2 || UNITY_4_1 || UNITY_4_0_1 || UNITY_4_0 || UNITY_3_5 || UNITY_3_4 || UNITY_3_3 || UNITY_3_2 || UNITY_3_1 || UNITY_3_0_0 || UNITY_3_0 || UNITY_2_6_1 || UNITY_2_6)
-    // Fallback for Unity versions below 4.5
-    using Hash = System.Collections.Hashtable;
-    using HashEntry = System.Collections.DictionaryEntry;    
-#else
-    // Unity 4.5 release notes: 
-    // WWW: deprecated 'WWW(string url, byte[] postData, Hashtable headers)', 
-    // use 'public WWW(string url, byte[] postData, Dictionary<string, string> headers)' instead.
     using Hash = System.Collections.Generic.Dictionary<string, string>;
     using HashEntry = System.Collections.Generic.KeyValuePair<string, string>;
-#endif
 
-    public partial class <#= clientName #> : <#= string.Join(", ", contracts.Select(x => x.InterfaceName)) #>
+    public abstract partial class <#= clientName #> : <#= string.Join(", ", contracts.Select(x => x.InterfaceName)) #>
     {
         static IContentFormatter defaultContentFormatter = <#= defaultContentFormatter #>;
+        static IContentFormatter plainJsonContentFormatter = new LightNode.Formatter.JsonNetContentFormatter();
         readonly string rootEndPoint;
 
         IContentFormatter contentFormatter;
@@ -257,8 +255,6 @@ namespace <#= namespaceName #>
         partial void OnAfterInitialized();
 
         partial void OnBeforeRequest(string contractName, string operationName, List<KeyValuePair<string, string[]>> contentList, ref Hash headerForUse);
-
-        partial void ResultFilter<T>(ref IObservable<T> source);
 
 <# foreach(var contract in contracts) { #>
         public <#= contract.InterfaceName #> <#= contract.RootName #> { get { return this; } }
@@ -284,7 +280,7 @@ namespace <#= namespaceName #>
             var deferredOperation = Observable.Defer(() =>
             {
                 var headers = CopyHeaders();
-                if (contentList.Count == 0) content.AddField("_", "_"); // Unity's WWW - POST request with a zero-sized post buffer is not supported!
+                if (contentList.Count == 0) content.AddField("_", "_"); // add dummy
 
                 OnBeforeRequest(contract, operation, contentList, ref headers);
                 var postObservable = (headers == null)
@@ -295,7 +291,6 @@ namespace <#= namespaceName #>
                     {
                         return Unit.Default;
                     });
-                ResultFilter(ref weboperation);
 
                 return weboperation;
             });
@@ -316,13 +311,24 @@ namespace <#= namespaceName #>
                 var weboperation = postObservable
                     .Select(x =>
                     {
-                        using (var ms = new MemoryStream(x.bytes))
+                        string header;
+                        if (x.responseHeaders.TryGetValue("Content-Encoding", out header) && header == "gzip")
                         {
-                            var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
-                            return value;
+                            using (var ms = new MemoryStream(x.bytes))
+                            {
+                                var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
+                                return value;
+                            }
+                        }
+                        else
+                        {
+                            using (var ms = new MemoryStream(x.bytes))
+                            {
+                                var value = (T)plainJsonContentFormatter.Deserialize(typeof(T), ms);
+                                return value;
+                            }
                         }
                     });
-                ResultFilter(ref weboperation);
 
                 return weboperation;
             });

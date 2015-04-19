@@ -87,21 +87,13 @@ namespace LightNode.Formatter
 
 namespace LightNode.Client
 {
-#if !(UNITY_METRO || UNITY_WP8) && (UNITY_4_4 || UNITY_4_3 || UNITY_4_2 || UNITY_4_1 || UNITY_4_0_1 || UNITY_4_0 || UNITY_3_5 || UNITY_3_4 || UNITY_3_3 || UNITY_3_2 || UNITY_3_1 || UNITY_3_0_0 || UNITY_3_0 || UNITY_2_6_1 || UNITY_2_6)
-    // Fallback for Unity versions below 4.5
-    using Hash = System.Collections.Hashtable;
-    using HashEntry = System.Collections.DictionaryEntry;    
-#else
-    // Unity 4.5 release notes: 
-    // WWW: deprecated 'WWW(string url, byte[] postData, Hashtable headers)', 
-    // use 'public WWW(string url, byte[] postData, Dictionary<string, string> headers)' instead.
     using Hash = System.Collections.Generic.Dictionary<string, string>;
     using HashEntry = System.Collections.Generic.KeyValuePair<string, string>;
-#endif
 
-    public partial class LightNodeClient : _IPerf
+    public abstract partial class LightNodeClient : _IPerf
     {
         static IContentFormatter defaultContentFormatter = new LightNode.Formatter.JsonNetContentFormatter();
+        static IContentFormatter plainJsonContentFormatter = new LightNode.Formatter.JsonNetContentFormatter();
         readonly string rootEndPoint;
 
         IContentFormatter contentFormatter;
@@ -121,8 +113,6 @@ namespace LightNode.Client
         partial void OnAfterInitialized();
 
         partial void OnBeforeRequest(string contractName, string operationName, List<KeyValuePair<string, string[]>> contentList, ref Hash headerForUse);
-
-        partial void ResultFilter<T>(ref IObservable<T> source);
 
         public _IPerf Perf { get { return this; } }
 
@@ -146,7 +136,7 @@ namespace LightNode.Client
             var deferredOperation = Observable.Defer(() =>
             {
                 var headers = CopyHeaders();
-                if (contentList.Count == 0) content.AddField("_", "_"); // Unity's WWW - POST request with a zero-sized post buffer is not supported!
+                if (contentList.Count == 0) content.AddField("_", "_"); // add dummy
 
                 OnBeforeRequest(contract, operation, contentList, ref headers);
                 var postObservable = (headers == null)
@@ -157,7 +147,6 @@ namespace LightNode.Client
                     {
                         return Unit.Default;
                     });
-                ResultFilter(ref weboperation);
 
                 return weboperation;
             });
@@ -178,13 +167,24 @@ namespace LightNode.Client
                 var weboperation = postObservable
                     .Select(x =>
                     {
-                        using (var ms = new MemoryStream(x.bytes))
+                        string header;
+                        if (x.responseHeaders.TryGetValue("Content-Encoding", out header) && header == "gzip")
                         {
-                            var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
-                            return value;
+                            using (var ms = new MemoryStream(x.bytes))
+                            {
+                                var value = (T)ContentFormatter.Deserialize(typeof(T), ms);
+                                return value;
+                            }
+                        }
+                        else
+                        {
+                            using (var ms = new MemoryStream(x.bytes))
+                            {
+                                var value = (T)plainJsonContentFormatter.Deserialize(typeof(T), ms);
+                                return value;
+                            }
                         }
                     });
-                ResultFilter(ref weboperation);
 
                 return weboperation;
             });
@@ -212,7 +212,7 @@ namespace LightNode.Client
             return _PostAsync<LightNode.Performance.MyClass>("Perf", "Echo", form, list, reportProgress);
         }
 
-        IObservable<Unit> _IPerf.Test(System.String a, System.Nullable<System.Int32> x, System.Nullable<LightNode.Performance.MyEnum2> z, IProgress<float> reportProgress)
+        IObservable<Unit> _IPerf.Test(System.String a, System.Nullable<System.Int32> x, IProgress<float> reportProgress)
         {
             var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
@@ -226,11 +226,6 @@ namespace LightNode.Client
                 form.AddField("x", x.ToString());
                 list.Add(new KeyValuePair<string, string[]>("x", new[] { x.ToString() }));
             }
-            if (z != null)
-            {
-                form.AddField("z", ((System.UInt64)z).ToString());
-                list.Add(new KeyValuePair<string, string[]>("z", new[] { ((System.UInt64)z).ToString() }));
-            }
 
             return _PostAsync("Perf", "Test", form, list, reportProgress);
         }
@@ -243,7 +238,7 @@ namespace LightNode.Client
             return _PostAsync("Perf", "Te", form, list, reportProgress);
         }
 
-        IObservable<Unit> _IPerf.TestArray(System.String[] array, System.Int32[] array2, LightNode.Performance.MyEnum[] array3, IProgress<float> reportProgress)
+        IObservable<Unit> _IPerf.TestArray(System.String[] array, System.Int32[] array2, IProgress<float> reportProgress)
         {
             var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
@@ -267,39 +262,8 @@ namespace LightNode.Client
                 }
                 list.Add(new KeyValuePair<string, string[]>("array2", l2.ToArray()));
             }
-            if (array3 != null)
-            {
-                var l2 = new List<string>();
-                foreach (var ___x in array3)
-                {
-                    form.AddField("array3", ((System.Int32)___x).ToString());
-                    l2.Add(((System.Int32)___x).ToString());
-                }
-                list.Add(new KeyValuePair<string, string[]>("array3", l2.ToArray()));
-            }
 
             return _PostAsync("Perf", "TestArray", form, list, reportProgress);
-        }
-
-        IObservable<Unit> _IPerf.TeVoid(IProgress<float> reportProgress)
-        {
-            var list = new List<KeyValuePair<string, string[]>>();
-            var form = new WWWForm();
-
-            return _PostAsync("Perf", "TeVoid", form, list, reportProgress);
-        }
-
-        IObservable<System.String> _IPerf.Te4(System.String xs, IProgress<float> reportProgress)
-        {
-            var list = new List<KeyValuePair<string, string[]>>();
-            var form = new WWWForm();
-            if (xs != null)
-            {
-                form.AddField("xs", xs);
-                list.Add(new KeyValuePair<string, string[]>("xs", new[] { xs }));
-            }
-
-            return _PostAsync<System.String>("Perf", "Te4", form, list, reportProgress);
         }
 
         #endregion
@@ -309,11 +273,9 @@ namespace LightNode.Client
     public interface _IPerf
     {
         IObservable<LightNode.Performance.MyClass> Echo(System.String name, System.Int32 x, System.Int32 y, LightNode.Performance.MyEnum e, IProgress<float> reportProgress = null);
-        IObservable<Unit> Test(System.String a = null, System.Nullable<System.Int32> x = null, System.Nullable<LightNode.Performance.MyEnum2> z = null, IProgress<float> reportProgress = null);
+        IObservable<Unit> Test(System.String a = null, System.Nullable<System.Int32> x = null, IProgress<float> reportProgress = null);
         IObservable<Unit> Te(IProgress<float> reportProgress = null);
-        IObservable<Unit> TestArray(System.String[] array, System.Int32[] array2, LightNode.Performance.MyEnum[] array3, IProgress<float> reportProgress = null);
-        IObservable<Unit> TeVoid(IProgress<float> reportProgress = null);
-        IObservable<System.String> Te4(System.String xs, IProgress<float> reportProgress = null);
+        IObservable<Unit> TestArray(System.String[] array, System.Int32[] array2, IProgress<float> reportProgress = null);
     }
 
 }
