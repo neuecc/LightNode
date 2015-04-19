@@ -351,17 +351,17 @@ namespace LightNode.Server
         }
     }
 
-    internal class ParameterInfoSlim
+    public class ParameterInfoSlim
     {
-        public Type ParameterType { get; set; }
-        public bool ParameterTypeIsArray { get; set; }
-        public bool ParameterTypeIsClass { get; set; }
-        public bool ParameterTypeIsString { get; set; }
-        public bool ParameterTypeIsNullable { get; set; }
+        public Type ParameterType { get; private set; }
+        public bool ParameterTypeIsArray { get; private set; }
+        public bool ParameterTypeIsClass { get; private set; }
+        public bool ParameterTypeIsString { get; private set; }
+        public bool ParameterTypeIsNullable { get; private set; }
 
-        public string Name { get; set; }
-        public bool IsOptional { get; set; }
-        public object DefaultValue { get; set; }
+        public string Name { get; private set; }
+        public bool IsOptional { get; private set; }
+        public object DefaultValue { get; private set; }
 
         internal ParameterInfoSlim(ParameterInfo parameterInfo)
         {
@@ -384,5 +384,25 @@ namespace LightNode.Server
         AsyncFunc = 2,
         Action = 3,
         AsyncAction = 4
+    }
+
+    public class OperationInfo
+    {
+        public string ClassName { get; private set; }
+        public string MethodName { get; private set; }
+        public AcceptVerbs AcceptVerbs { get;private set; }
+        public ParameterInfoSlim[] Parameters { get; private set; }
+        public Type ReturnType { get; private set; }
+        internal IContentFormatter ForceUseFormatter { get; private set; }
+
+        internal OperationInfo(OperationHandler handler)
+        {
+            this.ClassName = handler.ClassName;
+            this.MethodName = handler.MethodName;
+            this.AcceptVerbs = handler.AcceptVerb;
+            this.Parameters = handler.Arguments;
+            this.ReturnType = handler.ReturnType;
+            this.ForceUseFormatter = handler.ForceUseFormatter;
+        }
     }
 }

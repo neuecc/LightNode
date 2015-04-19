@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LightNode.Server
 {
-    public static class Utils
+    internal static class Utils
     {
         public static bool IsNullable(this Type type)
         {

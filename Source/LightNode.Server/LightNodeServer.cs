@@ -27,9 +27,9 @@ namespace LightNode.Server
         }
 
         // cache all methods
-        public void RegisterHandler(Assembly[] hostAssemblies)
+        public IReadOnlyCollection<KeyValuePair<string, OperationInfo>> RegisterHandler(Assembly[] hostAssemblies)
         {
-            if (Interlocked.Increment(ref alreadyRegistered) != 0) return;
+            if (Interlocked.Increment(ref alreadyRegistered) != 0) return new KeyValuePair<string,OperationInfo>[0];
 
             var contractTypes = hostAssemblies
                 .SelectMany(x =>
@@ -90,6 +90,9 @@ namespace LightNode.Server
                     LightNodeEventSource.Log.RegisiterOperation(handler.ClassName, handler.MethodName, sw.Elapsed.TotalMilliseconds);
                 }
             });
+
+            // return readonly operation info
+            return handlers.Select(x => new KeyValuePair<string, OperationInfo>(x.Key.ToString(), new OperationInfo(x.Value))).ToList().AsReadOnly();
         }
 
         OperationHandler SelectHandler(IDictionary<string, object> environment, IOperationCoordinator coorinator, out AcceptVerbs verb, out string ext)
@@ -164,7 +167,7 @@ namespace LightNode.Server
             LightNodeEventSource.Log.MethodNotAllowed(OperationMissingKind.MethodNotAllowed, path, method);
             if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
             {
-                throw new MethodNotAllowdException(OperationMissingKind.MethodNotAllowed, path, method);
+                throw new MethodNotAllowedException(OperationMissingKind.MethodNotAllowed, path, method);
             }
             else
             {

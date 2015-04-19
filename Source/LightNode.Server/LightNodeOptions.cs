@@ -7,6 +7,7 @@ namespace LightNode.Server
 {
     public interface ILightNodeOptions
     {
+        string ServerEngineId { get; }
         AcceptVerbs DefaultAcceptVerb { get; }
         LightNode.Core.IContentFormatter DefaultFormatter { get; }
         ErrorHandlingPolicy ErrorHandlingPolicy { get; }
@@ -26,6 +27,7 @@ namespace LightNode.Server
         public IContentFormatter DefaultFormatter { get; private set; }
         public IContentFormatter[] SpecifiedFormatters { get; private set; }
 
+        public string ServerEngineId { get; private set; }
         public bool UseOtherMiddleware { get; set; }
         public bool ParameterStringImplicitNullAsDefault { get; set; }
         public bool ParameterEnumAllowsFieldNameParse { get; set; }
@@ -61,6 +63,7 @@ namespace LightNode.Server
             OperationMissingHandlingPolicy = Server.OperationMissingHandlingPolicy.ReturnErrorStatusCode;
             Filters = new LightNodeFilterCollection();
             OperationCoordinatorFactory = new DefaultOperationCoordinatorFactory();
+            ServerEngineId = Guid.NewGuid().ToString();
         }
 
         public LightNodeOptions ConfigureWith(Action<LightNodeOptions> @this)
@@ -148,12 +151,12 @@ namespace LightNode.Server
         }
     }
 
-    public class MethodNotAllowdException : OperationMissingException
+    public class MethodNotAllowedException : OperationMissingException
     {
         public string Path { get; private set; }
         public string Method { get; private set; }
 
-        public MethodNotAllowdException(OperationMissingKind kind, string path, string method)
+        public MethodNotAllowedException(OperationMissingKind kind, string path, string method)
             : base(kind, kind.ToString() + ", Path:" + path + " Method:" + method)
         {
             this.Path = path;
