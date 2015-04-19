@@ -2,7 +2,6 @@
 using Glimpse.CloudStructures.Redis;
 using Glimpse.LightNode;
 using LightNode.Formatter;
-using LightNode.Formatter.Jil;
 using LightNode.Server;
 using Microsoft.Owin;
 using Owin;
@@ -98,12 +97,12 @@ namespace LightNode.Sample.GlimpseUse
     public class Member : LightNodeContract
     {
         /// <summary>
-        /// My Random...
+        /// Generate Random Person
         /// </summary>
-        /// <remarks>Remarks</remarks>
-        /// <param name="seed">see.ee.d</param>
-        /// <returns>result</returns>
-        public async Task<Person> Random(int seed)
+        /// <remarks>This area is generated from Xml doc-comment remarks.</remarks>
+        /// <param name="seed">Random seed.</param>
+        /// <param name="fruit">Suports enum.</param>
+        public async Task<Person> Random(int seed, Fruit fruit = Fruit.Banana)
         {
             //await Redis.Settings.String<string>("Person?Seed=" + seed).Get();
             var rand = new Random(seed);

@@ -46,7 +46,7 @@ public class My : LightNodeContract
 
 Compile, run, very quick! LightNode calls class as Contract, method as Operation.
 
-> Parameter model bindings supports only basic pattern, can't use complex type. allow types are "string, DateTime, DateTimeOffset, Boolean, Decimal, Char, TimeSpan, Int16, Int32, Int64, UInt16, UInt32, UInt64, Single, Double, SByte, Byte and each Nullable types and array(except byte[]. If you want to use byte[], use Base64 string instead of byte[] or see [receive byte[] section](#receiveor-send-byte))
+> Parameter model bindings supports only basic pattern, can't use complex type. allow types are "string, DateTime, DateTimeOffset, Boolean, Decimal, Char, TimeSpan, Int16, Int32, Int64, UInt16, UInt32, UInt64, Single, Double, SByte, Byte, Enum and each Nullable types and array(except byte[]. If you want to use byte[], use Base64 string instead of byte[] or see [receive byte[] section](#receiveor-send-byte))
 
 > Return type allows all serializable(ContentFormatter support) type.
 
@@ -165,6 +165,61 @@ req.CookieContainer = new CookieContainer();
 req.CookieContainer.Add(new Uri("http://localhost:41932"), new Cookie("glimpseid", "UserId:4"));
 ```
 ![](Img/glimpse_history_clientgrouping.jpg)
+
+Swagger Integration
+---
+LightNode supports [Swagger](http://swagger.io/) for API Explorer(currently Swagger supports is experimental, only shows parameters).
+
+![](Img/swagger_support.jpg)
+
+Middleware available in NuGet.
+
+* PM> Install-Package [LightNode.Swagger](https://nuget.org/packages/LightNode.Swagger/)
+
+Swagger-UI file is embedded in LightNode.Swagger. You can enable only `UseLightNodeSwagger`.
+
+```csharp
+// Currently LightNode.Swagger only supports POST so you needs AcceptVerbs.Post
+app.Map("/api", builder =>
+{
+    builder.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new JilContentFormatter(), new GZipJilContentFormatter())
+    {
+        ParameterEnumAllowsFieldNameParse = true, // If you want to use enums human readable display on Swagger, set to true
+        ErrorHandlingPolicy = ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails,
+        OperationMissingHandlingPolicy = OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails
+    });
+});
+
+// Mapping to swagger path
+app.Map("/swagger", builder =>
+{
+    // If you want to additional info for Swagger, load xmlDoc file.
+    // LightNode.Swagger loads methods's summary, remarks, param for info.     
+    var xmlName = "LightNode.Sample.GlimpseUse.xml";
+    var xmlPath = System.AppDomain.CurrentDomain.BaseDirectory + "\\bin\\" + xmlName; // or HttpContext.Current.Server.MapPath("~/bin/" + xmlName);
+
+    builder.UseLightNodeSwagger(new Swagger.SwaggerOptions("LightNodeSample", "/api") // baseApi is LightNode's root
+    {
+        XmlDocumentPath = xmlPath,
+        IsEmitEnumAsString = true
+    });
+});
+```
+
+Okay, for example jump to `http://localhost:41932/Swagger/`, you can see all API info and Swagger specification json can download from `api-default.json`. If you host multiple LightNode engine, you can select target engine from `{engineID}.json`. `{engineID}` is from `ILightNodeOptions.ServerEngineId`.
+
+If you can't run swagger on hosting IIS, maybe conflicts static file handling. Please remoe StaticFile handler and register OwinHttpHandler for all paths.
+
+```csharp
+<system.webServer>
+    <handlers>
+        <remove name="StaticFile" />
+        <!-- If use with Glimpse, glimpse handler must be first -->
+        <add name="Glimpse" path="glimpse.axd" verb="GET" type="Glimpse.AspNet.HttpHandler, Glimpse.AspNet" preCondition="integratedMode" />
+        <add name="OWIN" path="*" verb="*" type="Microsoft.Owin.Host.SystemWeb.OwinHttpHandler" />
+    </handlers>
+</system.webServer>
+```
 
 with ASP.NET MVC
 ---
@@ -374,6 +429,12 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.2.0 - 2015-04-19
+* Add LightNode.Swagger
+* Add LightNodeServerMiddleware.GetRegisteredHandlersInfo
+* Changed JilContentFormatter namespace 
+* Fix UniRx.T4 LightNodeClient
+
 1.1.0 - 2015-02-21
 * Add AcceptVerbs.Put/Delete/Patch 
 * Add HttpVerbAttributes([GET/POST/Put/Delete/Patch]Attribute)
