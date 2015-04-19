@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace LightNode.Formatter.Jil.LZ4
+namespace LightNode.Formatter
 {
     public class LZ4JilContentFormatter : ContentFormatterBase
     {
