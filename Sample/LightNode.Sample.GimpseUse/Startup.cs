@@ -10,8 +10,9 @@ using System;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
-[assembly: Microsoft.Owin.OwinStartup(typeof(LightNode.Sample.GlimpseUse.Startup))]
+// [assembly: Microsoft.Owin.OwinStartup(typeof(LightNode.Sample.GlimpseUse.Startup))]
 
 namespace LightNode.Sample.GlimpseUse
 {
@@ -25,32 +26,83 @@ namespace LightNode.Sample.GlimpseUse
         public void Configuration(Owin.IAppBuilder app)
         {
             app.EnableGlimpse();
-            app.MapWhen(x => !x.Request.Path.Value.StartsWith("/glimpse.axd", StringComparison.OrdinalIgnoreCase), x =>
+            app.Map("/api", builder =>
             {
-                x.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new JilContentFormatter(), new GZipJilContentFormatter())
+                builder.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new JilContentFormatter(), new GZipJilContentFormatter())
                 {
                     OperationCoordinatorFactory = new GlimpseProfilingOperationCoordinatorFactory(),
-                    StreamWriteOption = StreamWriteOption.BufferAndWrite
+                    StreamWriteOption = StreamWriteOption.BufferAndWrite,
+                    ParameterEnumAllowsFieldNameParse = true,
+                    ErrorHandlingPolicy = ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails,
+                    OperationMissingHandlingPolicy = OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails
                 });
             });
+            app.Map("/swagger", builder =>
+            {
+                var xmlName = "LightNode.Sample.GlimpseUse.xml";
+                var xmlPath = HttpContext.Current.Server.MapPath("~/bin/" + xmlName);
+                //var xmlPath = System.AppDomain.CurrentDomain.BaseDirectory + "\\" + xmlName;
+
+                builder.UseLightNodeSwagger(new Swagger.SwaggerOptions("LightNodeSample", "/api")
+                {
+                    XmlDocumentPath = xmlPath,
+                    IsEmitEnumAsString = true
+                });
+            });
+
+            app.MapWhen(x => !x.Request.Path.Value.StartsWith("/Glimpse.axd", StringComparison.InvariantCultureIgnoreCase), builder =>
+            {
+                builder.Run(ctx =>
+                {
+                    ctx.Response.StatusCode = 404;
+                    return Task.FromResult(0);
+                });
+            });
+
         }
     }
 
+    /// <summary>
+    /// My Sample...
+    /// </summary>
     public class Sample : LightNodeContract
     {
+
         // use specified content formatter
-        [OperationOption(AcceptVerbs.Get, typeof(HtmlContentFormatterFactory))]
+        /// <summary>
+        /// HTMLGET
+        /// </summary>
+        /// <returns></returns>
+        [OperationOption(AcceptVerbs.Get | AcceptVerbs.Post, typeof(HtmlContentFormatterFactory))]
         public string Html()
         {
             return "<html><body>aaa</body></html>";
         }
     }
 
+    public enum MyFruits
+    {
+        Orange, Apple, Grape
+    }
 
+    public enum JapaneseFruit
+    {
+        オレンジ, リンゴ, ぶどう
+    }
+
+    /// <summary>
+    /// My Member...
+    /// </summary>
     [Authentication(Order = 1)]
     [Session(Order = 2)]
     public class Member : LightNodeContract
     {
+        /// <summary>
+        /// My Random...
+        /// </summary>
+        /// <remarks>Remarks</remarks>
+        /// <param name="seed">see.ee.d</param>
+        /// <returns>result</returns>
         public async Task<Person> Random(int seed)
         {
             //await Redis.Settings.String<string>("Person?Seed=" + seed).Get();
@@ -68,6 +120,25 @@ namespace LightNode.Sample.GlimpseUse
 
             return new Person { Age = rand.Next(10, 40), FirstName = f.ToString(), LastName = l.ToString() };
         }
+
+        /// <summary>
+        /// ほげもげ
+        /// </summary>
+        /// <remarks>ふふが！</remarks>
+        /// <param name="x">えっくす</param>
+        /// <param name="y">わい</param>
+        /// <param name="jf">日本語マン</param>
+        /// <param name="fruit">英語マン</param>
+        /// <returns>Ret</returns>
+        public string Test(int x, string y, string[] abc, JapaneseFruit jf, Fruit fruit = Fruit.Banana)
+        {
+            return jf.ToString();
+        }
+    }
+
+    public enum Fruit
+    {
+        Apple, Banana
     }
 
     // dummy
