@@ -221,6 +221,30 @@ If you can't run swagger on hosting IIS, maybe conflicts static file handling. P
 </system.webServer>
 ```
 
+If you want to customize index.html(or others) for authentication etc. You can use `InjectCustomResource`.
+
+```csharp
+app.Map("/swagger", builder =>
+{
+    builder.UseLightNodeSwagger(new LightNode.Swagger.SwaggerOptions("MySample", "/api")
+    {
+        InjectCustomResource = (filePath, loadedEmbeddedBytes) =>
+        {
+            if (filePath == "index.html")
+            {
+                using (var resourceStream = typeof(Startup).Assembly.GetManifestResourceStream("MySample.Swagger.index.html"))
+                using (var ms = new MemoryStream())
+                {
+                    resourceStream.CopyTo(ms);
+                    return ms.ToArray();
+                }
+            }
+            return loadedEmbeddedBytes;
+        }
+    });
+});
+```
+
 with ASP.NET MVC
 ---
 You can use LightNode with ASP.NET MVC. A simple solution is to change the root path.
