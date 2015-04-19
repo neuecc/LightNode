@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using LightNode.Formatter;
 using LightNode.Core;
 using System.Text;
-using LightNode.Formatter.Jil;
+using LightNode.Formatter;
 
 namespace LightNode.Sample.Server.SelfHost
 {

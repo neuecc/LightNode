@@ -59,6 +59,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{52DEAA6E-C
 		NuGet\LightNode.Formatter.MsgPack.nuspec = NuGet\LightNode.Formatter.MsgPack.nuspec
 		NuGet\LightNode.Formatter.ProtoBuf.nuspec = NuGet\LightNode.Formatter.ProtoBuf.nuspec
 		NuGet\LightNode.Server.nuspec = NuGet\LightNode.Server.nuspec
+		NuGet\LightNode.Swagger.nuspec = NuGet\LightNode.Swagger.nuspec
 		NuGet\pack.bat = NuGet\pack.bat
 		NuGet\push.bat = NuGet\push.bat
 		README.md = README.md

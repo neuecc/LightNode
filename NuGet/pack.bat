@@ -7,3 +7,5 @@ nuget pack LightNode.Formatter.MsgPack.nuspec
 nuget pack LightNode.Formatter.JsonNet.nuspec
 nuget pack LightNode.Formatter.Jil.nuspec
 nuget pack LightNode.Formatter.Jil.LZ4.nuspec
+nuget pack Glimpse.LightNode.nuspec
+nuget pack LightNode.Swagger.nuspec
