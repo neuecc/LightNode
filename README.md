@@ -453,6 +453,9 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.2.1 - 2015-04-22
+* Fix LightNode.Server throws exception if run on SelfHost
+
 1.2.0 - 2015-04-19
 * Add LightNode.Swagger
 * Add LightNodeServerMiddleware.GetRegisteredHandlersInfo

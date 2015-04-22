@@ -1,5 +1,5 @@
 nuget push LightNode.Core.1.2.0.nupkg
-nuget push LightNode.Server.1.2.0.nupkg
+nuget push LightNode.Server.1.2.1.nupkg
 nuget push LightNode.Client.PCL.T4.1.2.0.nupkg
 nuget push LightNode.Client.UniRx.T4.1.2.0.nupkg
 nuget push LightNode.Formatter.ProtoBuf.1.2.0.nupkg
