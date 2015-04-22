@@ -1,4 +1,5 @@
-﻿using Owin;
+﻿using LightNode.Server;
+using Owin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +54,12 @@ namespace LightNode.Performance
         [LightNode.Server.IgnoreClientGenerate]
         public void IgnoreClient(string a)
         {
+        }
+
+        [Post]
+        public string PostString(string hoge)
+        {
+            return hoge;
         }
     }
 

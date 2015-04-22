@@ -29,7 +29,7 @@ namespace LightNode.Server
         // cache all methods
         public IReadOnlyCollection<KeyValuePair<string, OperationInfo>> RegisterHandler(Assembly[] hostAssemblies)
         {
-            if (Interlocked.Increment(ref alreadyRegistered) != 0) return new KeyValuePair<string,OperationInfo>[0];
+            if (Interlocked.Increment(ref alreadyRegistered) != 0) return new KeyValuePair<string, OperationInfo>[0];
 
             var contractTypes = hostAssemblies
                 .SelectMany(x =>
@@ -202,83 +202,110 @@ namespace LightNode.Server
         {
             LightNodeEventSource.Log.ProcessRequestStart(environment.AsRequestPath());
 
-            var coordinator = options.OperationCoordinatorFactory.Create();
-            if (!coordinator.OnStartProcessRequest(options, environment))
+            MemoryStream bufferedRequestStream = null;
+            var originalRequestStream = environment.AsRequestBody();
+            if (!originalRequestStream.CanSeek)
             {
-                return;
+                bufferedRequestStream = new MemoryStream();
+                if (options.StreamWriteOption == StreamWriteOption.BufferAndAsynchronousWrite)
+                {
+                    await originalRequestStream.CopyToAsync(bufferedRequestStream); // keep context
+                }
+                else
+                {
+                    originalRequestStream.CopyTo(bufferedRequestStream);
+                }
+                bufferedRequestStream.Position = 0;
+                environment[OwinConstants.RequestBody] = bufferedRequestStream;
             }
-
-            AcceptVerbs verb;
-            string ext;
-            var handler = SelectHandler(environment, coordinator, out verb, out ext);
-            if (handler == null) return;
-
-            // Parameter binding
-            var valueProvider = new ValueProvider(environment, verb);
-            var methodParameters = ParameterBinder.BindParameter(environment, options, coordinator, valueProvider, handler.Arguments);
-            if (methodParameters == null) return;
-
-            // select formatter
-            var formatter = handler.NegotiateFormat(environment, ext, options, coordinator);
-            if (formatter == null)
-            {
-                if (formatter == null) return;
-            }
-
             try
             {
-                // Operation execute
-                var context = new OperationContext(environment, handler.ClassName, handler.MethodName, verb)
+                var coordinator = options.OperationCoordinatorFactory.Create();
+                if (!coordinator.OnStartProcessRequest(options, environment))
                 {
-                    Parameters = methodParameters,
-                    ParameterNames = handler.ParameterNames,
-                    ContentFormatter = formatter,
-                    Attributes = handler.AttributeLookup
-                };
-                var executionPath = context.ToString();
-                LightNodeEventSource.Log.ExecuteStart(executionPath);
-                var sw = Stopwatch.StartNew();
-                var interrupted = false;
+                    return;
+                }
+
+                AcceptVerbs verb;
+                string ext;
+                var handler = SelectHandler(environment, coordinator, out verb, out ext);
+                if (handler == null) return;
+
+                // Parameter binding
+                var valueProvider = new ValueProvider(environment, verb);
+                var methodParameters = ParameterBinder.BindParameter(environment, options, coordinator, valueProvider, handler.Arguments);
+                if (methodParameters == null) return;
+
+                // select formatter
+                var formatter = handler.NegotiateFormat(environment, ext, options, coordinator);
+                if (formatter == null)
+                {
+                    if (formatter == null) return;
+                }
+
                 try
                 {
-                    await handler.Execute(options, context, coordinator).ConfigureAwait(false);
-                }
-                catch
-                {
-                    interrupted = true;
-                    throw;
-                }
-                finally
-                {
-                    sw.Stop();
-                    LightNodeEventSource.Log.ExecuteFinished(executionPath, interrupted, sw.Elapsed.TotalMilliseconds);
-                }
-                return;
-            }
-            catch (ReturnStatusCodeException statusException)
-            {
-                statusException.EmitCode(environment);
-                return;
-            }
-            catch (Exception ex)
-            {
-                var exString = ex.ToString();
-                coordinator.OnProcessInterrupt(options, environment, InterruptReason.ExecuteFailed, exString);
-                switch (options.ErrorHandlingPolicy)
-                {
-                    case ErrorHandlingPolicy.ReturnInternalServerError:
-                        environment.EmitInternalServerError();
-                        environment.EmitStringMessage("500 InternalServerError");
-                        return;
-                    case ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails:
-                        environment.EmitInternalServerError();
-                        environment.EmitStringMessage(exString);
-                        return;
-                    case ErrorHandlingPolicy.ThrowException:
-                    default:
-                        environment.EmitInternalServerError();
+                    // Operation execute
+                    var context = new OperationContext(environment, handler.ClassName, handler.MethodName, verb)
+                    {
+                        Parameters = methodParameters,
+                        ParameterNames = handler.ParameterNames,
+                        ContentFormatter = formatter,
+                        Attributes = handler.AttributeLookup
+                    };
+                    var executionPath = context.ToString();
+                    LightNodeEventSource.Log.ExecuteStart(executionPath);
+                    var sw = Stopwatch.StartNew();
+                    var interrupted = false;
+                    try
+                    {
+                        await handler.Execute(options, context, coordinator).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        interrupted = true;
                         throw;
+                    }
+                    finally
+                    {
+                        sw.Stop();
+                        LightNodeEventSource.Log.ExecuteFinished(executionPath, interrupted, sw.Elapsed.TotalMilliseconds);
+                    }
+                    return;
                 }
+                catch (ReturnStatusCodeException statusException)
+                {
+                    statusException.EmitCode(environment);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    var exString = ex.ToString();
+                    coordinator.OnProcessInterrupt(options, environment, InterruptReason.ExecuteFailed, exString);
+                    switch (options.ErrorHandlingPolicy)
+                    {
+                        case ErrorHandlingPolicy.ReturnInternalServerError:
+                            environment.EmitInternalServerError();
+                            environment.EmitStringMessage("500 InternalServerError");
+                            return;
+                        case ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails:
+                            environment.EmitInternalServerError();
+                            environment.EmitStringMessage(exString);
+                            return;
+                        case ErrorHandlingPolicy.ThrowException:
+                        default:
+                            environment.EmitInternalServerError();
+                            throw;
+                    }
+                }
+            }
+            finally
+            {
+                if (bufferedRequestStream != null)
+                {
+                    bufferedRequestStream.Dispose();
+                }
+                environment[OwinConstants.RequestBody] = originalRequestStream;
             }
         }
     }

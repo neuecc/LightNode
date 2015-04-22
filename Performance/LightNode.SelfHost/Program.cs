@@ -1,4 +1,5 @@
-﻿using Microsoft.Owin.Hosting;
+﻿using LightNode.Server;
+using Microsoft.Owin.Hosting;
 using Owin;
 using System;
 using System.Collections.Generic;
@@ -46,6 +47,12 @@ namespace LightNode.SelfHost
 
         public void TestArray(string[] array, int[] array2)
         {
+        }
+
+        [Post]
+        public string PostString(string hoge)
+        {
+            return hoge;
         }
     }
 
