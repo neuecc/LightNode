@@ -118,15 +118,15 @@ public void Configuration(Owin.IAppBuilder app)
 
 Access glimpse.axd and Click Standalone Glimpse Launch Now! Click History window and Inspect. You can see Filter and Execution elapsed on Timeline tab.
 
-![](Img/glimpse_lightnode_timeline.jpg)
+![](https://raw.githubusercontent.com/neuecc/LightNode/master/Img/glimpse_lightnode_timeline.jpg)
 
 Check the LightNode tab, you can monitor everything. Parameters, Result, Exectuion Phase, Response, and LightNodeOptions.
 
-![](Img/lightnode_glimpse_infotab.jpg)
+![](https://raw.githubusercontent.com/neuecc/LightNode/master/Img/lightnode_glimpse_infotab.jpg)
 
 If encounts exception, LightNode tab shows exception on Result.
 
-![](Img/glimpse_infotab_exception.jpg)
+![](https://raw.githubusercontent.com/neuecc/LightNode/master/Img/glimpse_infotab_exception.jpg)
 
 My recommended glimpse configuration.
 
@@ -164,13 +164,13 @@ var req = WebRequest.CreateHttp("http://localhost:41932/Member/Random?seed=13");
 req.CookieContainer = new CookieContainer();
 req.CookieContainer.Add(new Uri("http://localhost:41932"), new Cookie("glimpseid", "UserId:4"));
 ```
-![](Img/glimpse_history_clientgrouping.jpg)
+![](https://raw.githubusercontent.com/neuecc/LightNode/master/Img/glimpse_history_clientgrouping.jpg)
 
 Swagger Integration
 ---
 LightNode supports [Swagger](http://swagger.io/) for API Explorer(currently Swagger supports is experimental, only shows parameters).
 
-![](Img/swagger_support.jpg)
+![](https://raw.githubusercontent.com/neuecc/LightNode/master/Img/swagger_support.jpg)
 
 Middleware available in NuGet.
 
