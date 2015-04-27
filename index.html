@@ -241,13 +241,13 @@ app.Map(<span class="pl-s"><span class="pl-pds">"</span>/swagger<span class="pl-
     &lt;/handlers&gt;
 &lt;/system.webServer&gt;</pre></div>
 
-<p>If you want to customize index.html(or others) for authentication etc. You can use <code>InjectCustomResource</code>.</p>
+<p>If you want to customize index.html(or others) for authentication etc. You can use <code>ResolveCustomResource</code>.</p>
 
 <div class="highlight highlight-csharp"><pre>app.Map(<span class="pl-s"><span class="pl-pds">"</span>/swagger<span class="pl-pds">"</span></span>, builder =&gt;
 {
     builder.UseLightNodeSwagger(<span class="pl-k">new</span> LightNode.Swagger.SwaggerOptions(<span class="pl-s"><span class="pl-pds">"</span>MySample<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>/api<span class="pl-pds">"</span></span>)
     {
-        InjectCustomResource = (filePath, loadedEmbeddedBytes) =&gt;
+        ResolveCustomResource = (filePath, loadedEmbeddedBytes) =&gt;
         {
             <span class="pl-k">if</span> (filePath == <span class="pl-s"><span class="pl-pds">"</span>index.html<span class="pl-pds">"</span></span>)
             {
@@ -367,6 +367,60 @@ app.Map(<span class="pl-s"><span class="pl-pds">"</span>/swagger<span class="pl-
 }</pre></div>
 
 <h2>
+<a id="return-html" class="anchor" href="#return-html" aria-hidden="true"><span class="octicon octicon-link"></span></a>Return HTML</h2>
+
+<p>If you needs return html, set content formatter to <code>HtmlContentFormatter/HtmlContentFormatterFactory</code>. If you needs template engine, you can use <a href="https://github.com/Antaris/RazorEngine">RazorEngine</a>. Simple helper base contract.</p>
+
+<div class="highlight highlight-csharp"><pre><span class="pl-k">public</span> <span class="pl-k">abstract</span> <span class="pl-k">class</span> <span class="pl-en">RazorContractBase</span> : <span class="pl-k">LightNode</span>.<span class="pl-k">Server</span>.<span class="pl-k">LightNodeContract</span>
+{
+    <span class="pl-k">static</span> <span class="pl-k">readonly</span> IRazorEngineService razor = <span class="pl-en">CreateRazorEngineService</span>();
+
+    IRazorEngineService <span class="pl-en">CreateRazorEngineService</span>()
+    {
+        <span class="pl-k">var</span> config = <span class="pl-k">new</span> TemplateServiceConfiguration();
+        config.DisableTempFileLocking = <span class="pl-c1">true</span>;
+        config.CachingProvider = <span class="pl-k">new</span> DefaultCachingProvider(_ =&gt; { });
+        config.TemplateManager = <span class="pl-k">new</span> DelegateTemplateManager(name =&gt;
+        {
+            <span class="pl-c">// import from "Views" directory</span>
+            <span class="pl-k">var</span> viewPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, <span class="pl-s"><span class="pl-pds">"</span>Views<span class="pl-pds">"</span></span>, name);
+            <span class="pl-k">return</span> System.IO.File.ReadAllText(viewPath);
+        });
+        <span class="pl-k">return</span> RazorEngineService.Create(config);
+    }
+
+    <span class="pl-k">protected</span> <span class="pl-k">string</span> <span class="pl-en">View</span>(<span class="pl-k">string</span> <span class="pl-smi">viewName</span>)
+    {
+        <span class="pl-k">return</span> View(viewName, <span class="pl-k">new</span> object());
+    }
+
+    <span class="pl-k">protected</span> <span class="pl-k">string</span> <span class="pl-en">View</span>(<span class="pl-k">string</span> <span class="pl-smi">viewName</span>, <span class="pl-k">object</span> <span class="pl-smi">model</span>)
+    {
+        <span class="pl-k">var</span> type = model.GetType();
+        <span class="pl-k">if</span> (razor.IsTemplateCached(viewName, type))
+        {
+            <span class="pl-k">return</span> razor.Run(viewName, type, model);
+        }
+        <span class="pl-k">else</span>
+        {
+            <span class="pl-k">return</span> razor.RunCompile(viewName, type, model);
+        }
+    }
+}</pre></div>
+
+<p>And you can make shortcut of OperationOptionAttribute.</p>
+
+<pre><code>public class Html : LightNode.Server.OperationOptionAttribute
+{
+    public Html(AcceptVerbs acceptVerbs = AcceptVerbs.Get | AcceptVerbs.Post)
+        : base(acceptVerbs, typeof(HtmlContentFormatterFactory))
+    {
+
+    }
+}
+</code></pre>
+
+<h2>
 <a id="language-interoperability" class="anchor" href="#language-interoperability" aria-hidden="true"><span class="octicon octicon-link"></span></a>Language Interoperability</h2>
 
 <p>LightNode is like RPC but REST. Public API follows a simple rule. Address is <code>{ClassName}/{MethodName}</code>, and it's case insensitive. GET parameter use QueryString. POST parameter use x-www-form-urlencoded. Response type follows configured ContentFormatter. Receiver can select response type use url extension(.xml, .json etc...) or Accept header.</p>
@@ -472,6 +526,16 @@ app.UseLightNode(option);</pre></div>
 
 <h2>
 <a id="releasenote" class="anchor" href="#releasenote" aria-hidden="true"><span class="octicon octicon-link"></span></a>ReleaseNote</h2>
+
+<p>1.3.0 - 2015-04-28</p>
+
+<ul>
+<li>Add ReturnStatusCodeException accepts object and contentFormatter</li>
+<li>Add Swagger output Get/Post/Put/Patch/Delete</li>
+<li>Fix Swagger can't generate when xml comment has method overload</li>
+<li>Changed InjectCustomResource -&gt; ResolveCustomResource</li>
+<li>Docs Return html with RazorEngine tips</li>
+</ul>
 
 <p>1.2.1 - 2015-04-22</p>
 
