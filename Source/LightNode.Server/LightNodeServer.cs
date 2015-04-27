@@ -275,27 +275,23 @@ namespace LightNode.Server
                 }
                 catch (ReturnStatusCodeException statusException)
                 {
-                    statusException.EmitCode(environment);
-                    return;
+                    try
+                    {
+                        statusException.EmitCode(options, environment);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (IsRethrowOrEmitException(coordinator, options, environment, ex))
+                        {
+                            throw;
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
-                    var exString = ex.ToString();
-                    coordinator.OnProcessInterrupt(options, environment, InterruptReason.ExecuteFailed, exString);
-                    switch (options.ErrorHandlingPolicy)
+                    if (IsRethrowOrEmitException(coordinator, options, environment, ex))
                     {
-                        case ErrorHandlingPolicy.ReturnInternalServerError:
-                            environment.EmitInternalServerError();
-                            environment.EmitStringMessage("500 InternalServerError");
-                            return;
-                        case ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails:
-                            environment.EmitInternalServerError();
-                            environment.EmitStringMessage(exString);
-                            return;
-                        case ErrorHandlingPolicy.ThrowException:
-                        default:
-                            environment.EmitInternalServerError();
-                            throw;
+                        throw;
                     }
                 }
             }
@@ -306,6 +302,27 @@ namespace LightNode.Server
                     bufferedRequestStream.Dispose();
                 }
                 environment[OwinConstants.RequestBody] = originalRequestStream;
+            }
+        }
+
+        static bool IsRethrowOrEmitException(IOperationCoordinator coordinator, ILightNodeOptions options, IDictionary<string, object> environment, Exception ex)
+        {
+            var exString = ex.ToString();
+            coordinator.OnProcessInterrupt(options, environment, InterruptReason.ExecuteFailed, exString);
+            switch (options.ErrorHandlingPolicy)
+            {
+                case ErrorHandlingPolicy.ReturnInternalServerError:
+                    environment.EmitInternalServerError();
+                    environment.EmitStringMessage("500 InternalServerError");
+                    return false;
+                case ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails:
+                    environment.EmitInternalServerError();
+                    environment.EmitStringMessage(exString);
+                    return false;
+                case ErrorHandlingPolicy.ThrowException:
+                default:
+                    environment.EmitInternalServerError();
+                    return true;
             }
         }
     }

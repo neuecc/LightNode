@@ -11,16 +11,30 @@ namespace LightNode.Server
 {
     using AppFunc = Func<IDictionary<string, object>, Task>;
 
+    public class RegisteredHandlersInfo
+    {
+        public string EngineId { get;private set; }
+        public ILightNodeOptions Options { get; private set; }
+        public IReadOnlyCollection<KeyValuePair<string, OperationInfo>> RegisteredHandlers { get; private set; }
+
+        public RegisteredHandlersInfo(string engineId, ILightNodeOptions options, IReadOnlyCollection<KeyValuePair<string, OperationInfo>> registeredHandlers)
+        {
+            this.EngineId = engineId;
+            this.Options = options;
+            this.RegisteredHandlers = registeredHandlers;
+        }
+    }
+
     public class LightNodeServerMiddleware
     {
         static readonly object runningHandlerLock = new object();
-        static ILookup<string, IReadOnlyCollection<KeyValuePair<string, OperationInfo>>> runningHandlers =
-            Enumerable.Empty<IReadOnlyCollection<KeyValuePair<string, OperationInfo>>>().ToLookup(x => "", x => x);
+        static ILookup<string, RegisteredHandlersInfo> runningHandlers =
+            Enumerable.Empty<RegisteredHandlersInfo>().ToLookup(x => "", x => x);
 
         /// <summary>
         /// Get all registered handlers. Key is ILightNodeOptions.ServerEngineId.
         /// </summary>
-        public static ILookup<string, IReadOnlyCollection<KeyValuePair<string, OperationInfo>>> GetRegisteredHandlersInfo()
+        public static ILookup<string, RegisteredHandlersInfo> GetRegisteredHandlersInfo()
         {
             return runningHandlers;
         }
@@ -47,7 +61,7 @@ namespace LightNode.Server
             lock (runningHandlerLock)
             {
                 runningHandlers = runningHandlers.SelectMany(g => g, (g, xs) => new { g.Key, xs })
-                    .Concat(new[] { new { Key = options.ServerEngineId, xs = registeredHandler } })
+                    .Concat(new[] { new { Key = options.ServerEngineId, xs = new RegisteredHandlersInfo(options.ServerEngineId, options, registeredHandler) }})
                     .ToLookup(x => x.Key, x => x.xs);
             }
         }

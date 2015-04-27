@@ -66,9 +66,16 @@ namespace LightNode.Swagger.Schema
     [DataContract]
     public class PathItem
     {
-        // currently only supports post:)
         [DataMember(EmitDefaultValue = false)]
         public Operation post { get; set; }
+        [DataMember(EmitDefaultValue = false)]
+        public Operation get { get; set; }
+        [DataMember(EmitDefaultValue = false)]
+        public Operation put { get; set; }
+        [DataMember(EmitDefaultValue = false)]
+        public Operation delete { get; set; }
+        [DataMember(EmitDefaultValue = false)]
+        public Operation patch { get; set; }
     }
 
     [DataContract]

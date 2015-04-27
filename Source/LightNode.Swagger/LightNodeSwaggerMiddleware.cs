@@ -53,7 +53,7 @@ namespace LightNode.Swagger
 
             using (var stream = myAssembly.GetManifestResourceStream(filePath))
             {
-                if (options.InjectCustomResource == null)
+                if (options.ResolveCustomResource == null)
                 {
                     if (stream == null) return next(environment);
 
@@ -65,14 +65,14 @@ namespace LightNode.Swagger
                     byte[] bytes;
                     if (stream == null)
                     {
-                        bytes = options.InjectCustomResource(path, null);
+                        bytes = options.ResolveCustomResource(path, null);
                     }
                     else
                     {
                         using (var ms = new MemoryStream())
                         {
                             stream.CopyTo(ms);
-                            bytes = options.InjectCustomResource(path, ms.ToArray());
+                            bytes = options.ResolveCustomResource(path, ms.ToArray());
                         }
                     }
 
@@ -91,7 +91,7 @@ namespace LightNode.Swagger
         }
 
 
-        static byte[] BuildSwaggerJson(SwaggerOptions options, IDictionary<string, object> environment, IEnumerable<KeyValuePair<string, OperationInfo>> operations)
+        static byte[] BuildSwaggerJson(SwaggerOptions options, IDictionary<string, object> environment, RegisteredHandlersInfo handlersInfo)
         {
             var xDocLookup = (options.XmlDocumentPath != null)
                 ? BuildXmlCommentStructure(options.XmlDocumentPath)
@@ -105,12 +105,12 @@ namespace LightNode.Swagger
             doc.schemes = new[] { environment.AsRequestScheme() };
             doc.paths = new Dictionary<string, PathItem>();
 
-            foreach (var item in operations)
+            foreach (var item in handlersInfo.RegisteredHandlers)
             {
                 XmlCommentStructure xmlComment = null;
                 if (xDocLookup != null)
                 {
-                    xDocLookup.TryGetValue(Tuple.Create(item.Value.ClassName, item.Value.MethodName), out xmlComment);
+                    xmlComment = xDocLookup[Tuple.Create(item.Value.ClassName, item.Value.MethodName)].FirstOrDefault();
                 }
 
                 var parameters = item.Value.Parameters
@@ -174,16 +174,15 @@ namespace LightNode.Swagger
                     })
                     .ToArray();
 
-                doc.paths.Add(item.Key, new PathItem
+                var operation = new Operation
                 {
-                    post = new Operation
-                    {
-                        tags = new[] { item.Value.ClassName },
-                        summary = (xmlComment != null) ? xmlComment.Summary : "",
-                        description = (xmlComment != null) ? xmlComment.Remarks : "",
-                        parameters = parameters
-                    }
-                });
+                    tags = new[] { item.Value.ClassName },
+                    summary = (xmlComment != null) ? xmlComment.Summary : "",
+                    description = (xmlComment != null) ? xmlComment.Remarks : "",
+                    parameters = parameters
+                };
+
+                doc.paths.Add(item.Key, CreatePathItem(item.Value.AcceptVerbs, operation));
             }
 
             using (var ms = new MemoryStream())
@@ -196,6 +195,31 @@ namespace LightNode.Swagger
                 serializer.WriteObject(ms, doc);
                 return ms.ToArray();
             }
+        }
+
+        static PathItem CreatePathItem(AcceptVerbs acceptVerbs, Operation operation)
+        {
+            if (acceptVerbs.HasFlag(AcceptVerbs.Get))
+            {
+                return new PathItem { get = operation };
+            }
+            if (acceptVerbs.HasFlag(AcceptVerbs.Post))
+            {
+                return new PathItem { post = operation };
+            }
+            if (acceptVerbs.HasFlag(AcceptVerbs.Put))
+            {
+                return new PathItem { put = operation };
+            }
+            if (acceptVerbs.HasFlag(AcceptVerbs.Delete))
+            {
+                return new PathItem { delete = operation };
+            }
+            if (acceptVerbs.HasFlag(AcceptVerbs.Patch))
+            {
+                return new PathItem { patch = operation };
+            }
+            throw new ArgumentOutOfRangeException();
         }
 
         static string GetMediaType(string path)
@@ -267,7 +291,7 @@ namespace LightNode.Swagger
             }
         }
 
-        static IDictionary<Tuple<string, string>, XmlCommentStructure> BuildXmlCommentStructure(string xmlDocumentPath)
+        static ILookup<Tuple<string, string>, XmlCommentStructure> BuildXmlCommentStructure(string xmlDocumentPath)
         {
             var file = File.ReadAllText(xmlDocumentPath);
             var xDoc = XDocument.Parse(file);
@@ -295,7 +319,7 @@ namespace LightNode.Swagger
                         Returns = returns
                     };
                 })
-                .ToDictionary(x => Tuple.Create(x.ClassName, x.MethodName));
+                .ToLookup(x => Tuple.Create(x.ClassName, x.MethodName));
 
             return xDocLookup;
         }

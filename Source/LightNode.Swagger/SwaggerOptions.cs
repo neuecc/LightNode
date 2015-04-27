@@ -16,7 +16,7 @@ namespace LightNode.Swagger
         /// <summary>
         /// (FilePath, LoadedEmbeddedBytes) => CustomBytes)
         /// </summary>
-        public Func<string, byte[], byte[]> InjectCustomResource { get; set; }
+        public Func<string, byte[], byte[]> ResolveCustomResource { get; set; }
         public Func<IDictionary<string, object>, string> CustomHost { get; set; }
         public string XmlDocumentPath { get; set; }
 

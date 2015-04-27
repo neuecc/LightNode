@@ -15,6 +15,15 @@ using System.Web;
 
 namespace LightNode.Sample.GlimpseUse
 {
+    public class Html : LightNode.Server.OperationOptionAttribute
+    {
+        public Html(AcceptVerbs acceptVerbs = AcceptVerbs.Get | AcceptVerbs.Post)
+            : base(acceptVerbs, typeof(HtmlContentFormatterFactory))
+        {
+
+        }
+    }
+
     public static class Redis
     {
         public static RedisSettings Settings = new RedisSettings("127.0.0.1,allowAdmin=true", tracerFactory: () => new GlimpseRedisCommandTracer());
@@ -133,6 +142,43 @@ namespace LightNode.Sample.GlimpseUse
         {
             return jf.ToString();
         }
+
+        public void BadRequest()
+        {
+            throw new ReturnStatusCodeException(System.Net.HttpStatusCode.BadRequest, content: "Bad Requestにゃん");
+        }
+
+
+        [Html]
+        public string Html()
+        {
+            return "<html><body><h1>aaa</h1></body></html>";
+        }
+
+        [Get]
+        public void Get()
+        {
+        }
+
+        [Post]
+        public void Post()
+        {
+        }
+
+        [Put]
+        public void Put()
+        {
+        }
+
+        [Delete]
+        public void Delete()
+        {
+        }
+
+        [Patch]
+        public void Patch()
+        {
+        }
     }
 
     public enum Fruit
@@ -169,5 +215,20 @@ namespace LightNode.Sample.GlimpseUse
         public int Age { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+
+        /// <summary>
+        /// M
+        /// </summary>
+        void Moge()
+        {
+        }
+
+        /// <summary>
+        /// M
+        /// </summary>
+        /// <param name="x">x</param>
+        void Moge(int x)
+        {
+        }
     }
 }

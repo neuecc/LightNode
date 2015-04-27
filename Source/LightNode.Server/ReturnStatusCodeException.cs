@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LightNode.Core;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -7,30 +8,58 @@ namespace LightNode.Server
 {
     public class ReturnStatusCodeException : Exception
     {
-        public string Content { get; set; }
-        public string ReasonPhrase { get; set; }
-
         public HttpStatusCode StatusCode { get; private set; }
+        public string ReasonPhrase { get; private set; }
 
-        public ReturnStatusCodeException(HttpStatusCode statusCode, string reasonPhrase = null, string content = null)
+        object content;
+        IContentFormatter contentFormatter;
+
+        public ReturnStatusCodeException(HttpStatusCode statusCode, string reasonPhrase = null, object content = null, IContentFormatter contentFormatter = null)
         {
             this.StatusCode = statusCode;
             this.ReasonPhrase = reasonPhrase;
-            this.Content = content;
+            this.content = content;
+            this.contentFormatter = contentFormatter;
         }
 
-        internal void EmitCode(IDictionary<string, object> environment)
+        internal void EmitCode(ILightNodeOptions options, IDictionary<string, object> environment)
         {
-            environment["owin.ResponseStatusCode"] = (int)StatusCode;
+            environment[OwinConstants.ResponseStatusCode] = (int)StatusCode;
             if (ReasonPhrase != null)
             {
-                environment["owin.ResponseReasonPhrase"] = ReasonPhrase;
+                environment[OwinConstants.ResponseStatusCode] = ReasonPhrase;
             }
-            if (Content != null)
+            if (content != null)
             {
-                var responseStream = environment["owin.ResponseBody"] as Stream;
-                var bytes = System.Text.Encoding.UTF8.GetBytes(Content);
-                responseStream.Write(bytes, 0, bytes.Length);
+                contentFormatter = contentFormatter ?? options.DefaultFormatter;
+                var encoding = contentFormatter.Encoding;
+                var responseHeader = environment.AsResponseHeaders();
+                responseHeader["Content-Type"] = new[] { contentFormatter.MediaType + ((encoding == null) ? "" : "; charset=" + encoding.WebName) };
+
+                var responseStream = environment.AsResponseBody();
+                if (options.StreamWriteOption == StreamWriteOption.DirectWrite)
+                {
+                    contentFormatter.Serialize(new UnclosableStream(responseStream), content);
+                }
+                else
+                {
+                    using (var buffer = new MemoryStream())
+                    {
+                        contentFormatter.Serialize(new UnclosableStream(buffer), content);
+                        responseHeader["Content-Length"] = new[] { buffer.Position.ToString() };
+                        buffer.Position = 0;
+                        if (options.StreamWriteOption == StreamWriteOption.BufferAndWrite)
+                        {
+                            buffer.CopyTo(responseStream); // not CopyToAsync
+                        }
+                        else
+                        {
+                            // can't await in catch clouse at C# 5.0:)
+                            // return buffer.CopyToAsync(responseStream);
+                            buffer.CopyTo(responseStream);
+                        }
+                    }
+                }
             }
         }
 

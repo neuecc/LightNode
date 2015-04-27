@@ -9,10 +9,10 @@ namespace LightNode.Server
 {
     internal static class OwinHelper
     {
-
         public static void EmitStringMessage(this IDictionary<string, object> environment, string message)
         {
             var bytes = Encoding.UTF8.GetBytes(message);
+            environment.AsResponseHeaders()["Content-Type"] = new[] { "text/plain" };
             (environment["owin.ResponseBody"] as Stream).Write(bytes, 0, bytes.Length);
         }
 
