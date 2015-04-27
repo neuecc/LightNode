@@ -221,14 +221,14 @@ If you can't run swagger on hosting IIS, maybe conflicts static file handling. P
 </system.webServer>
 ```
 
-If you want to customize index.html(or others) for authentication etc. You can use `InjectCustomResource`.
+If you want to customize index.html(or others) for authentication etc. You can use `ResolveCustomResource`.
 
 ```csharp
 app.Map("/swagger", builder =>
 {
     builder.UseLightNodeSwagger(new LightNode.Swagger.SwaggerOptions("MySample", "/api")
     {
-        InjectCustomResource = (filePath, loadedEmbeddedBytes) =>
+        ResolveCustomResource = (filePath, loadedEmbeddedBytes) =>
         {
             if (filePath == "index.html")
             {
@@ -349,6 +349,62 @@ public byte[] EchoByte()
 }
 ```
 
+Return HTML
+---
+If you needs return html, set content formatter to `HtmlContentFormatter/HtmlContentFormatterFactory`. If you needs template engine, you can use [RazorEngine](https://github.com/Antaris/RazorEngine). Simple helper base contract.
+
+```csharp
+public abstract class RazorContractBase : LightNode.Server.LightNodeContract
+{
+    static readonly IRazorEngineService razor = CreateRazorEngineService();
+
+    IRazorEngineService CreateRazorEngineService()
+    {
+        var config = new TemplateServiceConfiguration();
+        config.DisableTempFileLocking = true;
+        config.CachingProvider = new DefaultCachingProvider(_ => { });
+        config.TemplateManager = new DelegateTemplateManager(name =>
+        {
+            // import from "Views" directory
+            var viewPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Views", name);
+            return System.IO.File.ReadAllText(viewPath);
+        });
+        return RazorEngineService.Create(config);
+    }
+
+    protected string View(string viewName)
+    {
+        return View(viewName, new object());
+    }
+
+    protected string View(string viewName, object model)
+    {
+        var type = model.GetType();
+        if (razor.IsTemplateCached(viewName, type))
+        {
+            return razor.Run(viewName, type, model);
+        }
+        else
+        {
+            return razor.RunCompile(viewName, type, model);
+        }
+    }
+}
+```
+
+And you can make shortcut of OperationOptionAttribute.
+
+```
+public class Html : LightNode.Server.OperationOptionAttribute
+{
+    public Html(AcceptVerbs acceptVerbs = AcceptVerbs.Get | AcceptVerbs.Post)
+        : base(acceptVerbs, typeof(HtmlContentFormatterFactory))
+    {
+
+    }
+}
+```
+
 Language Interoperability
 ---
 LightNode is like RPC but REST. Public API follows a simple rule. Address is `{ClassName}/{MethodName}`, and it's case insensitive. GET parameter use QueryString. POST parameter use x-www-form-urlencoded. Response type follows configured ContentFormatter. Receiver can select response type use url extension(.xml, .json etc...) or Accept header.
@@ -453,6 +509,13 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.3.0 - 2015-04-28
+* Add ReturnStatusCodeException accepts object and contentFormatter
+* Add Swagger output Get/Post/Put/Patch/Delete
+* Fix Swagger can't generate when xml comment has method overload
+* Changed InjectCustomResource -> ResolveCustomResource
+* Docs Return html with RazorEngine tips
+
 1.2.1 - 2015-04-22
 * Fix LightNode.Server throws exception if run on SelfHost
 
