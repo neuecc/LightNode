@@ -509,7 +509,7 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
-1.3.0 - 2015-04-28
+1.3.0/1.3.1 - 2015-04-28
 * Add ReturnStatusCodeException accepts object and contentFormatter
 * Add Swagger output Get/Post/Put/Patch/Delete
 * Fix Swagger can't generate when xml comment has method overload
