@@ -24,7 +24,8 @@ namespace LightNode.Server.Tests
             var r2 = MockEnv.CreateRequest("/StatusCodeContract/Content").GetAsync().Result;
             r2.StatusCode.Is(System.Net.HttpStatusCode.UseProxy);
             r2.ReasonPhrase.Is("Pro!!!");
-            r2.Content.ReadAsStringAsync().Result.Is("UseProxy....");
+            var ddd = r2.Content.ReadAsStringAsync().Result;
+            ddd.Is("\"UseProxy....\"");
         }
     }
 
