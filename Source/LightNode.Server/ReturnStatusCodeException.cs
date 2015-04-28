@@ -27,7 +27,7 @@ namespace LightNode.Server
             environment[OwinConstants.ResponseStatusCode] = (int)StatusCode;
             if (ReasonPhrase != null)
             {
-                environment[OwinConstants.ResponseStatusCode] = ReasonPhrase;
+                environment[OwinConstants.ResponseReasonPhrase] = ReasonPhrase;
             }
             if (content != null)
             {
