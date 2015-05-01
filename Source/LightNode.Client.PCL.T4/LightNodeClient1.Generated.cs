@@ -75,7 +75,6 @@ namespace LightNode.Client
 
         protected virtual async Task<T> PostAsync<T>(string method, FormUrlEncodedContent content, CancellationToken cancellationToken)
         {
-            if (ContentFormatter.MediaType != null) content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(ContentFormatter.MediaType);
             var response = await httpClient.PostAsync(rootEndPoint + method, content, cancellationToken).ConfigureAwait(false);
             using (var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
@@ -138,6 +137,14 @@ namespace LightNode.Client
             return PostAsync<System.String>("/Perf/Te4", new FormUrlEncodedContent(list), cancellationToken);
         }
 
+        System.Threading.Tasks.Task<System.String> _IPerf.PostStringAsync(System.String hoge, System.Threading.CancellationToken cancellationToken)
+        {
+            var list = new List<KeyValuePair<string, string>>(1);
+            if (hoge != null) list.Add(new KeyValuePair<string, string>("hoge", hoge));
+
+            return PostAsync<System.String>("/Perf/PostString", new FormUrlEncodedContent(list), cancellationToken);
+        }
+
         #endregion
 
     }
@@ -150,6 +157,7 @@ namespace LightNode.Client
         System.Threading.Tasks.Task TestArrayAsync(System.String[] array, System.Int32[] array2, LightNode.Performance.MyEnum[] array3, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
         System.Threading.Tasks.Task TeVoidAsync(System.Threading.CancellationToken cancellationToken = default(CancellationToken));
         System.Threading.Tasks.Task<System.String> Te4Async(System.String xs, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+        System.Threading.Tasks.Task<System.String> PostStringAsync(System.String hoge, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
     }
 
 }
