@@ -493,8 +493,19 @@ app.Map(<span class="pl-s"><span class="pl-pds">"</span>/v2<span class="pl-pds">
 <h2>
 <a id="diagnostics" class="anchor" href="#diagnostics" aria-hidden="true"><span class="octicon octicon-link"></span></a>Diagnostics</h2>
 
-<p>LightNode expose <a href="https://github.com/neuecc/LightNode/blob/master/Source/LightNode.Server/Diagnostics/LightNodeEventSource.cs">LightNode.Diagnostics.LightNodeEventSource</a> for log diagnostics. It's using <a href="https://msdn.microsoft.com/ja-jp/library/system.diagnostics.tracing.eventsource.aspx">Systen.Diagnostics.Tracing.EventSource</a>, it's send to ETW(EventTrace for Windows) and you can subscribe easily by Microsoft's <a href="https://github.com/mspnp/semantic-logging">Semantic Logging Application Block</a>
+<p>LightNode expose logging interface <code>ILightNodeOptions.Logger</code> and provides optional logger for <a href="https://msdn.microsoft.com/ja-jp/library/system.diagnostics.tracing.eventsource.aspx">Systen.Diagnostics.Tracing.EventSource</a>, it's send to ETW(EventTrace for Windows) and you can subscribe easily by Microsoft's <a href="https://github.com/mspnp/semantic-logging">Semantic Logging Application Block</a>
  Library.</p>
+
+<ul>
+<li>PM&gt; Install-Package <a href="https://nuget.org/packages/LightNode.Diagnostics.EventSource/">LightNode.Diagnostics.EventSource</a>
+</li>
+</ul>
+
+<div class="highlight highlight-csharp"><pre><span class="pl-k">var</span> option = <span class="pl-k">new</span> LightNodeOptions
+{
+    Logger = LightNode.Diagnostics.LightNodeEventSource.Log
+};
+app.UseLightNode(option);</pre></div>
 
 <p>If throws unhandled exception, LightNode's default no handles exception and pass thru other middleware. This option is useful for debugging with Glimpse or other diagnostics middleware such as Microsoft.Owin.Diagnostics's  UseErrorPage. You can also use LightNode's Builtin diagnostics system -  LightNodeOptions.ErrorHandlingPolicy <code>ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails</code>. It's show simply error string.</p>
 
@@ -527,7 +538,22 @@ app.UseLightNode(option);</pre></div>
 <h2>
 <a id="releasenote" class="anchor" href="#releasenote" aria-hidden="true"><span class="octicon octicon-link"></span></a>ReleaseNote</h2>
 
-<p>1.3.0 - 2015-04-28</p>
+<p>1.4.0 - 2015-05-05</p>
+
+<ul>
+<li>Fix NegotiateFormat accepts all HTTP format specification</li>
+<li>MsgPack: UnpackFrom has to be done after once Read, thanks <a href="https://github.com/azyobuzin" class="user-mention">@azyobuzin</a>
+</li>
+<li>Add ILightNodeOptions.Logger, split LightNodeEventSource to LightNode.Diagnostics.EventSource</li>
+</ul>
+
+<p>1.3.2(Only LightNode.Client.PCL.T4) - 2015-05-01</p>
+
+<ul>
+<li>Fix LightNode.Client.PCL.T4 can't post</li>
+</ul>
+
+<p>1.3.0/1.3.1 - 2015-04-28</p>
 
 <ul>
 <li>Add ReturnStatusCodeException accepts object and contentFormatter</li>
