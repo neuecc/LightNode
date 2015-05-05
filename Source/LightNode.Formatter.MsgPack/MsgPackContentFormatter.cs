@@ -32,8 +32,8 @@ namespace LightNode.Formatter
         {
             using (var packer = MsgPack.Unpacker.Create(stream))
             {
-                if (!packer.Read())
-                    throw SerializationExceptions.NewUnexpectedEndOfStream();
+                if (!packer.Read()) throw SerializationExceptions.NewUnexpectedEndOfStream();
+
                 var serializer = serializationContext.GetSerializer(type);
                 return serializer.UnpackFrom(packer);
             }

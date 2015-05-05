@@ -479,6 +479,16 @@ Diagnostics
 LightNode expose [LightNode.Diagnostics.LightNodeEventSource](https://github.com/neuecc/LightNode/blob/master/Source/LightNode.Server/Diagnostics/LightNodeEventSource.cs) for log diagnostics. It's using [Systen.Diagnostics.Tracing.EventSource](https://msdn.microsoft.com/ja-jp/library/system.diagnostics.tracing.eventsource.aspx), it's send to ETW(EventTrace for Windows) and you can subscribe easily by Microsoft's [Semantic Logging Application Block](https://github.com/mspnp/semantic-logging)
  Library.
  
+* PM> Install-Package [LightNode.Diagnostics.EventSource](https://nuget.org/packages/LightNode.Diagnostics.EventSource/)
+
+```csharp
+var option = new LightNodeOptions
+{
+    Logger = LightNode.Diagnostics.LightNodeEventSource.Log
+};
+app.UseLightNode(option);
+```
+ 
 If throws unhandled exception, LightNode's default no handles exception and pass thru other middleware. This option is useful for debugging with Glimpse or other diagnostics middleware such as Microsoft.Owin.Diagnostics's  UseErrorPage. You can also use LightNode's Builtin diagnostics system -  LightNodeOptions.ErrorHandlingPolicy `ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails`. It's show simply error string.
 
 If LightNode can't create OperationContext(for example 404), default returns StatusCode and description string. This can customize `OperationMissingHandlingPolicy`, If `ThrowException` then throws `OperationNotFoundException`.
@@ -509,6 +519,11 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.4.0 - 2015-05-05
+* Fix NegotiateFormat accepts all HTTP format specification
+* MsgPack: UnpackFrom has to be done after once Read, thanks @azyobuzin
+* Add ILightNodeOptions.Logger, split LightNodeEventSource to LightNode.Diagnostics.EventSource
+ 
 1.3.2(Only LightNode.Client.PCL.T4) - 2015-05-01
 * Fix LightNode.Client.PCL.T4 can't post
 
