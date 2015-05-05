@@ -105,7 +105,7 @@ namespace LightNode.Formatter
         public override object Deserialize(Type type, System.IO.Stream stream)
         {
             using (var gzip = new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Decompress))
-            using (var sr = new StreamReader(gzip, Encoding.UTF8))
+            using (var sr = new StreamReader(gzip, Encoding ?? System.Text.Encoding.UTF8))
             {
                 return JSON.Deserialize(sr, type, options);
             }

@@ -31,6 +31,7 @@ namespace LightNode.Server
         readonly LightNodeFilterAttribute[] filters;
 
         // formatter cache
+        readonly IContentFormatter[] optionFormatters;
         readonly ILookup<string, IContentFormatter> formatterByExt;
         readonly ILookup<string, IContentFormatter> formatterByMediaType;
         readonly ILookup<string, IContentFormatter> formatterByContentEncoding;
@@ -78,6 +79,7 @@ namespace LightNode.Server
                 ? operationOption.ContentFormatter
                 : null;
             var formatterChoiceBase = new[] { options.DefaultFormatter }.Concat(options.SpecifiedFormatters).Where(x => x != null).ToArray();
+            this.optionFormatters = formatterChoiceBase;
             this.formatterByExt = formatterChoiceBase.SelectMany(x => (x.Ext ?? "").Split('|'), (fmt, ext) => new { fmt, ext }).ToLookup(x => x.ext, x => x.fmt, StringComparer.OrdinalIgnoreCase);
             this.formatterByMediaType = formatterChoiceBase.ToLookup(x => x.MediaType, StringComparer.OrdinalIgnoreCase);
             this.formatterByContentEncoding = formatterChoiceBase.ToLookup(x => x.ContentEncoding, StringComparer.OrdinalIgnoreCase);
@@ -176,6 +178,7 @@ namespace LightNode.Server
             }
         }
 
+        // Accept, Accept-Encoding flow
         internal IContentFormatter NegotiateFormat(IDictionary<string, object> environment, string ext, ILightNodeOptions options, IOperationCoordinator coorinator)
         {
             var requestHeader = environment["owin.RequestHeaders"] as IDictionary<string, string[]>;
@@ -185,7 +188,7 @@ namespace LightNode.Server
             if (!string.IsNullOrWhiteSpace(ext))
             {
                 // Ext match -> ContentEncoding match
-                var selectedFormatters = formatterByExt[ext];
+                var selectedFormatters = formatterByExt[ext] as ICollection<IContentFormatter> ?? formatterByExt[ext].ToArray();
                 if (!selectedFormatters.Any())
                 {
                     coorinator.OnProcessInterrupt(options, environment, InterruptReason.NegotiateFormatFailed, "Ext:" + ext);
@@ -205,51 +208,115 @@ namespace LightNode.Server
                     return null;
                 }
 
-                string[] encodings;
-                requestHeader.TryGetValue("Accept-Encoding", out encodings);
-                encodings = (encodings == null || encodings.Length == 0) ? null : encodings[0].Split(',');
-                if (encodings == null || encodings.Length == 0) return selectedFormatters.First();
-
-                var formatter = selectedFormatters.FirstOrDefault(x => Array.Exists(encodings, enc => enc.Equals(x.ContentEncoding, StringComparison.OrdinalIgnoreCase)));
-                if (formatter == null) return selectedFormatters.First();
-                return formatter;
+                return SelectAcceptEncodingFormatter(requestHeader, selectedFormatters);
             }
             else if (requestHeader.TryGetValue("Accept", out accepts))
             {
-                if (formatterByMediaType.Count == 1) return options.DefaultFormatter; // optimize path, defaultFormatter only
+                if (optionFormatters.Length == 1) return options.DefaultFormatter; // optimize path, defaultFormatter only
 
                 // MediaType match -> ContentEncoding match
-                var contentType = accepts[0];
-                // ex: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-                // note:ignore q
-                var formatters = contentType.Split(',').SelectMany(x => formatterByMediaType[x]).ToArray();
+                var acceptsValues = GetDescendingQualityHeaderValues(accepts);
+                var formatters = acceptsValues.SelectMany(x => formatterByMediaType[x.Item3]).ToArray();
 
-                if (formatters.Length == 0) return options.DefaultFormatter;
+                if (formatters.Length == 0)
+                {
+                    // only accept-encoding
+                    goto CONTENT_ENCODING_MATCH;
+                }
 
-                string[] encodings;
-                requestHeader.TryGetValue("Accept-Encoding", out encodings);
-                encodings = (encodings == null || encodings.Length == 0) ? null : encodings[0].Split(',');
-                if (encodings == null || encodings.Length == 0) return formatters.First();
-
-                var formatter = formatters.FirstOrDefault(x => Array.Exists(encodings, enc => enc.Equals(x.ContentEncoding, StringComparison.OrdinalIgnoreCase)));
-                if (formatter == null) return formatters.First();
-                return formatter;
+                return SelectAcceptEncodingFormatter(requestHeader, formatters);
             }
-            else
+
+            // ContentEncoding match
+            CONTENT_ENCODING_MATCH:
             {
-                if (formatterByContentEncoding.Count == 1) return options.DefaultFormatter; // optimize path, defaultFormatter only
+                if (optionFormatters.Length == 1) return options.DefaultFormatter; // optimize path, defaultFormatter only
 
                 // ContentEncoding match
-                string[] encodings;
-                requestHeader.TryGetValue("Accept-Encoding", out encodings);
-                encodings = (encodings == null || encodings.Length == 0) ? null : encodings[0].Split(',');
-                if (encodings == null || encodings.Length == 0) return options.DefaultFormatter;
+                string[] rawAcceptEncoding;
+                if (!requestHeader.TryGetValue("Accept-Encoding", out rawAcceptEncoding))
+                {
+                    return options.DefaultFormatter;
+                }
 
-                var formatter = encodings.SelectMany(x => formatterByContentEncoding[x]).FirstOrDefault();
+                var acceptEncodings = GetDescendingQualityHeaderValues(rawAcceptEncoding);
+                var formatter = acceptEncodings
+                    .Select(kvp => formatterByContentEncoding[kvp.Item3].FirstOrDefault())
+                    .FirstOrDefault(x => x != null);
+
                 if (formatter == null) return options.DefaultFormatter;
                 return formatter;
             }
         }
+
+        static IContentFormatter SelectAcceptEncodingFormatter(IDictionary<string, string[]> requestHeader, ICollection<IContentFormatter> selectedFormatters)
+        {
+            if (selectedFormatters.Count == 1) return selectedFormatters.First();
+
+            string[] rawAcceptEncoding;
+            if (!requestHeader.TryGetValue("Accept-Encoding", out rawAcceptEncoding))
+            {
+                return selectedFormatters.First();
+            }
+
+            var acceptEncodings = GetDescendingQualityHeaderValues(rawAcceptEncoding);
+            var formatter = acceptEncodings
+                .Select(kvp => selectedFormatters.FirstOrDefault(x => kvp.Item3.Equals(x.ContentEncoding, StringComparison.OrdinalIgnoreCase)))
+                .FirstOrDefault(x => x != null);
+
+            if (formatter == null) return selectedFormatters.First();
+            return formatter;
+        }
+
+        // Tuple<index, q, name>
+        static List<Tuple<int, double, string>> GetDescendingQualityHeaderValues(string[] rawHeaders)
+        {
+            var list = new List<Tuple<int, double, string>>(rawHeaders.Length);
+            var index = 0;
+            foreach (var item in rawHeaders)
+            {
+                var splitted = item.Split(';');
+                if (splitted.Length == 1)
+                {
+                    list.Add(Tuple.Create(index++, 1.0, splitted[0].Trim()));
+                }
+                else if (splitted.Length == 2)
+                {
+                    var name = splitted[0].Trim();
+                    var rawQ = splitted[1];
+                    var q = 1.0;
+                    var qSplitted = rawQ.Split('=');
+                    if (qSplitted.Length == 2 && qSplitted[0].Trim().Equals("q", StringComparison.InvariantCultureIgnoreCase) && double.TryParse(qSplitted[1], out q))
+                    {
+                        list.Add(Tuple.Create(index++, q, name));
+                    }
+                    else
+                    {
+                        list.Add(Tuple.Create(index++, 1.0, name));
+                    }
+                }
+            }
+
+            // needs stable sort, compare quality first, second compare index
+            list.Sort((a, b) =>
+            {
+                int c = b.Item2.CompareTo(a.Item2);
+                if (c != 0) return c;
+
+                return a.Item1.CompareTo(b.Item1);
+            });
+
+            return list;
+        }
+
+        class DescendedComparer : IComparer<double>
+        {
+            public int Compare(double x, double y)
+            {
+                return y.CompareTo(x);
+            }
+        }
+
 
         public Task Execute(ILightNodeOptions options, OperationContext context, IOperationCoordinator coordinator)
         {
@@ -390,7 +457,7 @@ namespace LightNode.Server
     {
         public string ClassName { get; private set; }
         public string MethodName { get; private set; }
-        public AcceptVerbs AcceptVerbs { get;private set; }
+        public AcceptVerbs AcceptVerbs { get; private set; }
         public ParameterInfoSlim[] Parameters { get; private set; }
         public Type ReturnType { get; private set; }
         internal IContentFormatter ForceUseFormatter { get; private set; }
