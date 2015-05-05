@@ -192,7 +192,7 @@ namespace LightNode.Server
                 if (!selectedFormatters.Any())
                 {
                     coorinator.OnProcessInterrupt(options, environment, InterruptReason.NegotiateFormatFailed, "Ext:" + ext);
-                    LightNodeEventSource.Log.NegotiateFormatFailed(OperationMissingKind.NegotiateFormatFailed, ext);
+                    options.Logger.NegotiateFormatFailed(OperationMissingKind.NegotiateFormatFailed, ext);
                     if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
                     {
                         throw new NegotiateFormatFailedException(OperationMissingKind.NegotiateFormatFailed, ext);

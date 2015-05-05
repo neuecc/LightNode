@@ -46,7 +46,7 @@
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Diagnostics\LightNodeEventSource.cs" />
+    <Compile Include="Diagnostics\ILightNodeLogger.cs" />
     <Compile Include="IgnoreClientGenerateAttribute.cs" />
     <Compile Include="OperationCoordinator.cs" />
     <Compile Include="OperationOptionAttribute.cs" />

@@ -1,16 +1,11 @@
-﻿using LightNode.Server;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics.Tracing;
+using LightNode.Server;
 
 namespace LightNode.Diagnostics
 {
     // EventSource is "Public", you can enable SLAB's ObservableEventListener
     [EventSource(Name = "LightNode")]
-    public sealed class LightNodeEventSource : EventSource
+    public sealed class LightNodeEventSource : EventSource, ILightNodeLogger
     {
         public static readonly LightNodeEventSource Log = new LightNodeEventSource();
 

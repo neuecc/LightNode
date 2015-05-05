@@ -87,7 +87,7 @@ namespace LightNode.Server
                     }
 
                     sw.Stop();
-                    LightNodeEventSource.Log.RegisiterOperation(handler.ClassName, handler.MethodName, sw.Elapsed.TotalMilliseconds);
+                    options.Logger.RegisiterOperation(handler.ClassName, handler.MethodName, sw.Elapsed.TotalMilliseconds);
                 }
             });
 
@@ -164,7 +164,7 @@ namespace LightNode.Server
 
         VERB_MISSING:
             coorinator.OnProcessInterrupt(options, environment, InterruptReason.MethodNotAllowed, "MethodName:" + method);
-            LightNodeEventSource.Log.MethodNotAllowed(OperationMissingKind.MethodNotAllowed, path, method);
+            options.Logger.MethodNotAllowed(OperationMissingKind.MethodNotAllowed, path, method);
             if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
             {
                 throw new MethodNotAllowedException(OperationMissingKind.MethodNotAllowed, path, method);
@@ -181,7 +181,7 @@ namespace LightNode.Server
 
         NOT_FOUND:
             coorinator.OnProcessInterrupt(options, environment, InterruptReason.OperationNotFound, "SearchedPath:" + path);
-            LightNodeEventSource.Log.OperationNotFound(OperationMissingKind.OperationNotFound, path);
+            options.Logger.OperationNotFound(OperationMissingKind.OperationNotFound, path);
             if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
             {
                 throw new OperationNotFoundException(OperationMissingKind.MethodNotAllowed, path);
@@ -200,7 +200,7 @@ namespace LightNode.Server
         // Routing -> ParameterBinding -> Execute
         public async Task ProcessRequest(IDictionary<string, object> environment)
         {
-            LightNodeEventSource.Log.ProcessRequestStart(environment.AsRequestPath());
+            options.Logger.ProcessRequestStart(environment.AsRequestPath());
 
             MemoryStream bufferedRequestStream = null;
             var originalRequestStream = environment.AsRequestBody();
@@ -254,7 +254,7 @@ namespace LightNode.Server
                         Attributes = handler.AttributeLookup
                     };
                     var executionPath = context.ToString();
-                    LightNodeEventSource.Log.ExecuteStart(executionPath);
+                    options.Logger.ExecuteStart(executionPath);
                     var sw = Stopwatch.StartNew();
                     var interrupted = false;
                     try
@@ -269,7 +269,7 @@ namespace LightNode.Server
                     finally
                     {
                         sw.Stop();
-                        LightNodeEventSource.Log.ExecuteFinished(executionPath, interrupted, sw.Elapsed.TotalMilliseconds);
+                        options.Logger.ExecuteFinished(executionPath, interrupted, sw.Elapsed.TotalMilliseconds);
                     }
                     return;
                 }

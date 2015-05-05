@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30516.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1D780B80-C034-4AF9-8A47-3C4C3708E198}"
 	ProjectSection(SolutionItems) = preProject
@@ -85,6 +85,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Formatter.Jil.LZ4", "Source\LightNode.Formatter.Jil.LZ4\LightNode.Formatter.Jil.LZ4.csproj", "{897A5A2A-8941-4223-8DA8-DE0DB6D358F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Swagger", "Source\LightNode.Swagger\LightNode.Swagger.csproj", "{48580104-C895-4212-AF28-A36BB6C78CD0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Diagnostics.EventSource", "Source\LightNode.Diagnostics.EventSource\LightNode.Diagnostics.EventSource.csproj", "{A917B7F3-3F69-4187-B2D5-CFC1F258935A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -196,6 +198,10 @@ Global
 		{48580104-C895-4212-AF28-A36BB6C78CD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48580104-C895-4212-AF28-A36BB6C78CD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48580104-C895-4212-AF28-A36BB6C78CD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A917B7F3-3F69-4187-B2D5-CFC1F258935A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A917B7F3-3F69-4187-B2D5-CFC1F258935A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A917B7F3-3F69-4187-B2D5-CFC1F258935A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A917B7F3-3F69-4187-B2D5-CFC1F258935A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

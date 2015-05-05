@@ -2,6 +2,7 @@
 using LightNode.Formatter;
 using System;
 using System.Collections.Generic;
+using LightNode.Diagnostics;
 
 namespace LightNode.Server
 {
@@ -19,6 +20,7 @@ namespace LightNode.Server
         LightNode.Core.IContentFormatter[] SpecifiedFormatters { get; }
         StreamWriteOption StreamWriteOption { get; }
         bool UseOtherMiddleware { get; }
+        ILightNodeLogger Logger { get; }
     }
 
     public class LightNodeOptions : ILightNodeOptions
@@ -29,6 +31,7 @@ namespace LightNode.Server
 
         public string ServerEngineId { get; private set; }
         public bool UseOtherMiddleware { get; set; }
+        public ILightNodeLogger Logger { get; set; }
         public bool ParameterStringImplicitNullAsDefault { get; set; }
         public bool ParameterEnumAllowsFieldNameParse { get; set; }
         public IOperationCoordinatorFactory OperationCoordinatorFactory { get; set; }
@@ -64,6 +67,7 @@ namespace LightNode.Server
             Filters = new LightNodeFilterCollection();
             OperationCoordinatorFactory = new DefaultOperationCoordinatorFactory();
             ServerEngineId = Guid.NewGuid().ToString();
+            Logger = NullLightNodeLogger.Instance; 
         }
 
         public LightNodeOptions ConfigureWith(Action<LightNodeOptions> @this)

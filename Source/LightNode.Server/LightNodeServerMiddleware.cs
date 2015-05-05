@@ -56,7 +56,7 @@ namespace LightNode.Server
 
             var sw = Stopwatch.StartNew();
             var registeredHandler = this.engine.RegisterHandler(hostAssemblies);
-            LightNodeEventSource.Log.InitializeComplete(sw.Elapsed.TotalMilliseconds);
+            options.Logger.InitializeComplete(sw.Elapsed.TotalMilliseconds);
 
             lock (runningHandlerLock)
             {

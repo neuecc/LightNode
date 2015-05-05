@@ -37,7 +37,7 @@ namespace LightNode.Server
                     else
                     {
                         coordinator.OnProcessInterrupt(options, environment, InterruptReason.ParameterBindMissing, "Lack of Parameter:" + item.Name);
-                        LightNodeEventSource.Log.ParameterBindMissing(OperationMissingKind.LackOfParameter, item.Name);
+                        options.Logger.ParameterBindMissing(OperationMissingKind.LackOfParameter, item.Name);
                         if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
                         {
                             throw new ParameterMissingException(OperationMissingKind.LackOfParameter, item.Name);
@@ -77,7 +77,7 @@ namespace LightNode.Server
                     else
                     {
                         coordinator.OnProcessInterrupt(options, environment, InterruptReason.ParameterBindMissing, "Mismatch ParameterType:" + item.Name);
-                        LightNodeEventSource.Log.ParameterBindMissing(OperationMissingKind.MissmatchParameterType, item.Name);
+                        options.Logger.ParameterBindMissing(OperationMissingKind.MissmatchParameterType, item.Name);
                         if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
                         {
                             throw new ParameterMissingException(OperationMissingKind.MissmatchParameterType, item.Name);
