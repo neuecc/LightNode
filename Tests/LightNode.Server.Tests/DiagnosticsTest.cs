@@ -11,7 +11,7 @@ namespace LightNode.Server.Tests
     [TestClass]
     public class DiagnosticsTest
     {
-        [TestMethod]
+        [TestMethod, Ignore]
         public void LightNodeEventSourceLogging()
         {
             var listener = new MockEventListener();
