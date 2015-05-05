@@ -309,15 +309,6 @@ namespace LightNode.Server
             return list;
         }
 
-        class DescendedComparer : IComparer<double>
-        {
-            public int Compare(double x, double y)
-            {
-                return y.CompareTo(x);
-            }
-        }
-
-
         public Task Execute(ILightNodeOptions options, OperationContext context, IOperationCoordinator coordinator)
         {
             var targetFilters = coordinator.GetFilters(options, context, filters);
