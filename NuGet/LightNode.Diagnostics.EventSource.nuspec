@@ -1,23 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
-        <id>Glimpse.LightNode</id>
+        <id>LightNode.Diagnostics.EventSource</id>
         <version>1.4.0</version>
-        <title>Glimpse.LightNode</title>
+        <title>LightNode.Diagnostics.EventSource</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>LightNode(as Micro REST/RPC Framework) Profiler for Glimpse.</description>
+        <description>EventSource logging for LightNode(as Micro REST/RPC Framework).</description>
         <language>en-US</language>
         <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
         <projectUrl>https://github.com/neuecc/LightNode</projectUrl>
-        <tags>Owin Rest RPC Glimpse</tags>
+        <tags>Owin Rest RPC</tags>
         <dependencies>
             <dependency id="LightNode.Server" version="1.4.0" />
-            <dependency id="Glimpse" version="1.8.6" />
         </dependencies>
     </metadata>
     <files>
-        <file src="..\Source\Glimpse.LightNode\bin\Release\Glimpse.LightNode.dll" target="lib" />
+        <file src="..\Source\LightNode.Diagnostics.EventSource\bin\Release\LightNode.Diagnostics.EventSource.dll" target="lib" />
     </files>
 </package>

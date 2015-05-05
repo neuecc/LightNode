@@ -53,6 +53,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{52DEAA6E-C
 		NuGet\LightNode.Client.PCL.T4.nuspec = NuGet\LightNode.Client.PCL.T4.nuspec
 		NuGet\LightNode.Client.UniRx.T4.nuspec = NuGet\LightNode.Client.UniRx.T4.nuspec
 		NuGet\LightNode.Core.nuspec = NuGet\LightNode.Core.nuspec
+		NuGet\LightNode.Diagnostics.EventSource.nuspec = NuGet\LightNode.Diagnostics.EventSource.nuspec
 		NuGet\LightNode.Formatter.Jil.LZ4.nuspec = NuGet\LightNode.Formatter.Jil.LZ4.nuspec
 		NuGet\LightNode.Formatter.Jil.nuspec = NuGet\LightNode.Formatter.Jil.nuspec
 		NuGet\LightNode.Formatter.JsonNet.nuspec = NuGet\LightNode.Formatter.JsonNet.nuspec

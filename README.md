@@ -476,7 +476,7 @@ Note:Client generation currently supports POST only.
 
 Diagnostics
 ---
-LightNode expose [LightNode.Diagnostics.LightNodeEventSource](https://github.com/neuecc/LightNode/blob/master/Source/LightNode.Server/Diagnostics/LightNodeEventSource.cs) for log diagnostics. It's using [Systen.Diagnostics.Tracing.EventSource](https://msdn.microsoft.com/ja-jp/library/system.diagnostics.tracing.eventsource.aspx), it's send to ETW(EventTrace for Windows) and you can subscribe easily by Microsoft's [Semantic Logging Application Block](https://github.com/mspnp/semantic-logging)
+LightNode expose logging interface `ILightNodeOptions.Logger` and provides optional logger for [Systen.Diagnostics.Tracing.EventSource](https://msdn.microsoft.com/ja-jp/library/system.diagnostics.tracing.eventsource.aspx), it's send to ETW(EventTrace for Windows) and you can subscribe easily by Microsoft's [Semantic Logging Application Block](https://github.com/mspnp/semantic-logging)
  Library.
  
 * PM> Install-Package [LightNode.Diagnostics.EventSource](https://nuget.org/packages/LightNode.Diagnostics.EventSource/)

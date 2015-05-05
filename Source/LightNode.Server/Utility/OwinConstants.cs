@@ -74,7 +74,7 @@ namespace LightNode.Server
             return environment[OwinConstants.RequestProtocol] as string;
         }
 
-        /// <summary>Required:Yes, A string containing the query string component of the HTTP request URI, without the leading “?” (e.g., "foo=bar&baz=quux"). The value may be an empty string.</summary>
+        /// <summary>Required:Yes, A string containing the query string component of the HTTP request URI, without the leading “?” (e.g., "foo=bar&amp;baz=quux"). The value may be an empty string.</summary>
         public static string AsRequestQueryString(this IDictionary<string, object> environment)
         {
             return environment[OwinConstants.RequestQueryString] as string;
