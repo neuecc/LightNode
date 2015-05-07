@@ -9,3 +9,4 @@ nuget pack LightNode.Formatter.Jil.nuspec
 nuget pack LightNode.Formatter.Jil.LZ4.nuspec
 nuget pack Glimpse.LightNode.nuspec
 nuget pack LightNode.Swagger.nuspec
+nuget pack LightNode.Diagnostics.EventSource.nuspec

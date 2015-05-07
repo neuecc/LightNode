@@ -9,3 +9,4 @@ nuget push LightNode.Formatter.Jil.1.4.0.nupkg
 nuget push LightNode.Formatter.Jil.LZ4.1.4.0.nupkg
 nuget push Glimpse.LightNode.1.4.0.nupkg
 nuget push LightNode.Swagger.1.4.0.nupkg
+nuget push LightNode.Diagnostics.EventSource.1.4.0.nupkg
