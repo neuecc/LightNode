@@ -79,6 +79,7 @@
     <EmbeddedResource Include="SwaggerUI\fonts\droid-sans-v6-latin-regular.ttf" />
     <EmbeddedResource Include="SwaggerUI\fonts\droid-sans-v6-latin-regular.woff" />
     <EmbeddedResource Include="SwaggerUI\fonts\droid-sans-v6-latin-regular.woff2" />
+    <EmbeddedResource Include="SwaggerUI\lib\underscore-min.map" />
     <None Include="SwaggerUI\swagger_schema.json" />
   </ItemGroup>
   <ItemGroup>

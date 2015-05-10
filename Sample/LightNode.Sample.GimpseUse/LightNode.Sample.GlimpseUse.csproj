@@ -31,8 +31,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile>bin\LightNode.Sample.GlimpseUse.xml</DocumentationFile>
+    <NoWarn>1591, 1573</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -121,6 +121,10 @@
     <ProjectReference Include="..\..\Source\LightNode.Core\LightNode.Core.csproj">
       <Project>{072d35ef-af4a-4da0-849a-6b0b9196c959}</Project>
       <Name>LightNode.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\LightNode.Diagnostics.EventSource\LightNode.Diagnostics.EventSource.csproj">
+      <Project>{a917b7f3-3f69-4187-b2d5-cfc1f258935a}</Project>
+      <Name>LightNode.Diagnostics.EventSource</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Source\LightNode.Formatter.Jil\LightNode.Formatter.Jil.csproj">
       <Project>{2b06f536-00ba-465c-ad09-0903dfc84eb1}</Project>

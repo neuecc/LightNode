@@ -42,7 +42,8 @@ namespace LightNode.Sample.GlimpseUse
                     StreamWriteOption = StreamWriteOption.BufferAndWrite,
                     ParameterEnumAllowsFieldNameParse = true,
                     ErrorHandlingPolicy = ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails,
-                    OperationMissingHandlingPolicy = OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails
+                    OperationMissingHandlingPolicy = OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails,
+                    Logger = LightNode.Diagnostics.LightNodeEventSource.Log
                 });
             });
             app.Map("/swagger", builder =>
@@ -111,6 +112,7 @@ namespace LightNode.Sample.GlimpseUse
         /// <remarks>This area is generated from Xml doc-comment remarks.</remarks>
         /// <param name="seed">Random seed.</param>
         /// <param name="fruit">Suports enum.</param>
+        [Post]
         public async Task<Person> Random(int seed, Fruit fruit = Fruit.Banana)
         {
             //await Redis.Settings.String<string>("Person?Seed=" + seed).Get();
@@ -138,9 +140,25 @@ namespace LightNode.Sample.GlimpseUse
         /// <param name="jf">日本語マン</param>
         /// <param name="fruit">英語マン</param>
         /// <returns>Ret</returns>
-        public string Test(int x, string y, string[] abc, JapaneseFruit jf, Fruit fruit = Fruit.Banana)
+        [Post]
+        public object Test(int x, string y, string[] abc, JapaneseFruit jf, Fruit fruit = Fruit.Banana)
         {
-            return jf.ToString();
+            return new { x, y, abc = string.Join(", ", abc), jf = jf.ToString(), fruit = fruit.ToString() };
+        }
+
+        /// <summary>
+        /// ほげもげ
+        /// </summary>
+        /// <remarks>ふふが！</remarks>
+        /// <param name="x">えっくす</param>
+        /// <param name="y">わい</param>
+        /// <param name="jf">日本語マン</param>
+        /// <param name="fruit">英語マン</param>
+        /// <returns>Ret</returns>
+        [Get]
+        public object TestGet(int x, string y, string[] abc, JapaneseFruit jf, Fruit fruit = Fruit.Banana)
+        {
+            return new { x, y, abc = string.Join(", ", abc), jf = jf.ToString(), fruit = fruit.ToString() };
         }
 
         public void BadRequest()
