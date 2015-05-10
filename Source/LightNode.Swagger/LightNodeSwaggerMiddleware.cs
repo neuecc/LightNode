@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace LightNode.Swagger
 {
+    using System.Text;
     using System.Text.RegularExpressions;
     using System.Xml.Linq;
     using AppFunc = Func<IDictionary<string, object>, Task>;
@@ -93,107 +94,119 @@ namespace LightNode.Swagger
 
         static byte[] BuildSwaggerJson(SwaggerOptions options, IDictionary<string, object> environment, RegisteredHandlersInfo handlersInfo)
         {
-            var xDocLookup = (options.XmlDocumentPath != null)
-                ? BuildXmlCommentStructure(options.XmlDocumentPath)
-                : null;
-
-            var doc = new SwaggerDocument();
-            doc.swagger = "2.0";
-            doc.info = options.Info;
-            doc.host = (options.CustomHost != null) ? options.CustomHost(environment) : environment.AsRequestHeaders()["Host"][0];
-            doc.basePath = options.ApiBasePath;
-            doc.schemes = new[] { environment.AsRequestScheme() };
-            doc.paths = new Dictionary<string, PathItem>();
-
-            foreach (var item in handlersInfo.RegisteredHandlers)
+            try
             {
-                XmlCommentStructure xmlComment = null;
-                if (xDocLookup != null)
+                if (options.XmlDocumentPath != null && !File.Exists(options.XmlDocumentPath))
                 {
-                    xmlComment = xDocLookup[Tuple.Create(item.Value.ClassName, item.Value.MethodName)].FirstOrDefault();
+                    return Encoding.UTF8.GetBytes("Xml doesn't exists at " + options.XmlDocumentPath);
                 }
 
-                var parameters = item.Value.Parameters
-                    .Select(x =>
+                var xDocLookup = (options.XmlDocumentPath != null)
+                    ? BuildXmlCommentStructure(options.XmlDocumentPath)
+                    : null;
+
+                var doc = new SwaggerDocument();
+                doc.swagger = "2.0";
+                doc.info = options.Info;
+                doc.host = (options.CustomHost != null) ? options.CustomHost(environment) : environment.AsRequestHeaders()["Host"][0];
+                doc.basePath = options.ApiBasePath;
+                doc.schemes = new[] { environment.AsRequestScheme() };
+                doc.paths = new Dictionary<string, PathItem>();
+
+                foreach (var item in handlersInfo.RegisteredHandlers)
+                {
+                    XmlCommentStructure xmlComment = null;
+                    if (xDocLookup != null)
                     {
-                        var parameterXmlComment = x.ParameterType.Name;
-                        if (xmlComment != null)
+                        xmlComment = xDocLookup[Tuple.Create(item.Value.ClassName, item.Value.MethodName)].FirstOrDefault();
+                    }
+
+                    var parameters = item.Value.Parameters
+                        .Select(x =>
                         {
-                            xmlComment.Parameters.TryGetValue(x.Name, out parameterXmlComment);
-                            parameterXmlComment = x.ParameterType.Name + " " + parameterXmlComment;
-                        }
+                            var parameterXmlComment = x.ParameterType.Name;
+                            if (xmlComment != null)
+                            {
+                                xmlComment.Parameters.TryGetValue(x.Name, out parameterXmlComment);
+                                parameterXmlComment = x.ParameterType.Name + " " + parameterXmlComment;
+                            }
 
-                        var defaultValue = x.DefaultValue;
-                        if (defaultValue != null && x.ParameterType.IsEnum)
-                        {
-                            defaultValue = (options.IsEmitEnumAsString)
-                                ? defaultValue.ToString()
-                                : Convert.ChangeType(defaultValue, Enum.GetUnderlyingType(defaultValue.GetType()));
-                        }
+                            var defaultValue = x.DefaultValue;
+                            if (defaultValue != null && x.ParameterType.IsEnum)
+                            {
+                                defaultValue = (options.IsEmitEnumAsString)
+                                    ? defaultValue.ToString()
+                                    : Convert.ChangeType(defaultValue, Enum.GetUnderlyingType(defaultValue.GetType()));
+                            }
 
-                        var items = (x.ParameterTypeIsArray)
-                            ? new Items { type = TypeToType(x.ParameterType.GetElementType()) }
-                            : null;
+                            var items = (x.ParameterTypeIsArray)
+                                ? new Items { type = TypeToType(x.ParameterType.GetElementType()) }
+                                : null;
 
-                        object[] enums = null;
-                        if (x.ParameterType.IsEnum || (x.ParameterType.IsArray && x.ParameterType.GetElementType().IsEnum))
-                        {
-                            var enumType = (x.ParameterType.IsEnum) ? x.ParameterType : x.ParameterType.GetElementType();
+                            object[] enums = null;
+                            if (x.ParameterType.IsEnum || (x.ParameterType.IsArray && x.ParameterType.GetElementType().IsEnum))
+                            {
+                                var enumType = (x.ParameterType.IsEnum) ? x.ParameterType : x.ParameterType.GetElementType();
 
-                            var enumValues = Enum.GetValues(enumType).Cast<object>()
-                                .Select(v =>
+                                var enumValues = Enum.GetValues(enumType).Cast<object>()
+                                    .Select(v =>
+                                    {
+                                        return (options.IsEmitEnumAsString)
+                                            ? v.ToString()
+                                            : Convert.ChangeType(v, Enum.GetUnderlyingType(enumType));
+                                    })
+                                    .ToArray();
+
+                                if (x.ParameterType.IsArray)
                                 {
-                                    return (options.IsEmitEnumAsString)
-                                        ? v.ToString()
-                                        : Convert.ChangeType(v, Enum.GetUnderlyingType(enumType));
-                                })
-                                .ToArray();
-
-                            if (x.ParameterType.IsArray)
-                            {
-                                items.@enum = enumValues;
+                                    items.@enum = enumValues;
+                                }
+                                else
+                                {
+                                    enums = enumValues;
+                                }
                             }
-                            else
+
+                            return new Parameter
                             {
-                                enums = enumValues;
-                            }
-                        }
+                                name = x.Name,
+                                @in = "formData",
+                                type = TypeToType(x.ParameterType),
+                                description = parameterXmlComment,
+                                required = !x.IsOptional,
+                                @default = (x.IsOptional) ? defaultValue : null,
+                                items = items,
+                                @enum = enums,
+                                collectionFormat = "multi"
+                            };
+                        })
+                        .ToArray();
 
-                        return new Parameter
-                        {
-                            name = x.Name,
-                            @in = "formData",
-                            type = TypeToType(x.ParameterType),
-                            description = parameterXmlComment,
-                            required = !x.IsOptional,
-                            @default = (x.IsOptional) ? defaultValue : null,
-                            items = items,
-                            @enum = enums,
-                            collectionFormat = "multi"
-                        };
-                    })
-                    .ToArray();
+                    var operation = new Operation
+                    {
+                        tags = new[] { item.Value.ClassName },
+                        summary = (xmlComment != null) ? xmlComment.Summary : "",
+                        description = (xmlComment != null) ? xmlComment.Remarks : "",
+                        parameters = parameters
+                    };
 
-                var operation = new Operation
+                    doc.paths.Add(item.Key, CreatePathItem(item.Value.AcceptVerbs, operation));
+                }
+
+                using (var ms = new MemoryStream())
                 {
-                    tags = new[] { item.Value.ClassName },
-                    summary = (xmlComment != null) ? xmlComment.Summary : "",
-                    description = (xmlComment != null) ? xmlComment.Remarks : "",
-                    parameters = parameters
-                };
-
-                doc.paths.Add(item.Key, CreatePathItem(item.Value.AcceptVerbs, operation));
+                    var serializer = new DataContractJsonSerializer(typeof(SwaggerDocument), new DataContractJsonSerializerSettings
+                    {
+                        SerializeReadOnlyTypes = true,
+                        UseSimpleDictionaryFormat = true
+                    });
+                    serializer.WriteObject(ms, doc);
+                    return ms.ToArray();
+                }
             }
-
-            using (var ms = new MemoryStream())
+            catch (Exception ex)
             {
-                var serializer = new DataContractJsonSerializer(typeof(SwaggerDocument), new DataContractJsonSerializerSettings
-                {
-                    SerializeReadOnlyTypes = true,
-                    UseSimpleDictionaryFormat = true
-                });
-                serializer.WriteObject(ms, doc);
-                return ms.ToArray();
+                return Encoding.UTF8.GetBytes(ex.ToString());
             }
         }
 
