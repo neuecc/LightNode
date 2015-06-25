@@ -519,6 +519,13 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.5.0 - 2015-06-25
+* Update Swagger-UI(array parameter, Get parameter)
+* Changed All ContentFormatter's Encoding from UTF8 with BOM to UTF8 without BOM 
+* Allow multiple HTTP attributes
+* Allow OperationOptionAttribute to Class 
+* Fix shows valid message when use invalid argument 
+
 1.4.0 - 2015-05-05
 * Fix NegotiateFormat accepts all HTTP format specification
 * MsgPack: UnpackFrom has to be done after once Read, thanks @azyobuzin

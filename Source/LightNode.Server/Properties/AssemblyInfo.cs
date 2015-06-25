@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid("a8480342-8d48-46ec-af7b-a220bc5b6b8b")]
 
-[assembly: AssemblyVersion("1.4.0.0")]
-[assembly: AssemblyFileVersion("1.4.0.0")]
+[assembly: AssemblyVersion("1.5.0.0")]
+[assembly: AssemblyFileVersion("1.5.0.0")]
 
 [assembly: InternalsVisibleTo("LightNode.Server.Tests")]
