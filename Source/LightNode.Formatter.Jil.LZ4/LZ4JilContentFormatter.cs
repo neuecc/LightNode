@@ -20,12 +20,12 @@ namespace LightNode.Formatter
         }
 
         public LZ4JilContentFormatter(string mediaType = "application/json", string ext = "json")
-            : this(null, Encoding.UTF8, mediaType, ext)
+            : this(null, new UTF8Encoding(false), mediaType, ext)
         {
 
         }
         public LZ4JilContentFormatter(Options options, string mediaType = "application/json", string ext = "json")
-            : this(options, Encoding.UTF8, mediaType, ext)
+            : this(options, new UTF8Encoding(false), mediaType, ext)
         {
 
         }
@@ -46,7 +46,7 @@ namespace LightNode.Formatter
         {
             // default LZ4Stream buffer size is 1MB but it's too large on WebService serialization
             using (var lz4 = new LZ4Stream(stream, System.IO.Compression.CompressionMode.Compress, highCompression: false, blockSize: 1024 * 64))
-            using (var sw = new StreamWriter(lz4, Encoding ?? System.Text.Encoding.UTF8))
+            using (var sw = new StreamWriter(lz4, Encoding ?? new UTF8Encoding(false)))
             {
                 JSON.Serialize(obj, sw, options);
             }
@@ -55,7 +55,7 @@ namespace LightNode.Formatter
         public override object Deserialize(Type type, System.IO.Stream stream)
         {
             using (var gzip = new LZ4Stream(stream, System.IO.Compression.CompressionMode.Decompress, highCompression: false, blockSize: 1024 * 64))
-            using (var sr = new StreamReader(gzip, Encoding.UTF8))
+            using (var sr = new StreamReader(gzip, new UTF8Encoding(false)))
             {
                 return JSON.Deserialize(sr, type, options);
             }

@@ -32,7 +32,7 @@ namespace LightNode.Server
             {typeof(Nullable<Int16>),(string x, out object result) => { Int16 @out; result =  Int16.TryParse(x, out @out)? (object)@out:null; return true; }},
             {typeof(Int32) ,(string x, out object result) => { Int32 @out; var success = Int32.TryParse(x, out @out); result = (object)@out; return success; }},
             {typeof(Nullable<Int32>),(string x, out object result) => { Int32 @out; result =  Int32.TryParse(x, out @out)? (object)@out:null; return true; }},
-            {typeof(Int64),(string x, out object result) => { Int64 @out; var success = Int64.TryParse(x, out @out); result = (object)@out; return success; }}, 
+            {typeof(Int64),(string x, out object result) => { Int64 @out; var success = Int64.TryParse(x, out @out); result = (object)@out; return success; }},
             {typeof(Nullable<Int64>),(string x, out object result) => { Int64 @out; result =  Int64.TryParse(x, out @out)? (object)@out:null; return true; }},
             {typeof(UInt16) ,(string x, out object result) => { UInt16 @out; var success = UInt16.TryParse(x, out @out); result = (object)@out; return success; }},
             {typeof(Nullable<UInt16>),(string x, out object result) => { UInt16 @out; result =  UInt16.TryParse(x, out @out)? (object)@out:null; return true; }},
@@ -42,7 +42,7 @@ namespace LightNode.Server
             {typeof(Nullable<UInt64>), (string x, out object result) => { UInt64 @out; result =  UInt64.TryParse(x, out @out)? (object)@out:null; return true; }},
             {typeof(Single) ,(string x, out object result) => { Single @out; var success = Single.TryParse(x, out @out); result = (object)@out; return success; }},
             {typeof(Nullable<Single>),(string x, out object result) => { Single @out; result =  Single.TryParse(x, out @out)? (object)@out:null; return true; }},
-            {typeof(Double),(string x, out object result) => { Double @out; var success = Double.TryParse(x, out @out); result = (object)@out; return success; }}, 
+            {typeof(Double),(string x, out object result) => { Double @out; var success = Double.TryParse(x, out @out); result = (object)@out; return success; }},
             {typeof(Nullable<Double>),(string x, out object result) => { Double @out; result =  Double.TryParse(x, out @out)? (object)@out:null; return true; }},
             {typeof(SByte) ,(string x, out object result) => { SByte @out; var success = SByte.TryParse(x, out @out); result = (object)@out; return success; }},
             {typeof(Nullable<SByte>),(string x, out object result) => { SByte @out; result =  SByte.TryParse(x, out @out)? (object)@out:null; return true; }},
@@ -259,6 +259,8 @@ namespace LightNode.Server
 
         internal static Func<IList<string>, object> GetArrayConverter(Type targetType, bool enumStrictParse)
         {
+            if (!targetType.IsArray) return null;
+
             Func<IList<string>, object> f;
             var result = convertArrayTypeDictionary.TryGetValue(targetType, out f)
                 ? f
@@ -266,6 +268,7 @@ namespace LightNode.Server
             if (result != null) return result;
 
             var elemType = targetType.GetElementType();
+            if (elemType == null) return null;
             if (elemType.IsEnum)
             {
                 var tryParse = GetConverter(elemType, enumStrictParse);

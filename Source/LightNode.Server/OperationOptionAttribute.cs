@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LightNode.Server
 {
-    [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
     public class OperationOptionAttribute : Attribute
     {
         internal AcceptVerbs? AcceptVerbs { get; private set; }

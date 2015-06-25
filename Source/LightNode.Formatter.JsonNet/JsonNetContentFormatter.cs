@@ -16,7 +16,7 @@ namespace LightNode.Formatter
         }
 
         public JsonNetContentFormatter(JsonSerializer serializer, string mediaType = "application/json", string ext = "json")
-            : this(serializer, System.Text.Encoding.UTF8, mediaType, ext)
+            : this(serializer, new UTF8Encoding(false), mediaType, ext)
         {
         }
 
@@ -33,7 +33,7 @@ namespace LightNode.Formatter
 
         public override void Serialize(System.IO.Stream stream, object obj)
         {
-            using (var sw = new StreamWriter(stream, Encoding ?? System.Text.Encoding.UTF8))
+            using (var sw = new StreamWriter(stream, Encoding ?? new UTF8Encoding(false)))
             {
                 serializer.Serialize(sw, obj);
             }
@@ -41,7 +41,7 @@ namespace LightNode.Formatter
 
         public override object Deserialize(Type type, System.IO.Stream stream)
         {
-            using (var sr = new StreamReader(stream, Encoding ?? System.Text.Encoding.UTF8))
+            using (var sr = new StreamReader(stream, Encoding ?? new UTF8Encoding(false)))
             {
                 return serializer.Deserialize(sr, type);
             }

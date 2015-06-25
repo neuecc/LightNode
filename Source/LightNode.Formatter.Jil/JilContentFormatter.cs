@@ -11,12 +11,12 @@ namespace LightNode.Formatter
         readonly Options options;
 
         public JilContentFormatter(string mediaType = "application/json", string ext = "json")
-            : this(null, Encoding.UTF8, mediaType, ext)
+            : this(null, new UTF8Encoding(false), mediaType, ext)
         {
 
         }
         public JilContentFormatter(Options options, string mediaType = "application/json", string ext = "json")
-            : this(options, Encoding.UTF8, mediaType, ext)
+            : this(options, new UTF8Encoding(false), mediaType, ext)
         {
 
         }
@@ -35,7 +35,7 @@ namespace LightNode.Formatter
 
         public override void Serialize(System.IO.Stream stream, object obj)
         {
-            using (var sw = new StreamWriter(stream, Encoding ?? System.Text.Encoding.UTF8))
+            using (var sw = new StreamWriter(stream, Encoding ?? new UTF8Encoding(false)))
             {
                 JSON.Serialize(obj, sw);
             }
@@ -43,7 +43,7 @@ namespace LightNode.Formatter
 
         public override object Deserialize(Type type, System.IO.Stream stream)
         {
-            using (var sr = new StreamReader(stream, Encoding ?? System.Text.Encoding.UTF8))
+            using (var sr = new StreamReader(stream, Encoding ?? new UTF8Encoding(false)))
             {
                 return JSON.Deserialize(sr, type, options);
             }
@@ -71,12 +71,12 @@ namespace LightNode.Formatter
         }
 
         public GZipJilContentFormatter(string mediaType = "application/json", string ext = "json")
-            : this(null, Encoding.UTF8, mediaType, ext)
+            : this(null, new UTF8Encoding(false), mediaType, ext)
         {
 
         }
         public GZipJilContentFormatter(Options options, string mediaType = "application/json", string ext = "json")
-            : this(options, Encoding.UTF8, mediaType, ext)
+            : this(options, new UTF8Encoding(false), mediaType, ext)
         {
 
         }
@@ -96,7 +96,7 @@ namespace LightNode.Formatter
         public override void Serialize(System.IO.Stream stream, object obj)
         {
             using (var gzip = new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionLevel.Fastest))
-            using (var sw = new StreamWriter(gzip, Encoding ?? System.Text.Encoding.UTF8))
+            using (var sw = new StreamWriter(gzip, Encoding ?? new UTF8Encoding(false)))
             {
                 JSON.Serialize(obj, sw, options);
             }
@@ -105,7 +105,7 @@ namespace LightNode.Formatter
         public override object Deserialize(Type type, System.IO.Stream stream)
         {
             using (var gzip = new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Decompress))
-            using (var sr = new StreamReader(gzip, Encoding ?? System.Text.Encoding.UTF8))
+            using (var sr = new StreamReader(gzip, Encoding ?? new UTF8Encoding(false)))
             {
                 return JSON.Deserialize(sr, type, options);
             }

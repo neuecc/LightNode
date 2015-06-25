@@ -13,7 +13,7 @@ namespace LightNode.Formatter
 
         }
         public JavaScriptContentFormatter(Encoding encoding, string mediaType = "application/json", string ext = "json")
-            : base(mediaType, ext, encoding ?? Encoding.UTF8)
+            : base(mediaType, ext, encoding ?? new UTF8Encoding(false))
         {
 
         }
@@ -58,7 +58,7 @@ namespace LightNode.Formatter
 
         }
         public GZipJavaScriptContentFormatter(Encoding encoding, string mediaType = "application/json", string ext = "json")
-            : base(mediaType, ext, encoding ?? Encoding.UTF8)
+            : base(mediaType, ext, encoding ?? new UTF8Encoding(false))
         {
 
         }

@@ -48,7 +48,7 @@ namespace LightNode.Formatter
     public class TextContentFormatter : ContentFormatterBase
     {
         public TextContentFormatter(string mediaType = "text/plain", string ext = "txt")
-            : this(Encoding.UTF8, mediaType, ext)
+            : this(new UTF8Encoding(false), mediaType, ext)
         {
 
         }
@@ -90,7 +90,7 @@ namespace LightNode.Formatter
     public class HtmlContentFormatter : TextContentFormatter
     {
         public HtmlContentFormatter(string mediaType = "text/html", string ext = "htm|html")
-            : this(Encoding.UTF8, mediaType, ext)
+            : this(new UTF8Encoding(false), mediaType, ext)
         {
 
         }
@@ -149,7 +149,7 @@ namespace LightNode.Formatter
     public class XmlContentFormatter : ContentFormatterBase
     {
         public XmlContentFormatter(string mediaType = "application/xml", string ext = "xml")
-            : base(mediaType, ext, Encoding.UTF8)
+            : base(mediaType, ext, new UTF8Encoding(false))
         {
         }
 
@@ -175,7 +175,7 @@ namespace LightNode.Formatter
     public class DataContractContentFormatter : ContentFormatterBase
     {
         public DataContractContentFormatter(string mediaType = "application/xml", string ext = "xml")
-            : base(mediaType, ext, Encoding.UTF8)
+            : base(mediaType, ext, new UTF8Encoding(false))
         {
         }
 
@@ -203,7 +203,7 @@ namespace LightNode.Formatter
     public class DataContractJsonContentFormatter : ContentFormatterBase
     {
         public DataContractJsonContentFormatter(string mediaType = "application/json", string ext = "json")
-            : base(mediaType, ext, Encoding.UTF8)
+            : base(mediaType, ext, new UTF8Encoding(false))
         {
         }
 

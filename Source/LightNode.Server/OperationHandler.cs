@@ -64,15 +64,16 @@ namespace LightNode.Server
                 .OrderBy(x => x.Order)
                 .ToArray();
 
-            var operationOption = methodInfo.GetCustomAttributes<OperationOptionAttribute>(true).FirstOrDefault();
+            var operationOption = methodInfo.GetCustomAttributes<OperationOptionAttribute>(true).FirstOrDefault()
+                               ?? classType.GetCustomAttributes<OperationOptionAttribute>(true).FirstOrDefault();
             this.AcceptVerb = (operationOption != null && operationOption.AcceptVerbs != null)
                 ? operationOption.AcceptVerbs.Value
                 : options.DefaultAcceptVerb;
 
-            var verbSpecifiedAttr = methodInfo.GetCustomAttributes<HttpVerbAttribtue>(true).FirstOrDefault();
-            if (verbSpecifiedAttr != null)
+            var verbSpecifiedAttr = methodInfo.GetCustomAttributes<HttpVerbAttribtue>(true);
+            if (verbSpecifiedAttr.Any())
             {
-                this.AcceptVerb = verbSpecifiedAttr.AcceptVerbs;
+                this.AcceptVerb = verbSpecifiedAttr.Aggregate(this.AcceptVerb, (x, y) => x | y.AcceptVerbs);
             }
 
             this.ForceUseFormatter = (operationOption != null && operationOption.ContentFormatter != null)

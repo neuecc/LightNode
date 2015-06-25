@@ -212,7 +212,7 @@ namespace LightNode.Client
             return _PostAsync<LightNode.Performance.MyClass>("Perf", "Echo", form, list, reportProgress);
         }
 
-        IObservable<Unit> _IPerf.Test(System.String a, System.Nullable<System.Int32> x, IProgress<float> reportProgress)
+        IObservable<Unit> _IPerf.Test(System.String a, System.Nullable<System.Int32> x, System.Nullable<LightNode.Performance.MyEnum2> z, IProgress<float> reportProgress)
         {
             var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
@@ -226,6 +226,11 @@ namespace LightNode.Client
                 form.AddField("x", x.ToString());
                 list.Add(new KeyValuePair<string, string[]>("x", new[] { x.ToString() }));
             }
+            if (z != null)
+            {
+                form.AddField("z", ((System.UInt64)z).ToString());
+                list.Add(new KeyValuePair<string, string[]>("z", new[] { ((System.UInt64)z).ToString() }));
+            }
 
             return _PostAsync("Perf", "Test", form, list, reportProgress);
         }
@@ -238,7 +243,7 @@ namespace LightNode.Client
             return _PostAsync("Perf", "Te", form, list, reportProgress);
         }
 
-        IObservable<Unit> _IPerf.TestArray(System.String[] array, System.Int32[] array2, IProgress<float> reportProgress)
+        IObservable<Unit> _IPerf.TestArray(System.String[] array, System.Int32[] array2, LightNode.Performance.MyEnum[] array3, IProgress<float> reportProgress)
         {
             var list = new List<KeyValuePair<string, string[]>>();
             var form = new WWWForm();
@@ -262,8 +267,78 @@ namespace LightNode.Client
                 }
                 list.Add(new KeyValuePair<string, string[]>("array2", l2.ToArray()));
             }
+            if (array3 != null)
+            {
+                var l2 = new List<string>();
+                foreach (var ___x in array3)
+                {
+                    form.AddField("array3", ((System.Int32)___x).ToString());
+                    l2.Add(((System.Int32)___x).ToString());
+                }
+                list.Add(new KeyValuePair<string, string[]>("array3", l2.ToArray()));
+            }
 
             return _PostAsync("Perf", "TestArray", form, list, reportProgress);
+        }
+
+        IObservable<Unit> _IPerf.TeVoid(IProgress<float> reportProgress)
+        {
+            var list = new List<KeyValuePair<string, string[]>>();
+            var form = new WWWForm();
+
+            return _PostAsync("Perf", "TeVoid", form, list, reportProgress);
+        }
+
+        IObservable<System.String> _IPerf.Te4(System.String xs, IProgress<float> reportProgress)
+        {
+            var list = new List<KeyValuePair<string, string[]>>();
+            var form = new WWWForm();
+            if (xs != null)
+            {
+                form.AddField("xs", xs);
+                list.Add(new KeyValuePair<string, string[]>("xs", new[] { xs }));
+            }
+
+            return _PostAsync<System.String>("Perf", "Te4", form, list, reportProgress);
+        }
+
+        IObservable<Unit> _IPerf.Ignore(System.String a, IProgress<float> reportProgress)
+        {
+            var list = new List<KeyValuePair<string, string[]>>();
+            var form = new WWWForm();
+            if (a != null)
+            {
+                form.AddField("a", a);
+                list.Add(new KeyValuePair<string, string[]>("a", new[] { a }));
+            }
+
+            return _PostAsync("Perf", "Ignore", form, list, reportProgress);
+        }
+
+        IObservable<Unit> _IPerf.IgnoreClient(System.String a, IProgress<float> reportProgress)
+        {
+            var list = new List<KeyValuePair<string, string[]>>();
+            var form = new WWWForm();
+            if (a != null)
+            {
+                form.AddField("a", a);
+                list.Add(new KeyValuePair<string, string[]>("a", new[] { a }));
+            }
+
+            return _PostAsync("Perf", "IgnoreClient", form, list, reportProgress);
+        }
+
+        IObservable<System.String> _IPerf.PostString(System.String hoge, IProgress<float> reportProgress)
+        {
+            var list = new List<KeyValuePair<string, string[]>>();
+            var form = new WWWForm();
+            if (hoge != null)
+            {
+                form.AddField("hoge", hoge);
+                list.Add(new KeyValuePair<string, string[]>("hoge", new[] { hoge }));
+            }
+
+            return _PostAsync<System.String>("Perf", "PostString", form, list, reportProgress);
         }
 
         #endregion
@@ -273,9 +348,14 @@ namespace LightNode.Client
     public interface _IPerf
     {
         IObservable<LightNode.Performance.MyClass> Echo(System.String name, System.Int32 x, System.Int32 y, LightNode.Performance.MyEnum e, IProgress<float> reportProgress = null);
-        IObservable<Unit> Test(System.String a = null, System.Nullable<System.Int32> x = null, IProgress<float> reportProgress = null);
+        IObservable<Unit> Test(System.String a = null, System.Nullable<System.Int32> x = null, System.Nullable<LightNode.Performance.MyEnum2> z = null, IProgress<float> reportProgress = null);
         IObservable<Unit> Te(IProgress<float> reportProgress = null);
-        IObservable<Unit> TestArray(System.String[] array, System.Int32[] array2, IProgress<float> reportProgress = null);
+        IObservable<Unit> TestArray(System.String[] array, System.Int32[] array2, LightNode.Performance.MyEnum[] array3, IProgress<float> reportProgress = null);
+        IObservable<Unit> TeVoid(IProgress<float> reportProgress = null);
+        IObservable<System.String> Te4(System.String xs, IProgress<float> reportProgress = null);
+        IObservable<Unit> Ignore(System.String a, IProgress<float> reportProgress = null);
+        IObservable<Unit> IgnoreClient(System.String a, IProgress<float> reportProgress = null);
+        IObservable<System.String> PostString(System.String hoge, IProgress<float> reportProgress = null);
     }
 
 }
