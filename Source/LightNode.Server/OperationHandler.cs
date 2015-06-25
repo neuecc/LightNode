@@ -73,7 +73,7 @@ namespace LightNode.Server
             var verbSpecifiedAttr = methodInfo.GetCustomAttributes<HttpVerbAttribtue>(true);
             if (verbSpecifiedAttr.Any())
             {
-                this.AcceptVerb = verbSpecifiedAttr.Aggregate(this.AcceptVerb, (x, y) => x | y.AcceptVerbs);
+                this.AcceptVerb = verbSpecifiedAttr.Aggregate((AcceptVerbs)0, (x, y) => x | y.AcceptVerbs);
             }
 
             this.ForceUseFormatter = (operationOption != null && operationOption.ContentFormatter != null)

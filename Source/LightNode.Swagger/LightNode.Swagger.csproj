@@ -110,6 +110,10 @@
     <EmbeddedResource Include="SwaggerUI\lib\underscore-min.js" />
     <EmbeddedResource Include="SwaggerUI\swagger-ui.js" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SwaggerUI\css\style.css" />
+    <EmbeddedResource Include="SwaggerUI\o2c.html" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

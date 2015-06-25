@@ -170,7 +170,7 @@ namespace LightNode.Swagger
                             return new Parameter
                             {
                                 name = x.Name,
-                                @in = "formData",
+                                @in = item.Value.AcceptVerbs.HasFlag(AcceptVerbs.Get) ? "query" : "formData",
                                 type = TypeToType(x.ParameterType),
                                 description = parameterXmlComment,
                                 required = !x.IsOptional,

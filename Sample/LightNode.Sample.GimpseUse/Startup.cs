@@ -161,6 +161,12 @@ namespace LightNode.Sample.GlimpseUse
             return new { x, y, abc = string.Join(", ", abc), jf = jf.ToString(), fruit = fruit.ToString() };
         }
 
+        [Get]
+        public object Get2(int x, int y)
+        {
+            return new { x, y };
+        }
+
         public void BadRequest()
         {
             throw new ReturnStatusCodeException(System.Net.HttpStatusCode.BadRequest, content: "Bad Requestにゃん");

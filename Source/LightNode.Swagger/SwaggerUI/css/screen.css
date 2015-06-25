@@ -426,6 +426,17 @@
 .swagger-section .swagger-ui-wrap .model-signature .description .propWrap .optionsWrapper .optionName {
   font-weight: bold;
 }
+.swagger-section .swagger-ui-wrap .model-signature .description .propDesc.markdown > p:first-child,
+.swagger-section .swagger-ui-wrap .model-signature .description .propDesc.markdown > p:last-child {
+  display: inline;
+}
+.swagger-section .swagger-ui-wrap .model-signature .description .propDesc.markdown > p:not(:first-child):before {
+  display: block;
+  content: '';
+}
+.swagger-section .swagger-ui-wrap .model-signature .description span:last-of-type.propDesc.markdown > p:only-child {
+  margin-right: -3px;
+}
 .swagger-section .swagger-ui-wrap .model-signature .propName {
   font-weight: bold;
 }
@@ -1068,6 +1079,9 @@
 }
 .swagger-section .swagger-ui-wrap form.form_box p strong {
   color: black;
+}
+.swagger-section .swagger-ui-wrap .operation-status td.markdown > p:last-child {
+  padding-bottom: 0;
 }
 .swagger-section .title {
   font-style: bold;
