@@ -45,8 +45,8 @@ namespace LightNode.Server
                 var item = amp.Split('=');
                 if (item.Length == 2)
                 {
-                    var key = Uri.UnescapeDataString(item[0]);
-                    var value = Uri.UnescapeDataString(item[1]);
+                    var key = System.Net.WebUtility.UrlDecode(item[0]);
+                    var value = System.Net.WebUtility.UrlDecode(item[1]);
 
                     object result;
                     if (values.TryGetValue(key, out result))

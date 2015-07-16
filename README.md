@@ -519,6 +519,9 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.6.0 - 2015-07-16
+* Fix '+' character in parameter decode to space(this is breaking changes but important bug)
+
 1.5.0 - 2015-06-25
 * Update Swagger-UI(array parameter, Get parameter)
 * Changed All ContentFormatter's Encoding from UTF8 with BOM to UTF8 without BOM 

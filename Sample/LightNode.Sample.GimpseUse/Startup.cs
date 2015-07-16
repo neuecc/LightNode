@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Collections.Generic;
 
 // [assembly: Microsoft.Owin.OwinStartup(typeof(LightNode.Sample.GlimpseUse.Startup))]
 
@@ -201,6 +202,14 @@ namespace LightNode.Sample.GlimpseUse
 
         [Patch]
         public void Patch()
+        {
+        }
+
+        //public void Invalid(Dictionary<string,string> p)
+        //{
+        //}
+
+        public async Task UpdateReadCounts(long guildId, Dictionary<long, int> readCounts)
         {
         }
     }

@@ -40,5 +40,24 @@ namespace LightNode.Server.Tests
             provider.GetValue("c").IsInstanceOf<string>().Is("tako");
             provider.GetValue("hugahuga").IsInstanceOf<string>().Is("413413");
         }
+
+        [TestMethod]
+        public void Space()
+        {
+            var more = "b=zzz&hugahuga=413413&b=tama+negi";
+            var ms = new MemoryStream(Encoding.UTF8.GetBytes(more));
+            ms.Position = 0;
+
+            var mockEnv = new Dictionary<string, object>();
+            mockEnv["owin.RequestQueryString"] = "a=huga&b=nano&c=tako&a=tako+tyop";
+            mockEnv["owin.RequestBody"] = ms;
+            mockEnv["owin.RequestHeaders"] = new Dictionary<string, string[]>() { { "Content-Type", new[] { "application/x-www-form-urlencoded" } } };
+
+            var provider = new ValueProvider(mockEnv, AcceptVerbs.Post);
+            provider.GetValue("a").IsInstanceOf<List<string>>().Is("huga", "tako tyop");
+            provider.GetValue("b").IsInstanceOf<List<string>>().Is("nano", "zzz", "tama negi");
+            provider.GetValue("c").IsInstanceOf<string>().Is("tako");
+            provider.GetValue("hugahuga").IsInstanceOf<string>().Is("413413");
+        }
     }
 }
