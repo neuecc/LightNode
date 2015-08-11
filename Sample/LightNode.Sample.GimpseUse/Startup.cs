@@ -209,9 +209,26 @@ namespace LightNode.Sample.GlimpseUse
         //{
         //}
 
-        public async Task UpdateReadCounts(long guildId, Dictionary<long, int> readCounts)
+        public Task<int> TaskTest1()
         {
+            return Task.FromResult(1);
         }
+
+        public Task<int[]> TaskTest2()
+        {
+            return Task.WhenAll(new[] { Task.FromResult(1) });
+        }
+
+        public async Task<int[]> TaskTest3()
+        {
+            return await Task.WhenAll(new[] { Task.FromResult(1) });
+        }
+
+        public async Task TaskTest4()
+        {
+            await Task.Yield();
+        }
+
     }
 
     public enum Fruit

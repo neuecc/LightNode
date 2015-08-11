@@ -358,7 +358,7 @@ namespace LightNode.Server
                     isVoid = false;
                     var funcTask = handler.methodAsyncFuncBody(environment, methodParameters);
                     await funcTask.ConfigureAwait(false);
-                    var extractor = taskResultExtractors[funcTask.GetType()];
+                    var extractor = taskResultExtractors[FindTaskType(funcTask.GetType())];
                     result = extractor(funcTask);
                     break;
                 default:
@@ -407,6 +407,16 @@ namespace LightNode.Server
                 environment.EmitNoContent();
                 return null;
             }
+        }
+
+        // Task.WhenAll = WhenAllPromise, find base Task<T> type
+        Type FindTaskType(Type t)
+        {
+            while (t.GetGenericTypeDefinition() != typeof(Task<>))
+            {
+                t = t.BaseType;
+            }
+            return t;
         }
     }
 

@@ -519,6 +519,9 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.6.1 - 2015-08-11
+* Fix when Contract's return type Task<T> and return with WhenAll directly throws exception
+
 1.6.0 - 2015-07-16
 * Fix '+' character in parameter decode to space(this is breaking changes but important bug)
 

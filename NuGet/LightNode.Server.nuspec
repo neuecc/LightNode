@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>LightNode.Server</id>
-        <version>1.6.0</version>
+        <version>1.6.1</version>
         <title>LightNode.Server</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
