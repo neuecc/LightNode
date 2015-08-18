@@ -23,6 +23,12 @@ namespace LightNode.Formatter
         {
             using (var packer = MsgPack.Packer.Create(stream))
             {
+                if (obj == null)
+                {
+                    packer.PackNull();
+                    return;
+                }
+
                 var serializer = serializationContext.GetSerializer(obj.GetType());
                 serializer.PackTo(packer, obj);
             }

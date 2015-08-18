@@ -519,6 +519,10 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.6.2(Only LightNode.MsgPack) - 2015-08-18
+* Fix MsgPackFormatter when Serialize null then throws Exception
+* Update dependency to MsgPack-CLI 0.6.1
+
 1.6.1 - 2015-08-11
 * Fix when Contract's return type Task<T> and return with WhenAll directly throws exception
 
