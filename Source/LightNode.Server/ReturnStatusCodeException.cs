@@ -11,15 +11,18 @@ namespace LightNode.Server
         public HttpStatusCode StatusCode { get; private set; }
         public string ReasonPhrase { get; private set; }
 
+
         object content;
         IContentFormatter contentFormatter;
+        Action<IDictionary<string, object>> environmentEmitter;
 
-        public ReturnStatusCodeException(HttpStatusCode statusCode, string reasonPhrase = null, object content = null, IContentFormatter contentFormatter = null)
+        public ReturnStatusCodeException(HttpStatusCode statusCode, string reasonPhrase = null, object content = null, IContentFormatter contentFormatter = null, Action<IDictionary<string, object>> environmentEmitter = null)
         {
             this.StatusCode = statusCode;
             this.ReasonPhrase = reasonPhrase;
             this.content = content;
             this.contentFormatter = contentFormatter;
+            this.environmentEmitter = environmentEmitter;
         }
 
         internal void EmitCode(ILightNodeOptions options, IDictionary<string, object> environment)
@@ -35,6 +38,11 @@ namespace LightNode.Server
                 var encoding = contentFormatter.Encoding;
                 var responseHeader = environment.AsResponseHeaders();
                 responseHeader["Content-Type"] = new[] { contentFormatter.MediaType + ((encoding == null) ? "" : "; charset=" + encoding.WebName) };
+
+                if (environmentEmitter != null)
+                {
+                    environmentEmitter(environment);
+                }
 
                 var responseStream = environment.AsResponseBody();
                 if (options.StreamWriteOption == StreamWriteOption.DirectWrite)
@@ -54,8 +62,7 @@ namespace LightNode.Server
                         }
                         else
                         {
-                            // can't await in catch clouse at C# 5.0:)
-                            // return buffer.CopyToAsync(responseStream);
+                            // EmitCode is void:)
                             buffer.CopyTo(responseStream);
                         }
                     }

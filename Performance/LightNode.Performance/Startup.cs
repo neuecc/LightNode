@@ -63,6 +63,22 @@ namespace LightNode.Performance
         }
     }
 
+    [DebugOnlyClientGenerate]
+    public class DebugOnlyTest : LightNodeContract
+    {
+        public void Hoge()
+        {
+        }
+    }
+
+    public class DebugOnlyMethodTest :LightNodeContract
+    {
+        [DebugOnlyClientGenerate]
+        public void Hoge()
+        {
+        }
+    }
+
     public class MyClass
     {
         public string Name { get; set; }

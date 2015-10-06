@@ -9,7 +9,11 @@ using System.Linq;
 
 namespace LightNode.Client
 {
-    public partial class LightNodeClient : _IPerf
+#if DEBUG
+    public partial class LightNodeClient : _IPerf, _IDebugOnlyTest, _IDebugOnlyMethodTest
+#else
+    public partial class LightNodeClient : _IPerf, _IDebugOnlyMethodTest
+#endif
     {
         static IContentFormatter defaultContentFormatter = new LightNode.Formatter.JsonNetContentFormatter();
         readonly string rootEndPoint;
@@ -42,6 +46,11 @@ namespace LightNode.Client
         }
 
         public _IPerf Perf { get { return this; } }
+        public _IDebugOnlyMethodTest DebugOnlyMethodTest { get { return this; } }
+
+#if DEBUG
+        public _IDebugOnlyTest DebugOnlyTest { get { return this; } }
+#endif
 
         public LightNodeClient(string rootEndPoint)
         {
@@ -84,6 +93,8 @@ namespace LightNode.Client
 
         #region _IPerf
 
+
+
         System.Threading.Tasks.Task<LightNode.Performance.MyClass> _IPerf.EchoAsync(System.String name, System.Int32 x, System.Int32 y, LightNode.Performance.MyEnum e, System.Threading.CancellationToken cancellationToken)
         {
             var list = new List<KeyValuePair<string, string>>(4);
@@ -95,6 +106,7 @@ namespace LightNode.Client
             return PostAsync<LightNode.Performance.MyClass>("/Perf/Echo", new FormUrlEncodedContent(list), cancellationToken);
         }
 
+
         System.Threading.Tasks.Task _IPerf.TestAsync(System.String a, System.Nullable<System.Int32> x, System.Nullable<LightNode.Performance.MyEnum2> z, System.Threading.CancellationToken cancellationToken)
         {
             var list = new List<KeyValuePair<string, string>>(3);
@@ -105,12 +117,14 @@ namespace LightNode.Client
             return PostAsync("/Perf/Test", new FormUrlEncodedContent(list), cancellationToken);
         }
 
+
         System.Threading.Tasks.Task _IPerf.TeAsync(System.Threading.CancellationToken cancellationToken)
         {
             var list = new List<KeyValuePair<string, string>>(0);
 
             return PostAsync("/Perf/Te", new FormUrlEncodedContent(list), cancellationToken);
         }
+
 
         System.Threading.Tasks.Task _IPerf.TestArrayAsync(System.String[] array, System.Int32[] array2, LightNode.Performance.MyEnum[] array3, System.Threading.CancellationToken cancellationToken)
         {
@@ -122,12 +136,14 @@ namespace LightNode.Client
             return PostAsync("/Perf/TestArray", new FormUrlEncodedContent(list), cancellationToken);
         }
 
+
         System.Threading.Tasks.Task _IPerf.TeVoidAsync(System.Threading.CancellationToken cancellationToken)
         {
             var list = new List<KeyValuePair<string, string>>(0);
 
             return PostAsync("/Perf/TeVoid", new FormUrlEncodedContent(list), cancellationToken);
         }
+
 
         System.Threading.Tasks.Task<System.String> _IPerf.Te4Async(System.String xs, System.Threading.CancellationToken cancellationToken)
         {
@@ -137,6 +153,7 @@ namespace LightNode.Client
             return PostAsync<System.String>("/Perf/Te4", new FormUrlEncodedContent(list), cancellationToken);
         }
 
+
         System.Threading.Tasks.Task<System.String> _IPerf.PostStringAsync(System.String hoge, System.Threading.CancellationToken cancellationToken)
         {
             var list = new List<KeyValuePair<string, string>>(1);
@@ -144,6 +161,39 @@ namespace LightNode.Client
 
             return PostAsync<System.String>("/Perf/PostString", new FormUrlEncodedContent(list), cancellationToken);
         }
+
+
+        #endregion
+
+        #region _IDebugOnlyTest
+
+#if DEBUG
+
+
+        System.Threading.Tasks.Task _IDebugOnlyTest.HogeAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var list = new List<KeyValuePair<string, string>>(0);
+
+            return PostAsync("/DebugOnlyTest/Hoge", new FormUrlEncodedContent(list), cancellationToken);
+        }
+
+
+#endif
+        #endregion
+
+        #region _IDebugOnlyMethodTest
+
+
+#if DEBUG
+
+        System.Threading.Tasks.Task _IDebugOnlyMethodTest.HogeAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var list = new List<KeyValuePair<string, string>>(0);
+
+            return PostAsync("/DebugOnlyMethodTest/Hoge", new FormUrlEncodedContent(list), cancellationToken);
+        }
+#endif
+
 
         #endregion
 
@@ -159,6 +209,17 @@ namespace LightNode.Client
         System.Threading.Tasks.Task<System.String> Te4Async(System.String xs, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
         System.Threading.Tasks.Task<System.String> PostStringAsync(System.String hoge, System.Threading.CancellationToken cancellationToken = default(CancellationToken));
     }
-
+#if DEBUG
+    public interface _IDebugOnlyTest
+    {
+        System.Threading.Tasks.Task HogeAsync(System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+    }
+#endif
+    public interface _IDebugOnlyMethodTest
+    {
+#if DEBUG
+        System.Threading.Tasks.Task HogeAsync(System.Threading.CancellationToken cancellationToken = default(CancellationToken));
+#endif
+    }
 }
 

@@ -110,10 +110,13 @@
                                 (p.DefaultValue == null) ? "null"
                               : (p.DefaultValue is string) ? "\"" + p.DefaultValue + "\"" 
                               : (p.DefaultValue is CancellationToken) ? "default(CancellationToken)"
-                              : p.DefaultValue);
+                              : (p.ParameterType.IsEnum) ? p.ParameterType.ToString() + "." + p.DefaultValue.ToString()
+                              : p.DefaultValue.ToString().ToLower());
                         }
                         return @base;
                     }));
+
+                    var debugOnlyClientGenerateMethod = methodInfo.GetCustomAttributes(true).Any(y => y.GetType().FullName == "LightNode.Server.DebugOnlyClientGenerateAttribute");
 
                     return new
                     {
@@ -121,16 +124,20 @@
                         ReturnType = returnType,
                         Parameters = parameter,
                         ParameterString = parameterString,
-                        ParameterStringWithOptional = parameterStringWithOptional
+                        ParameterStringWithOptional = parameterStringWithOptional,
+                        IsDebugOnly = debugOnlyClientGenerateMethod
                     };
                 })
                 .ToArray();
+
+            var debugOnlyClientGenerate = x.GetCustomAttributes(true).Any(y => y.GetType().FullName == "LightNode.Server.DebugOnlyClientGenerateAttribute");
 
             return new
             {
                 RootName = x.Name,
                 InterfaceName = "_I" + x.Name,
-                Operations = methods
+                Operations = methods,
+                IsDebugOnly = debugOnlyClientGenerate
             };
         })
         .ToArray();
@@ -146,7 +153,11 @@ using System.Threading.Tasks;
 
 namespace <#= namespaceName #>
 {
+#if DEBUG
     public partial class <#= clientName #> : <#= string.Join(", ", contracts.Select(x => x.InterfaceName)) #>
+#else
+    public partial class <#= clientName #> : <#= string.Join(", ", contracts.Where(x => !x.IsDebugOnly).Select(x => x.InterfaceName)) #>
+#endif
     {
         static IContentFormatter defaultContentFormatter = <#= defaultContentFormatter #>;
         readonly string rootEndPoint;
@@ -178,9 +189,15 @@ namespace <#= namespaceName #>
             set { contentFormatter = value; }
         }
 
-<# foreach(var contract in contracts) { #>
+<# foreach(var contract in contracts.Where(x => !x.IsDebugOnly)) { #>
         public <#= contract.InterfaceName #> <#= contract.RootName #> { get { return this; } }
 <# } #>
+
+#if DEBUG
+<# foreach(var contract in contracts.Where(x => x.IsDebugOnly)) { #>
+        public <#= contract.InterfaceName #> <#= contract.RootName #> { get { return this; } }
+<# } #>
+#endif
 
         public <#= clientName #>(string rootEndPoint)
         {
@@ -224,7 +241,15 @@ namespace <#= namespaceName #>
 <# foreach(var contract in contracts) { #>
         #region <#= contract.InterfaceName #>
 
+<# if(contract.IsDebugOnly) { #>
+#if DEBUG
+<# } #>
+
 <# foreach(var operation in contract.Operations) { #>
+<# if(operation.IsDebugOnly) { #>
+#if DEBUG
+<# } #>
+
         <#= BeautifyType(operation.ReturnType) #> <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #>)
         {
             var list = new List<KeyValuePair<string, string>>(<#= operation.Parameters.Length - 1 #>);
@@ -240,7 +265,14 @@ namespace <#= namespaceName #>
 
             return PostAsync<#= operation.ReturnType == typeof(Task) ? "" : "<" + UnwrapTask(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", new FormUrlEncodedContent(list), cancellationToken);
         }
+<# if(operation.IsDebugOnly) { #>
+#endif
+<# } #>
 
+<# } #>
+
+<# if(contract.IsDebugOnly) { #>
+#endif
 <# } #>
         #endregion
 
@@ -248,13 +280,24 @@ namespace <#= namespaceName #>
     }
 
 <# foreach(var contract in contracts) { #>
+<# if (contract.IsDebugOnly) { #>
+#if DEBUG
+<# } #>
     public interface <#= contract.InterfaceName #>
     {
 <# foreach(var operation in contract.Operations) { #>
+<# if(operation.IsDebugOnly) { #>
+#if DEBUG
+<# } #>
         <#= BeautifyType(operation.ReturnType) #> <#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterStringWithOptional #>);
+<# if(operation.IsDebugOnly) { #>
+#endif
+<# } #>
 <# } #>
     }
-
+<# if (contract.IsDebugOnly) { #>
+#endif
+<# } #>
 <# } #>
 }
 

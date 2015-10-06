@@ -142,9 +142,9 @@ namespace LightNode.Sample.GlimpseUse
         /// <param name="fruit">英語マン</param>
         /// <returns>Ret</returns>
         [Post]
-        public object Test(int x, string y, string[] abc, JapaneseFruit jf, Fruit fruit = Fruit.Banana)
+        public object TestPost(int x, string y, string[] abc, int[] xyz, JapaneseFruit jf, Fruit fruit = Fruit.Banana)
         {
-            return new { x, y, abc = string.Join(", ", abc), jf = jf.ToString(), fruit = fruit.ToString() };
+            return new { x, y, abc = abc, xyz = xyz, jf = jf.ToString(), fruit = fruit.ToString() };
         }
 
         /// <summary>
@@ -157,9 +157,9 @@ namespace LightNode.Sample.GlimpseUse
         /// <param name="fruit">英語マン</param>
         /// <returns>Ret</returns>
         [Get]
-        public object TestGet(int x, string y, string[] abc, JapaneseFruit jf, Fruit fruit = Fruit.Banana)
+        public object TestGet(int x, string y, string[] abc, int[] xyz, JapaneseFruit jf, Fruit fruit = Fruit.Banana)
         {
-            return new { x, y, abc = string.Join(", ", abc), jf = jf.ToString(), fruit = fruit.ToString() };
+            return new { x, y, abc = abc, xyz = xyz, jf = jf.ToString(), fruit = fruit.ToString() };
         }
 
         [Get]

@@ -83,10 +83,18 @@
     <None Include="SwaggerUI\swagger_schema.json" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="SwaggerUI\index.html" />
+    <EmbeddedResource Include="SwaggerUI\o2c.html" />
+    <EmbeddedResource Include="SwaggerUI\swagger-ui.js" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="SwaggerUI\css\print.css" />
     <EmbeddedResource Include="SwaggerUI\css\reset.css" />
     <EmbeddedResource Include="SwaggerUI\css\screen.css" />
+    <EmbeddedResource Include="SwaggerUI\css\style.css" />
     <EmbeddedResource Include="SwaggerUI\css\typography.css" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="SwaggerUI\fonts\droid-sans-v6-latin-700.svg" />
     <EmbeddedResource Include="SwaggerUI\fonts\droid-sans-v6-latin-regular.svg" />
     <EmbeddedResource Include="SwaggerUI\images\explorer_icons.png" />
@@ -97,7 +105,13 @@
     <EmbeddedResource Include="SwaggerUI\images\pet_store_api.png" />
     <EmbeddedResource Include="SwaggerUI\images\throbber.gif" />
     <EmbeddedResource Include="SwaggerUI\images\wordnik_api.png" />
-    <EmbeddedResource Include="SwaggerUI\index.html" />
+    <EmbeddedResource Include="SwaggerUI\lang\en.js" />
+    <EmbeddedResource Include="SwaggerUI\lang\es.js" />
+    <EmbeddedResource Include="SwaggerUI\lang\pt.js" />
+    <EmbeddedResource Include="SwaggerUI\lang\ru.js" />
+    <EmbeddedResource Include="SwaggerUI\lang\tr.js" />
+    <EmbeddedResource Include="SwaggerUI\lang\translator.js" />
+    <EmbeddedResource Include="SwaggerUI\lang\zh-cn.js" />
     <EmbeddedResource Include="SwaggerUI\lib\backbone-min.js" />
     <EmbeddedResource Include="SwaggerUI\lib\handlebars-2.0.0.js" />
     <EmbeddedResource Include="SwaggerUI\lib\highlight.7.3.pack.js" />
@@ -108,11 +122,6 @@
     <EmbeddedResource Include="SwaggerUI\lib\marked.js" />
     <EmbeddedResource Include="SwaggerUI\lib\swagger-oauth.js" />
     <EmbeddedResource Include="SwaggerUI\lib\underscore-min.js" />
-    <EmbeddedResource Include="SwaggerUI\swagger-ui.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="SwaggerUI\css\style.css" />
-    <EmbeddedResource Include="SwaggerUI\o2c.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

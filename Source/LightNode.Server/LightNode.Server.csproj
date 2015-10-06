@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Diagnostics\ILightNodeLogger.cs" />
+    <Compile Include="DebugOnlyClientGenerateAttribute.cs" />
     <Compile Include="IgnoreClientGenerateAttribute.cs" />
     <Compile Include="OperationCoordinator.cs" />
     <Compile Include="OperationOptionAttribute.cs" />
