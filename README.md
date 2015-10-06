@@ -519,6 +519,11 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.6.3 - 2015-10-06
+* Add ReturnStatusCodeException(EngironmentEmitter)
+* Add DebugOnlyClientGenerateAttribute
+* Fix DefaultParameter for bool create True/False
+
 1.6.2(Only LightNode.MsgPack) - 2015-08-18
 * Fix MsgPackFormatter when Serialize null then throws Exception
 * Update dependency to MsgPack-CLI 0.6.1
