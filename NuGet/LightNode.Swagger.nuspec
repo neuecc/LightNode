@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>LightNode.Swagger</id>
-        <version>1.6.3</version>
+        <version>1.6.4</version>
         <title>LightNode.Swagger</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>

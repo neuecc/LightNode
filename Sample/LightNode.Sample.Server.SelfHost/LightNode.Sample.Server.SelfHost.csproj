@@ -23,6 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\LightNode.Sample.Server.SelfHost.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -81,6 +82,10 @@
     <ProjectReference Include="..\..\Source\LightNode.Server\LightNode.Server.csproj">
       <Project>{cabc7913-f7c9-4e89-8312-f9ae523b9f41}</Project>
       <Name>LightNode.Server</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\LightNode.Swagger\LightNode.Swagger.csproj">
+      <Project>{48580104-c895-4212-af28-a36bb6c78cd0}</Project>
+      <Name>LightNode.Swagger</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

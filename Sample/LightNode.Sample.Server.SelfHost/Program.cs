@@ -25,9 +25,26 @@ namespace LightNode.Sample.Server.SelfHost
     {
         public void Configuration(Owin.IAppBuilder app)
         {
-            app.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new JilContentFormatter(), new GZipJilContentFormatter())
+            app.Map("/api", builder =>
             {
-                StreamWriteOption = StreamWriteOption.BufferAndWrite
+                builder.UseLightNode(new LightNodeOptions(AcceptVerbs.Get | AcceptVerbs.Post, new JilContentFormatter(), new GZipJilContentFormatter())
+                {
+                    StreamWriteOption = StreamWriteOption.BufferAndWrite,
+                    ParameterEnumAllowsFieldNameParse = true,
+                    ErrorHandlingPolicy = ErrorHandlingPolicy.ReturnInternalServerErrorIncludeErrorDetails,
+                    OperationMissingHandlingPolicy = OperationMissingHandlingPolicy.ReturnErrorStatusCodeIncludeErrorDetails,
+                });
+            });
+            app.Map("/swagger", builder =>
+            {
+                var xmlName = "LightNode.Sample.Server.SelfHost.xml";
+                var xmlPath = System.AppDomain.CurrentDomain.BaseDirectory + "\\" + xmlName;
+
+                builder.UseLightNodeSwagger(new Swagger.SwaggerOptions("LightNodeSample", "/api")
+                {
+                    XmlDocumentPath = xmlPath,
+                    IsEmitEnumAsString = true
+                });
             });
         }
     }
@@ -36,6 +53,10 @@ namespace LightNode.Sample.Server.SelfHost
     [Session(Order = 2)]
     public class Member : LightNodeContract
     {
+        /// <summary>
+        /// aaa
+        /// </summary>
+        /// <param name="seed">see:d</param>
         public async Task<Person> Random(int seed)
         {
             var rand = new Random(seed);

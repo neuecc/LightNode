@@ -519,8 +519,11 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.6.4 - 2015-11-27
+* Only LightNode.Swagger, fix doesn't show swagger when with selfhost
+
 1.6.3 - 2015-10-06
-* Add ReturnStatusCodeException(EngironmentEmitter)
+* Add ReturnStatusCodeException(EnvironmentEmitter)
 * Add DebugOnlyClientGenerateAttribute
 * Fix DefaultParameter for bool create True/False
 
