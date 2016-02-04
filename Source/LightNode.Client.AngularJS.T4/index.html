@@ -1,0 +1,19 @@
+﻿<!doctype html>
+<html ng-app="app">
+<head>
+    <title>LightNode.Client.AngularJS.T4</title>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
+    <script src="light-node-client.js"></script>
+    <script src="app.js"></script>
+</head>
+<body>
+    <div main>
+        <button type="button" ng-click="main.echo()">echo</button>
+        <ul>
+            <li ng-repeat="log in main.logs">
+                {{log}}
+            </li>
+        </ul>
+    </div>
+</body>
+</html>
