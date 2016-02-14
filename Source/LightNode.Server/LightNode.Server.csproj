@@ -48,6 +48,7 @@
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DefineTypeScriptGenerateAttribute.cs" />
     <Compile Include="Diagnostics\ILightNodeLogger.cs" />
     <Compile Include="DebugOnlyClientGenerateAttribute.cs" />
     <Compile Include="IgnoreClientGenerateAttribute.cs" />

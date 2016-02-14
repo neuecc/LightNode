@@ -1,0 +1,595 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="EnvDTE" #>
+<#@ import namespace="EnvDTE" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Threading" #>
+<#@ import namespace="System.Threading.Tasks" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension="ts" encoding="utf-8" #>
+<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Performance.dll" #>
+<#
+    // ------------- T4 Configuration ------------- //
+    
+    // 1. Set LightNodeContract assemblies(and all dependency) path to above #@ assembly name # directive
+
+    // 2. Set Namespace & ClientName & Namespace
+    var clientName = "LightNodeClient";
+    var namespaceName = "LightNode";
+
+    // 3. Set allow upper camel case json(ex: true: json.PersonName, false: json.personName)
+    var allowUpperCamelJson = true;
+
+    // ----------End T4 Configuration ------------- //
+
+    var @isDebug = false;
+    var @serviceProvider = Host as IServiceProvider;
+    var @dte = serviceProvider.GetService(typeof(DTE)) as DTE;
+    var @config = dte.Solution
+                .FindProjectItem(Host.TemplateFile)
+                .ContainingProject
+                .ConfigurationManager
+                .ActiveConfiguration;
+    foreach(Property prop in config.Properties){
+        if (prop.Name == "Optimize"){
+            isDebug = !(bool)prop.Value;
+            break;
+        }
+    }
+
+    var typeMap = new Dictionary<string, string>()
+    {
+        {"String", "string"},
+        {"DateTime", "Date"},
+        {"Int16", "number"},
+        {"Int32", "number"},
+        {"Int64", "number"},
+        {"Single", "number"},
+        {"Double", "number"},
+        {"Decimal", "number"},
+        {"CancellationToken", "ng.IPromise<any>"}
+    };
+
+    Type[] complexTypes = {};
+    Type[] enumTypes = {};
+
+    Func<string, string> SwapType = (string name) =>
+    {
+        return typeMap.ContainsKey(name) ? typeMap[name]
+            : complexTypes.Any(x => x.Name == name) || enumTypes.All(x => x.Name == name) ? name
+            : "any";
+    };
+
+    Func<Type, string> BeautifyType = null;
+    BeautifyType = (Type t) =>
+    {
+        if (t.IsArray) return BeautifyType(t.GetElementType()) + "[]";
+
+        if (!t.IsGenericType) return SwapType(t.Name);
+
+        if (t.GetGenericTypeDefinition() == typeof(Nullable<>)) return BeautifyType(t.GetGenericArguments()[0]);
+
+        if (t.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return BeautifyType(t.GetGenericArguments()[0]) + "[]";
+
+        var innerFormat = string.Join(", ", t.GetGenericArguments().Select(x => BeautifyType(x)));
+        return Regex.Replace(t.GetGenericTypeDefinition().Name, @"`.+$", "") + "<" + innerFormat + ">";
+    };
+
+    Func<Type, Type> UnWrapNullableOrSelf = (Type t) =>
+    {
+        return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>) ? t.GetGenericArguments()[0] : t;
+    };
+
+    Func<Type, Type> UnWrapEnumerableOrSelf = (Type t) =>
+    {
+        return t.IsArray ? t.GetElementType()
+            : t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>) ? t.GetGenericArguments()[0] : t;
+    };
+
+    Func<Type, bool> IsEnumerableType = (Type t) =>
+    {
+        return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+    };
+
+    Func<Type, bool> IsComplexType = (Type t) =>
+    {
+        var beautifyType = BeautifyType(t);
+        return typeMap.Values.All(x => x != beautifyType && x + "[]" != beautifyType);
+    };
+
+    Func<string, string> ToLowerCamelCase = (string value) =>
+    {
+        return Regex.Replace(value, "^(.)(.*)", x => x.Groups[1].Value.ToLower() + x.Groups[2].Value);
+    };
+
+    Func<Type, bool> ShouldCreateInstance = (Type t) =>
+    {
+        var beautifyType = BeautifyType(t).TrimEnd('[', ']');
+        return beautifyType == "Date" || complexTypes.Any(x => x.Name == beautifyType);
+    };
+
+    var lowerClientName = ToLowerCamelCase(clientName);
+
+    var ignoreMethods = new HashSet<string> { "Equals", "GetHashCode", "GetType", "ToString" };
+
+    var typeFromAssemblies = System.AppDomain.CurrentDomain
+        .GetAssemblies()
+        .Where(x => !Regex.IsMatch(x.GetName().Name, "^(mscorlib|System|Sytem.Web|EnvDTE)$"))
+        .SelectMany(x => x.GetTypes())
+        .Where(x => x != null && x.FullName != "LightNode.Server.LightNodeContract");
+
+    var contracts = typeFromAssemblies
+        .Where(x =>
+        {
+            while (x != typeof(object) && x != null)
+            {
+                if (x.FullName == "LightNode.Server.LightNodeContract") return true;
+                x = x.BaseType;
+            }
+            return false;
+        })
+        .Where(x => !x.IsAbstract && x.GetCustomAttributes(true).All(y => y.GetType().FullName != "LightNode.Server.IgnoreOperationAttribute" && y.GetType().FullName != "LightNode.Server.IgnoreClientGenerateAttribute"))
+        .Select(x =>
+        {
+            var methods = x.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Where(methodInfo => !(methodInfo.IsSpecialName && (methodInfo.Name.StartsWith("set_") || methodInfo.Name.StartsWith("get_"))))
+                .Where(methodInfo => !ignoreMethods.Contains(methodInfo.Name))
+                .Where(methodInfo => methodInfo.GetCustomAttributes(true).All(y => y.GetType().FullName != "LightNode.Server.IgnoreOperationAttribute" && y.GetType().FullName != "LightNode.Server.IgnoreClientGenerateAttribute"))
+                .Select(methodInfo =>
+                {
+                    var retType = methodInfo.ReturnType;
+                    var returnType =
+                        (retType == typeof(Task)) ? typeof(void)
+                        : (retType.IsGenericType && retType.GetGenericTypeDefinition() == typeof(Task<>)) ? retType.GetGenericArguments()[0]
+                        : retType;
+
+                    var parameter = methodInfo.GetParameters()
+                        .Select(paramInfo => new
+                        {
+                            paramInfo.Name,
+                            paramInfo.ParameterType,
+                            paramInfo.IsOptional,
+                            paramInfo.DefaultValue,
+                            IsCancellationToken = false,
+                        })
+                        .Concat(new[]{new
+                        {
+                            Name = "cancellationToken",
+                            ParameterType = typeof(CancellationToken),
+                            IsOptional = true,
+                            DefaultValue = (object)default(CancellationToken),
+                            IsCancellationToken = true,
+                        }})
+                        .ToArray();
+
+                    var parameterString = string.Join(", ", parameter.Select(p =>
+                    {
+                        return p.Name + (p.IsOptional ? "?" : "") + ": " + BeautifyType(p.ParameterType);
+                    }));
+
+                    var parameterStringWithOptional = string.Join(", ", parameter.Select(p =>
+                    {
+                        var withoutValue = p.Name + (p.IsOptional ? "?" : "") + ": " + BeautifyType(p.ParameterType);
+                        if (p.IsOptional)
+                        {
+                            var withValueBase = p.Name + ": " + BeautifyType(p.ParameterType);
+                            return (
+                                (p.DefaultValue == null) ? withoutValue
+                              : (p.DefaultValue is string) ? withValueBase + " = \"" + p.DefaultValue + "\"" 
+                              : (p.DefaultValue is CancellationToken) ? withoutValue
+                              : (p.ParameterType.IsEnum) ? withValueBase + " = " + p.ParameterType.Name + "." + p.DefaultValue.ToString()
+                              : withValueBase + " = " + p.DefaultValue.ToString().ToLower());
+                        } else {
+                            return withoutValue;
+                        }
+                    }));
+
+                    var debugOnlyClientGenerateMethod = methodInfo.GetCustomAttributes(true).Any(y => y.GetType().FullName == "LightNode.Server.DebugOnlyClientGenerateAttribute");
+
+                    return new
+                    {
+                        OperationName = methodInfo.Name,
+                        ReturnType = returnType,
+                        Parameters = parameter,
+                        ParameterString = parameterString,
+                        ParameterStringWithOptional = parameterStringWithOptional,
+                        IsDebugOnly = debugOnlyClientGenerateMethod
+                    };
+                })
+                .Where(method => isDebug || !method.IsDebugOnly)
+                .ToArray();
+
+            var debugOnlyClientGenerate = x.GetCustomAttributes(true).Any(y => y.GetType().FullName == "LightNode.Server.DebugOnlyClientGenerateAttribute");
+
+            return new
+            {
+                RootName = x.Name,
+                InterfaceName = "_I" + x.Name,
+                Operations = methods,
+                IsDebugOnly = debugOnlyClientGenerate
+            };
+        })
+        .Where(contract => isDebug || !contract.IsDebugOnly)
+        .ToArray();
+
+    var @shouldDefineReturnTypes = contracts
+        .Where(x => isDebug || !x.IsDebugOnly)
+        .SelectMany(x => x.Operations)
+        .Where(x => isDebug || !x.IsDebugOnly)
+        .Select(x => x.ReturnType)
+        .Select(x => UnWrapEnumerableOrSelf(x))
+        .Select(x => UnWrapNullableOrSelf(x))
+        .Where(x => IsComplexType(x))
+        .ToArray();
+
+    var @shouldDefineParameterTypes = contracts
+        .Where(x => isDebug || !x.IsDebugOnly)
+        .SelectMany(x => x.Operations)
+        .Where(x => isDebug || !x.IsDebugOnly)
+        .SelectMany(x => x.Parameters)
+        .Select(x => x.ParameterType)
+        .Select(x => UnWrapEnumerableOrSelf(x))
+        .Select(x => UnWrapNullableOrSelf(x))
+        .Where(x => IsComplexType(x))
+        .Where(x => x.IsEnum) // parameter is not allowed class
+        .ToArray();
+
+    complexTypes = typeFromAssemblies
+        .Where(x => x.GetCustomAttributes(true).Any(y => y.GetType().FullName == "LightNode.Server.DefineTypeScriptGenerateAttribute"))
+        .Concat(shouldDefineReturnTypes)
+        .Where(x => x.IsClass)
+        .Distinct()
+        .Where(x => isDebug || x.GetCustomAttributes(true).All(y => y.GetType().FullName != "LightNode.Server.DebugOnlyClientGenerateAttribute"))
+        .ToArray();
+
+    enumTypes = typeFromAssemblies
+        .Where(x => x.GetCustomAttributes(true).Any(y => y.GetType().FullName == "LightNode.Server.DefineTypeScriptGenerateAttribute"))
+        .Concat(shouldDefineReturnTypes)
+        .Concat(shouldDefineParameterTypes)
+        .Where(x => x.IsEnum)
+        .Distinct()
+        .Where(x => isDebug || x.GetCustomAttributes(true).All(y => y.GetType().FullName != "LightNode.Server.DebugOnlyClientGenerateAttribute"))
+        .ToArray();
+
+#>
+
+/* tslint:disable */
+namespace <#= namespaceName #> {
+    "use strict";
+
+    //#region LightNode
+
+    angular.module("lightNode", [])
+        .provider("lightNodeClientHandler", [function () {
+
+            this.defaultRequestHeaders = true;
+
+            this.lightNodeClientHandlerFactory = function ($http: ng.IHttpService) {
+
+                let handler = new LightNodeClientHandler($http);
+
+                return handler;
+
+            };
+
+            this.$get = ["$http", this.lightNodeClientHandlerFactory];
+
+        }])
+        .provider("<#= lowerClientName #>", [function () {
+
+            this.lightNodeClientFactory =
+                function ($q: ng.IQService, rootEndPoint: string, lightNodeClientHandler: LightNodeClientHandler) {
+
+                    let client = new <#= clientName #>($q, rootEndPoint, lightNodeClientHandler);
+
+                    client.timeout = this.timeout;
+
+                    Object.keys(this.defaultRequestHeaders || {}).forEach(
+                        (x: string) => {
+                            client.defaultRequestHeaders[x] = this.defaultRequestHeaders[x];
+                        });
+
+                    return client;
+
+                };
+
+            this.$get = [
+                "$q", "lightNodeClientHandler",
+                function ($q: ng.IQService, lightNodeClientHandler: LightNodeClientHandler) {
+                    return this.lightNodeClientFactory($q, this.rootEndPoint, lightNodeClientHandler);
+                }];
+
+        }]);
+
+    export interface ILightNodeClientHandlerProvider {
+        lightNodeClientHandlerFactory: ($http: ng.IHttpService) => LightNodeClientHandler;
+    }
+
+    export interface ILightNodeClientProvider {
+        rootEndPoint: string;
+        defaultRequestHeaders: { [key: string]: string };
+        timeout: number;
+        lightNodeClientFactory: ($q: ng.IQService, rootEndPoint: string, $http: ng.IHttpService) => LightNodeClientBase;
+    }
+
+    export interface IHttpResponseTransformer<T> {
+        (data: any, headersGetter: ng.IHttpHeadersGetter, status: number): T;
+    }
+
+    export class ArgumentError extends Error {
+        constructor(message: string = "Value does not fall within the expected range.", paramName?: string) {
+            super();
+            this.name = "ArgumentError";
+            this.message = message + (paramName ? ": " + paramName : "");
+        }
+    }
+
+    export class ArgumentNullError extends ArgumentError {
+        constructor(paramName?: string, message: string = "Value cannot be null.") {
+            super(message, paramName);
+            this.name = "ArgumentNullError";
+        }
+    }
+
+    export class ArgumentOutOfRangeError extends ArgumentError {
+        constructor(paramName?: string, message: string = "Specified argument was out of the range of valid values.") {
+            super(message, paramName);
+            this.name = "ArgumentOutOfRangeError";
+        }
+    }
+
+    export class LightNodeClientHandler {
+
+        constructor(private $http: ng.IHttpService) {
+            if (!$http) {
+                throw new ArgumentNullError("$http");
+            }
+        }
+
+        protected serializeToFormData(data: any): string {
+
+            return Object.keys(data || {})
+                .map((x: string) => {
+                    let value = data[x];
+                    if (value === void 0 || value === null) {
+                        value = "";
+                    }
+                    return encodeURIComponent(x) + "=" + encodeURIComponent(value);
+                })
+                .join("&");
+
+        }
+
+        public post<T>(
+            url: string,
+            data?: any,
+            timeout?: number | ng.IPromise<any>,
+            requestHeaders?: ng.IHttpRequestConfigHeaders,
+            transformResponse?: IHttpResponseTransformer<T>): ng.IPromise<T> {
+
+            if (!url) {
+                throw new ArgumentNullError("url");
+            }
+
+            let config = <ng.IRequestShortcutConfig>{
+                timeout: timeout,
+                headers: requestHeaders,
+                responseType: "json",
+                transformResponse: transformResponse
+            };
+
+            return this.$http.post(url, this.serializeToFormData(data), config);
+
+        }
+    }
+
+    export class CancellationTokenSource {
+
+        constructor(private deferred: ng.IDeferred<any>) {
+            if (!deferred) {
+                throw new ArgumentNullError("deferred");
+            }
+        }
+
+        public get token(): ng.IPromise<any> {
+            return this.deferred.promise;
+        }
+
+        public cancel(): void {
+            this.deferred.resolve();
+        }
+
+    }
+
+    export class LightNodeClientBase {
+
+        constructor(private $q: ng.IQService, private rootEndPoint: string, private innerHandler: LightNodeClientHandler) {
+
+            if (!$q) {
+                throw new ArgumentNullError("$q");
+            }
+
+            if (!rootEndPoint) {
+                throw new ArgumentNullError("rootEndPoint");
+            }
+
+            if (!innerHandler) {
+                throw new ArgumentNullError("innerHandler");
+            }
+
+            this.$q = $q;
+
+            this.rootEndPoint = rootEndPoint.replace(/\/$/, "");
+
+            if (!this.rootEndPoint) {
+                throw new ArgumentOutOfRangeError("rootEndPoint");
+            }
+
+            this.innerHandler = innerHandler;
+
+            this._defaultRequestHeaders = {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-Requested-With": "XMLHttpRequest"
+            };
+
+        }
+
+        private _timeout: number;
+        public get timeout(): number {
+            return this._timeout;
+        }
+        public set timeout(value: number) {
+            if (value <= 0) {
+                throw new ArgumentOutOfRangeError();
+            }
+            this._timeout = value;
+        }
+
+        private _defaultRequestHeaders: { [key: string]: string };
+        public get defaultRequestHeaders(): { [key: string]: string } {
+            return this._defaultRequestHeaders;
+        };
+
+        protected post<T>(
+            method: string,
+            data?: any,
+            cancellationToken?: ng.IPromise<any>,
+            transformResponse?: IHttpResponseTransformer<T>): ng.IPromise<T> {
+
+            if (!method) {
+                throw new ArgumentNullError("method");
+            }
+
+            return this.innerHandler.post(
+                this.rootEndPoint + method,
+                data,
+                cancellationToken || this.timeout,
+                this.defaultRequestHeaders,
+                transformResponse)
+                .then((x: any) => x.data);
+
+        }
+
+        public createCancellationTokenSource(): CancellationTokenSource {
+
+            return new CancellationTokenSource(this.$q.defer<any>());
+
+        };
+
+        protected validStatusCode(status: number): boolean {
+
+            return 200 <= status && status <= 299;
+
+        }
+
+        protected parseJSON(json: any): any {
+            return typeof json === "string"
+                ? JSON.parse(json)
+                : json;
+        }
+
+    }
+
+    //#endregion
+
+<# foreach(var enumType in enumTypes) { #>
+    export enum <#= enumType.Name #> {
+<# foreach(var enumMember in Enum.GetNames(enumType).Select(x => new { Name = x, Value = ((Enum)Enum.Parse(enumType, x)).ToString("d") }).ToArray()) { #>
+        <#= enumMember.Name #> = <#= enumMember.Value #><#= Enum.GetNames(enumType).Last() == enumMember.Name ? "" : "," #>
+<# } #>
+    }
+
+<# } #>
+<# foreach(var complexType in complexTypes) { #>
+    export class <#= complexType.Name #> {
+
+        constructor(json?: any) {
+<# foreach(var p in complexType.GetProperties().Where(x => x.CanRead).ToArray()) { #>
+<# if(ShouldCreateInstance(p.PropertyType)) { #>
+<# if(IsEnumerableType(p.PropertyType)) { #>
+            this.<#= ToLowerCamelCase(p.Name) #> = (<any[]>json.<#= p.Name #> || []).map((x: any) => x ? new <#= BeautifyType(p.PropertyType).TrimEnd('[', ']') #>(x) : null);
+<# } else { #>
+            this.<#= ToLowerCamelCase(p.Name) #> = json.<#= allowUpperCamelJson ? p.Name : ToLowerCamelCase(p.Name) #> ? new <#= BeautifyType(p.PropertyType) #>(json.<#= allowUpperCamelJson ? p.Name : ToLowerCamelCase(p.Name) #>) : null;
+<# } #>
+<# } else { #>
+            this.<#= ToLowerCamelCase(p.Name) #> = json.<#= allowUpperCamelJson ? p.Name : ToLowerCamelCase(p.Name) #><#= IsEnumerableType(p.PropertyType) ? " || []" : "" #>;
+<# } #>
+<# } #>
+        }
+
+<# foreach(var p in complexType.GetProperties().Where(x => x.CanRead).ToArray()) { #>
+        public <#= ToLowerCamelCase(p.Name) #>: <#= BeautifyType(p.PropertyType) #>;
+<# } #>
+    }
+
+<# } #>
+<# foreach(var contract in contracts) { #>
+    export interface <#= contract.InterfaceName #> {
+<# foreach(var operation in contract.Operations) { #>
+        <#= ToLowerCamelCase(operation.OperationName) #>(<#= operation.ParameterString #>): ng.IPromise<<#= BeautifyType(operation.ReturnType) #>>;
+<# } #>
+    }
+
+<# } #>
+    export class <#= clientName #> extends LightNodeClientBase {
+
+        constructor($q: ng.IQService, rootEndPoint: string, innerHandler: LightNodeClientHandler) {
+            super($q, rootEndPoint, innerHandler);
+        }
+
+<# foreach(var contract in contracts) { #>
+        private _<#= ToLowerCamelCase(contract.RootName) #>: <#= contract.InterfaceName #>;
+        public get <#= ToLowerCamelCase(contract.RootName) #>(): <#= contract.InterfaceName #> {
+            if (!this._<#= ToLowerCamelCase(contract.RootName) #>) {
+                this._<#= ToLowerCamelCase(contract.RootName) #> = {
+<# for(var i = 0; i < contract.Operations.Length; i++) { #>
+                    <#= ToLowerCamelCase(contract.Operations[i].OperationName) #>: this.<#= ToLowerCamelCase(contract.RootName) #><#= contract.Operations[i].OperationName #>.bind(this)<#= i == contract.Operations.Length - 1 ? "" : "," #>
+<# } #>
+                };
+            }
+            return this._<#= ToLowerCamelCase(contract.RootName) #>;
+        }
+
+<# } #>
+<# foreach(var contract in contracts) { #>
+<# foreach(var operation in contract.Operations) { #>
+        protected <#= ToLowerCamelCase(contract.RootName) #><#= operation.OperationName #>(<#= operation.ParameterStringWithOptional #>): ng.IPromise<<#= BeautifyType(operation.ReturnType) #>> {
+
+<# if(operation.Parameters.Any(x => !x.IsCancellationToken)) { #>
+            var data = {
+<# foreach(var parameter in operation.Parameters.Where(x => !x.IsCancellationToken)) { #>
+                "<#= ToLowerCamelCase(parameter.Name) #>": <#= ToLowerCamelCase(parameter.Name) #><#= operation.Parameters.Where(x => !x.IsCancellationToken).Last() == parameter ? "" : "," #>
+<# } #>
+            };
+<# } else { #>
+            var data = {};
+<# } #>
+
+            return this.post<<#= BeautifyType(operation.ReturnType) #>>("/<#= contract.RootName #>/<#= operation.OperationName #>", data, cancellationToken,
+                (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
+<# if(ShouldCreateInstance(operation.ReturnType)) { #>
+                    if (!this.validStatusCode(status)) {
+                        return data;
+                    }
+<# if(IsEnumerableType(operation.ReturnType)) { #>
+                    return (<any[]>this.parseJSON(data) || []).map((x: any) => x ? new <#= BeautifyType(operation.ReturnType).TrimEnd('[', ']') #>(x) : null);
+<# } else { #>
+                    let json = this.parseJSON(data);
+                    return json ? new <#= BeautifyType(operation.ReturnType) #>(json) : null;
+<# } #>
+<# } else { #>
+                    return this.parseJSON(data);
+<# } #>
+                });
+
+        }
+
+<# } #>
+<# } #>
+    }
+
+}
+/* tslint:enable */
