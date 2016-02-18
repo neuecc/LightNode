@@ -8,7 +8,14 @@
 </head>
 <body>
     <div main>
-        <button type="button" ng-click="main.echo()">echo</button>
+        <button type="button" ng-click="main.random()">random</button><br />
+        <button type="button" ng-click="main.city()">city</button>
+        <form name="myForm" novalidate>
+            <label>
+                timeout
+                <input type="checkbox" name="isWait" ng-model="main.isBoolTest" />
+            </label>
+        </form>
         <ul>
             <li ng-repeat="log in main.logs">
                 {{log}}

@@ -238,45 +238,57 @@ namespace LightNode {
 
     //#endregion
 
-    export enum MyEnum {
-        A = 2,
-        B = 3,
-        C = 4
+    export enum Gender {
+        Male = 0,
+        Female = 1
     }
 
-    export enum MyEnum2 {
-        A = 100,
-        B = 3000,
-        C = 50000
+    export enum Test {
+        Foo = 0,
+        Bar = 1
     }
 
-    export class MyClass {
+    export class NoReferenceClass {
+
+        constructor(json?: any) {
+            this.foo = json.Foo;
+        }
+
+        public foo: number;
+    }
+
+    export class Person {
+
+        constructor(json?: any) {
+            this.age = json.Age;
+            this.birthDay = json.BirthDay ? new Date(json.BirthDay) : null;
+            this.gender = json.Gender;
+            this.firstName = json.FirstName;
+            this.lastName = json.LastName;
+        }
+
+        public age: number;
+        public birthDay: Date;
+        public gender: any;
+        public firstName: string;
+        public lastName: string;
+    }
+
+    export class City {
 
         constructor(json?: any) {
             this.name = json.Name;
-            this.sum = json.Sum;
+            this.people = (<any[]>json.People || []).map((x: any) => x ? new Person(x) : null);
         }
 
         public name: string;
-        public sum: number;
+        public people: Person[];
     }
 
-    export interface _IPerf {
-        echo(name: string, x: number, y: number, e: MyEnum, cancellationToken?: ng.IPromise<any>): ng.IPromise<MyClass>;
-        test(a?: string, x?: number, z?: MyEnum2, cancellationToken?: ng.IPromise<any>): ng.IPromise<any>;
-        te(cancellationToken?: ng.IPromise<any>): ng.IPromise<any>;
-        testArray(array: string[], array2: number[], array3: MyEnum[], cancellationToken?: ng.IPromise<any>): ng.IPromise<any>;
-        teVoid(cancellationToken?: ng.IPromise<any>): ng.IPromise<any>;
-        te4(xs: string, cancellationToken?: ng.IPromise<any>): ng.IPromise<string>;
-        postString(hoge: string, cancellationToken?: ng.IPromise<any>): ng.IPromise<string>;
-    }
-
-    export interface _IDebugOnlyTest {
-        hoge(cancellationToken?: ng.IPromise<any>): ng.IPromise<any>;
-    }
-
-    export interface _IDebugOnlyMethodTest {
-        hoge(cancellationToken?: ng.IPromise<any>): ng.IPromise<any>;
+    export interface _IMember {
+        random(seed: number, cancellationToken?: ng.IPromise<any>): ng.IPromise<Person>;
+        city(isBoolTest: Boolean, cancellationToken?: ng.IPromise<any>): ng.IPromise<City>;
+        echo(test: Test, cancellationToken?: ng.IPromise<any>): ng.IPromise<string>;
     }
 
     export class LightNodeClient extends LightNodeClientBase {
@@ -285,156 +297,59 @@ namespace LightNode {
             super($q, rootEndPoint, innerHandler);
         }
 
-        private _perf: _IPerf;
-        public get perf(): _IPerf {
-            if (!this._perf) {
-                this._perf = {
-                    echo: this.perfEcho.bind(this),
-                    test: this.perfTest.bind(this),
-                    te: this.perfTe.bind(this),
-                    testArray: this.perfTestArray.bind(this),
-                    teVoid: this.perfTeVoid.bind(this),
-                    te4: this.perfTe4.bind(this),
-                    postString: this.perfPostString.bind(this)
+        private _member: _IMember;
+        public get member(): _IMember {
+            if (!this._member) {
+                this._member = {
+                    random: this.memberRandom.bind(this),
+                    city: this.memberCity.bind(this),
+                    echo: this.memberEcho.bind(this)
                 };
             }
-            return this._perf;
+            return this._member;
         }
 
-        private _debugOnlyTest: _IDebugOnlyTest;
-        public get debugOnlyTest(): _IDebugOnlyTest {
-            if (!this._debugOnlyTest) {
-                this._debugOnlyTest = {
-                    hoge: this.debugOnlyTestHoge.bind(this)
-                };
-            }
-            return this._debugOnlyTest;
-        }
-
-        private _debugOnlyMethodTest: _IDebugOnlyMethodTest;
-        public get debugOnlyMethodTest(): _IDebugOnlyMethodTest {
-            if (!this._debugOnlyMethodTest) {
-                this._debugOnlyMethodTest = {
-                    hoge: this.debugOnlyMethodTestHoge.bind(this)
-                };
-            }
-            return this._debugOnlyMethodTest;
-        }
-
-        protected perfEcho(name: string, x: number, y: number, e: MyEnum, cancellationToken?: ng.IPromise<any>): ng.IPromise<MyClass> {
+        protected memberRandom(seed: number, cancellationToken?: ng.IPromise<any>): ng.IPromise<Person> {
 
             var data = {
-                "name": name,
-                "x": x,
-                "y": y,
-                "e": e
+                "seed": seed
             };
 
-            return this.post<MyClass>("/Perf/Echo", data, cancellationToken,
+            return this.post<Person>("/Member/Random", data, cancellationToken,
                 (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
                     if (!this.validStatusCode(status)) {
                         return data;
                     }
                     let json = this.parseJSON(data);
-                    return json ? new MyClass(json) : null;
+                    return json ? new Person(json) : null;
                 });
 
         }
 
-        protected perfTest(a?: string, x?: number, z?: MyEnum2, cancellationToken?: ng.IPromise<any>): ng.IPromise<any> {
+        protected memberCity(isBoolTest: Boolean, cancellationToken?: ng.IPromise<any>): ng.IPromise<City> {
 
             var data = {
-                "a": a,
-                "x": x,
-                "z": z
+                "isBoolTest": !!isBoolTest
             };
 
-            return this.post<any>("/Perf/Test", data, cancellationToken,
+            return this.post<City>("/Member/City", data, cancellationToken,
                 (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
-                    return this.parseJSON(data);
+                    if (!this.validStatusCode(status)) {
+                        return data;
+                    }
+                    let json = this.parseJSON(data);
+                    return json ? new City(json) : null;
                 });
 
         }
 
-        protected perfTe(cancellationToken?: ng.IPromise<any>): ng.IPromise<any> {
-
-            var data = {};
-
-            return this.post<any>("/Perf/Te", data, cancellationToken,
-                (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
-                    return this.parseJSON(data);
-                });
-
-        }
-
-        protected perfTestArray(array: string[], array2: number[], array3: MyEnum[], cancellationToken?: ng.IPromise<any>): ng.IPromise<any> {
+        protected memberEcho(test: Test, cancellationToken?: ng.IPromise<any>): ng.IPromise<string> {
 
             var data = {
-                "array": array,
-                "array2": array2,
-                "array3": array3
+                "test": test
             };
 
-            return this.post<any>("/Perf/TestArray", data, cancellationToken,
-                (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
-                    return this.parseJSON(data);
-                });
-
-        }
-
-        protected perfTeVoid(cancellationToken?: ng.IPromise<any>): ng.IPromise<any> {
-
-            var data = {};
-
-            return this.post<any>("/Perf/TeVoid", data, cancellationToken,
-                (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
-                    return this.parseJSON(data);
-                });
-
-        }
-
-        protected perfTe4(xs: string, cancellationToken?: ng.IPromise<any>): ng.IPromise<string> {
-
-            var data = {
-                "xs": xs
-            };
-
-            return this.post<string>("/Perf/Te4", data, cancellationToken,
-                (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
-                    return this.parseJSON(data);
-                });
-
-        }
-
-        protected perfPostString(hoge: string, cancellationToken?: ng.IPromise<any>): ng.IPromise<string> {
-
-            var data = {
-                "hoge": hoge
-            };
-
-            return this.post<string>("/Perf/PostString", data, cancellationToken,
-                (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
-                    return this.parseJSON(data);
-                });
-
-        }
-
-        protected debugOnlyTestHoge(cancellationToken?: ng.IPromise<any>): ng.IPromise<any> {
-
-            var data = {};
-
-            return this.post<any>("/DebugOnlyTest/Hoge", data, cancellationToken,
-                (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
-                    return this.parseJSON(data);
-                });
-
-        }
-
-        protected debugOnlyMethodTestHoge(cancellationToken?: ng.IPromise<any>): ng.IPromise<any> {
-
-            var data = {};
-
-            return this.post<any>("/DebugOnlyMethodTest/Hoge", data, cancellationToken,
+            return this.post<string>("/Member/Echo", data, cancellationToken,
                 (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
                     return this.parseJSON(data);
                 });

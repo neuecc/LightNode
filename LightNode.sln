@@ -91,6 +91,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Diagnostics.Event
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Client.AngularJS.T4", "Source\LightNode.Client.AngularJS.T4\LightNode.Client.AngularJS.T4.csproj", "{76763E3D-F349-40F3-A7B8-4CC6CB8AE11B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightNode.Sample.Server.ForAngularClient", "Sample\LightNode.Sample.Server.ForAngularClient\LightNode.Sample.Server.ForAngularClient.csproj", "{0134B165-ACB4-4051-A7A3-FD9DF4C88B20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -209,6 +211,10 @@ Global
 		{76763E3D-F349-40F3-A7B8-4CC6CB8AE11B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76763E3D-F349-40F3-A7B8-4CC6CB8AE11B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76763E3D-F349-40F3-A7B8-4CC6CB8AE11B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0134B165-ACB4-4051-A7A3-FD9DF4C88B20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0134B165-ACB4-4051-A7A3-FD9DF4C88B20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0134B165-ACB4-4051-A7A3-FD9DF4C88B20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0134B165-ACB4-4051-A7A3-FD9DF4C88B20}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -228,5 +234,6 @@ Global
 		{3AB75B9A-EDCE-4761-A71C-612E9BA48AC3} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 		{9E4C02D4-BFC8-48F5-BAE8-5AD88B384961} = {7632038A-C89C-4EF9-B4FF-BEF11F02F9F4}
 		{4B0914D8-6360-487E-8EB4-89CC1DB112F6} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
+		{0134B165-ACB4-4051-A7A3-FD9DF4C88B20} = {05E4C673-1F12-449D-A3A4-F7C6FFD91701}
 	EndGlobalSection
 EndGlobal

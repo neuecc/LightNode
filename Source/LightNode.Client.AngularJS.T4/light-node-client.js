@@ -187,154 +187,93 @@ var LightNode;
     })();
     LightNode.LightNodeClientBase = LightNodeClientBase;
     //#endregion
-    (function (MyEnum) {
-        MyEnum[MyEnum["A"] = 2] = "A";
-        MyEnum[MyEnum["B"] = 3] = "B";
-        MyEnum[MyEnum["C"] = 4] = "C";
-    })(LightNode.MyEnum || (LightNode.MyEnum = {}));
-    var MyEnum = LightNode.MyEnum;
-    (function (MyEnum2) {
-        MyEnum2[MyEnum2["A"] = 100] = "A";
-        MyEnum2[MyEnum2["B"] = 3000] = "B";
-        MyEnum2[MyEnum2["C"] = 50000] = "C";
-    })(LightNode.MyEnum2 || (LightNode.MyEnum2 = {}));
-    var MyEnum2 = LightNode.MyEnum2;
-    var MyClass = (function () {
-        function MyClass(json) {
-            this.name = json.Name;
-            this.sum = json.Sum;
+    (function (Gender) {
+        Gender[Gender["Male"] = 0] = "Male";
+        Gender[Gender["Female"] = 1] = "Female";
+    })(LightNode.Gender || (LightNode.Gender = {}));
+    var Gender = LightNode.Gender;
+    (function (Test) {
+        Test[Test["Foo"] = 0] = "Foo";
+        Test[Test["Bar"] = 1] = "Bar";
+    })(LightNode.Test || (LightNode.Test = {}));
+    var Test = LightNode.Test;
+    var NoReferenceClass = (function () {
+        function NoReferenceClass(json) {
+            this.foo = json.Foo;
         }
-        return MyClass;
+        return NoReferenceClass;
     })();
-    LightNode.MyClass = MyClass;
+    LightNode.NoReferenceClass = NoReferenceClass;
+    var Person = (function () {
+        function Person(json) {
+            this.age = json.Age;
+            this.birthDay = json.BirthDay ? new Date(json.BirthDay) : null;
+            this.gender = json.Gender;
+            this.firstName = json.FirstName;
+            this.lastName = json.LastName;
+        }
+        return Person;
+    })();
+    LightNode.Person = Person;
+    var City = (function () {
+        function City(json) {
+            this.name = json.Name;
+            this.people = (json.People || []).map(function (x) { return x ? new Person(x) : null; });
+        }
+        return City;
+    })();
+    LightNode.City = City;
     var LightNodeClient = (function (_super) {
         __extends(LightNodeClient, _super);
         function LightNodeClient($q, rootEndPoint, innerHandler) {
             _super.call(this, $q, rootEndPoint, innerHandler);
         }
-        Object.defineProperty(LightNodeClient.prototype, "perf", {
+        Object.defineProperty(LightNodeClient.prototype, "member", {
             get: function () {
-                if (!this._perf) {
-                    this._perf = {
-                        echo: this.perfEcho.bind(this),
-                        test: this.perfTest.bind(this),
-                        te: this.perfTe.bind(this),
-                        testArray: this.perfTestArray.bind(this),
-                        teVoid: this.perfTeVoid.bind(this),
-                        te4: this.perfTe4.bind(this),
-                        postString: this.perfPostString.bind(this)
+                if (!this._member) {
+                    this._member = {
+                        random: this.memberRandom.bind(this),
+                        city: this.memberCity.bind(this),
+                        echo: this.memberEcho.bind(this)
                     };
                 }
-                return this._perf;
+                return this._member;
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(LightNodeClient.prototype, "debugOnlyTest", {
-            get: function () {
-                if (!this._debugOnlyTest) {
-                    this._debugOnlyTest = {
-                        hoge: this.debugOnlyTestHoge.bind(this)
-                    };
-                }
-                return this._debugOnlyTest;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(LightNodeClient.prototype, "debugOnlyMethodTest", {
-            get: function () {
-                if (!this._debugOnlyMethodTest) {
-                    this._debugOnlyMethodTest = {
-                        hoge: this.debugOnlyMethodTestHoge.bind(this)
-                    };
-                }
-                return this._debugOnlyMethodTest;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        LightNodeClient.prototype.perfEcho = function (name, x, y, e, cancellationToken) {
+        LightNodeClient.prototype.memberRandom = function (seed, cancellationToken) {
             var _this = this;
             var data = {
-                "name": name,
-                "x": x,
-                "y": y,
-                "e": e
+                "seed": seed
             };
-            return this.post("/Perf/Echo", data, cancellationToken, function (data, headersGetter, status) {
+            return this.post("/Member/Random", data, cancellationToken, function (data, headersGetter, status) {
                 if (!_this.validStatusCode(status)) {
                     return data;
                 }
                 var json = _this.parseJSON(data);
-                return json ? new MyClass(json) : null;
+                return json ? new Person(json) : null;
             });
         };
-        LightNodeClient.prototype.perfTest = function (a, x, z, cancellationToken) {
+        LightNodeClient.prototype.memberCity = function (isBoolTest, cancellationToken) {
             var _this = this;
             var data = {
-                "a": a,
-                "x": x,
-                "z": z
+                "isBoolTest": !!isBoolTest
             };
-            return this.post("/Perf/Test", data, cancellationToken, function (data, headersGetter, status) {
-                return _this.parseJSON(data);
+            return this.post("/Member/City", data, cancellationToken, function (data, headersGetter, status) {
+                if (!_this.validStatusCode(status)) {
+                    return data;
+                }
+                var json = _this.parseJSON(data);
+                return json ? new City(json) : null;
             });
         };
-        LightNodeClient.prototype.perfTe = function (cancellationToken) {
-            var _this = this;
-            var data = {};
-            return this.post("/Perf/Te", data, cancellationToken, function (data, headersGetter, status) {
-                return _this.parseJSON(data);
-            });
-        };
-        LightNodeClient.prototype.perfTestArray = function (array, array2, array3, cancellationToken) {
+        LightNodeClient.prototype.memberEcho = function (test, cancellationToken) {
             var _this = this;
             var data = {
-                "array": array,
-                "array2": array2,
-                "array3": array3
+                "test": test
             };
-            return this.post("/Perf/TestArray", data, cancellationToken, function (data, headersGetter, status) {
-                return _this.parseJSON(data);
-            });
-        };
-        LightNodeClient.prototype.perfTeVoid = function (cancellationToken) {
-            var _this = this;
-            var data = {};
-            return this.post("/Perf/TeVoid", data, cancellationToken, function (data, headersGetter, status) {
-                return _this.parseJSON(data);
-            });
-        };
-        LightNodeClient.prototype.perfTe4 = function (xs, cancellationToken) {
-            var _this = this;
-            var data = {
-                "xs": xs
-            };
-            return this.post("/Perf/Te4", data, cancellationToken, function (data, headersGetter, status) {
-                return _this.parseJSON(data);
-            });
-        };
-        LightNodeClient.prototype.perfPostString = function (hoge, cancellationToken) {
-            var _this = this;
-            var data = {
-                "hoge": hoge
-            };
-            return this.post("/Perf/PostString", data, cancellationToken, function (data, headersGetter, status) {
-                return _this.parseJSON(data);
-            });
-        };
-        LightNodeClient.prototype.debugOnlyTestHoge = function (cancellationToken) {
-            var _this = this;
-            var data = {};
-            return this.post("/DebugOnlyTest/Hoge", data, cancellationToken, function (data, headersGetter, status) {
-                return _this.parseJSON(data);
-            });
-        };
-        LightNodeClient.prototype.debugOnlyMethodTestHoge = function (cancellationToken) {
-            var _this = this;
-            var data = {};
-            return this.post("/DebugOnlyMethodTest/Hoge", data, cancellationToken, function (data, headersGetter, status) {
+            return this.post("/Member/Echo", data, cancellationToken, function (data, headersGetter, status) {
                 return _this.parseJSON(data);
             });
         };

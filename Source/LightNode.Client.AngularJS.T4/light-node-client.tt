@@ -10,7 +10,7 @@
 <#@ import namespace="System.Threading.Tasks" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension="ts" encoding="utf-8" #>
-<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Performance.dll" #>
+<#@ assembly name="$(SolutionDir)\Sample\LightNode.Sample.Server.ForAngularClient\bin\Debug\LightNode.Sample.Server.ForAngularClient.exe" #>
 <#
     // ------------- T4 Configuration ------------- //
     
