@@ -63,6 +63,13 @@
             : "any";
     };
 
+    Func<Type, bool> IsEnumerableType = (Type t) =>
+    {
+        return t != typeof(string)
+            && ((t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                || t.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>)));
+    };
+
     Func<Type, string> BeautifyType = null;
     BeautifyType = (Type t) =>
     {
@@ -72,7 +79,7 @@
 
         if (t.GetGenericTypeDefinition() == typeof(Nullable<>)) return BeautifyType(t.GetGenericArguments()[0]);
 
-        if (t.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return BeautifyType(t.GetGenericArguments()[0]) + "[]";
+        if (IsEnumerableType(t)) return BeautifyType(t.GetGenericArguments()[0]) + "[]";
 
         var innerFormat = string.Join(", ", t.GetGenericArguments().Select(x => BeautifyType(x)));
         return Regex.Replace(t.GetGenericTypeDefinition().Name, @"`.+$", "") + "<" + innerFormat + ">";
@@ -86,12 +93,7 @@
     Func<Type, Type> UnWrapEnumerableOrSelf = (Type t) =>
     {
         return t.IsArray ? t.GetElementType()
-            : t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>) ? t.GetGenericArguments()[0] : t;
-    };
-
-    Func<Type, bool> IsEnumerableType = (Type t) =>
-    {
-        return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+            : t.IsGenericType && IsEnumerableType(t) ? t.GetGenericArguments()[0] : t;
     };
 
     Func<Type, bool> IsComplexType = (Type t) =>
