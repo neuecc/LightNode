@@ -155,6 +155,7 @@
                             paramInfo.ParameterType,
                             paramInfo.IsOptional,
                             paramInfo.DefaultValue,
+                            IsBoolean = paramInfo.ParameterType == typeof(Boolean),
                             IsCancellationToken = false,
                         })
                         .Concat(new[]{new
@@ -163,6 +164,7 @@
                             ParameterType = typeof(CancellationToken),
                             IsOptional = true,
                             DefaultValue = (object)default(CancellationToken),
+                            IsBoolean = false,
                             IsCancellationToken = true,
                         }})
                         .ToArray();
@@ -563,7 +565,7 @@ namespace <#= namespaceName #> {
 <# if(operation.Parameters.Any(x => !x.IsCancellationToken)) { #>
             var data = {
 <# foreach(var parameter in operation.Parameters.Where(x => !x.IsCancellationToken)) { #>
-                "<#= ToLowerCamelCase(parameter.Name) #>": <#= ToLowerCamelCase(parameter.Name) #><#= operation.Parameters.Where(x => !x.IsCancellationToken).Last() == parameter ? "" : "," #>
+                "<#= ToLowerCamelCase(parameter.Name) #>": <#= parameter.IsBoolean ? "!!" : "" #><#= ToLowerCamelCase(parameter.Name) #><#= operation.Parameters.Where(x => !x.IsCancellationToken).Last() == parameter ? "" : "," #>
 <# } #>
             };
 <# } else { #>
