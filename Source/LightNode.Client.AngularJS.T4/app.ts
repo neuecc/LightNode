@@ -3,31 +3,50 @@ namespace LightNode {
     "use strict";
 
     angular.module("app", ["lightNode"])
-        .constant("rootEndPoint", "http://localhost:24028/")
+        .constant("rootEndPoint", "http://localhost:12345/api")
         .config(
         ["lightNodeClientProvider", "rootEndPoint",
             (lightNodeClientProvider: LightNode.ILightNodeClientProvider, rootEndPoint: string) => {
                 lightNodeClientProvider.rootEndPoint = rootEndPoint;
-                lightNodeClientProvider.timeout = 10 * 1000;
-            }])
-        .directive(
-        "main",
-        [() => {
-            return {
-                controller: ["$scope", "lightNodeClient", MainController],
-                controllerAs: "main"
-            };
-        }]);
+                lightNodeClientProvider.timeout = 2 * 1000;
+            }]);
 
-    export class MainController {
+    class MainController {
 
-        constructor($scope: ng.IScope, private lightNodeClient: LightNode.LightNodeClient) { }
+        constructor(private mainService: MainService) { }
+
+        public get isBoolTest() {
+            return this.mainService.isBoolTest;
+        }
+        public set isBoolTest(value: boolean) {
+            this.mainService.isBoolTest = value;
+        }
+
+        public get logs() {
+            return this.mainService.logs;
+        }
+
+        public random() {
+            this.mainService.random();
+        }
+
+        public city() {
+            this.mainService.city();
+        }
+
+    }
+
+    class MainService {
+
+        constructor(private lightNodeClient: LightNode.LightNodeClient) { }
+
+        public isBoolTest: boolean;
 
         public logs: any[] = [];
 
         private cancellationTokenSource: LightNode.CancellationTokenSource;
 
-        public echo() {
+        public random() {
 
             if (this.cancellationTokenSource) {
                 this.cancellationTokenSource.cancel();
@@ -35,9 +54,9 @@ namespace LightNode {
 
             this.cancellationTokenSource = this.lightNodeClient.createCancellationTokenSource();
 
-            this.lightNodeClient.perf.echo("Hello", 1, 2, MyEnum.A, this.cancellationTokenSource.token)
+            this.lightNodeClient.member.random(1, this.cancellationTokenSource.token)
                 .then(
-                (x: LightNode.MyClass) => {
+                (x: LightNode.Person) => {
                     this.logs.unshift(x);
                     console.log(x);
                 })
@@ -45,8 +64,39 @@ namespace LightNode {
                     this.logs.unshift(x);
                     console.log(x);
                 });
+
+        }
+
+        public city() {
+
+            // isBoolTest property has undefined when not $durty.
+            // but, lightNodeClient will send boolean.
+            // if send undefined, recieve internal server error.
+
+            this.lightNodeClient.member.city(this.isBoolTest)
+                .then(
+                (x: LightNode.City) => {
+                    this.logs.unshift(x);
+                    console.log(x);
+                })
+                .catch((x: any) => {
+                    this.logs.unshift(x);
+                    console.log(x);
+                });
+
         }
 
     }
+
+    angular.module("app")
+        .service("mainService", MainService)
+        .directive(
+        "main",
+        [() => {
+            return {
+                controller: ["mainService", MainController],
+                controllerAs: "main"
+            };
+        }]);
 
 }

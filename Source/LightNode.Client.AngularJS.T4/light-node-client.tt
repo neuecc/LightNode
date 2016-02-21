@@ -10,7 +10,7 @@
 <#@ import namespace="System.Threading.Tasks" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension="ts" encoding="utf-8" #>
-<#@ assembly name="$(SolutionDir)\Performance\LightNode.Performance\bin\LightNode.Performance.dll" #>
+<#@ assembly name="$(SolutionDir)\Sample\LightNode.Sample.Server.ForAngularClient\bin\Debug\LightNode.Sample.Server.ForAngularClient.exe" #>
 <#
     // ------------- T4 Configuration ------------- //
     
@@ -63,6 +63,13 @@
             : "any";
     };
 
+    Func<Type, bool> IsEnumerableType = (Type t) =>
+    {
+        return t != typeof(string)
+            && ((t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                || t.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>)));
+    };
+
     Func<Type, string> BeautifyType = null;
     BeautifyType = (Type t) =>
     {
@@ -72,7 +79,7 @@
 
         if (t.GetGenericTypeDefinition() == typeof(Nullable<>)) return BeautifyType(t.GetGenericArguments()[0]);
 
-        if (t.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return BeautifyType(t.GetGenericArguments()[0]) + "[]";
+        if (IsEnumerableType(t)) return BeautifyType(t.GetGenericArguments()[0]) + "[]";
 
         var innerFormat = string.Join(", ", t.GetGenericArguments().Select(x => BeautifyType(x)));
         return Regex.Replace(t.GetGenericTypeDefinition().Name, @"`.+$", "") + "<" + innerFormat + ">";
@@ -86,12 +93,7 @@
     Func<Type, Type> UnWrapEnumerableOrSelf = (Type t) =>
     {
         return t.IsArray ? t.GetElementType()
-            : t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>) ? t.GetGenericArguments()[0] : t;
-    };
-
-    Func<Type, bool> IsEnumerableType = (Type t) =>
-    {
-        return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+            : t.IsGenericType && IsEnumerableType(t) ? t.GetGenericArguments()[0] : t;
     };
 
     Func<Type, bool> IsComplexType = (Type t) =>
@@ -153,6 +155,7 @@
                             paramInfo.ParameterType,
                             paramInfo.IsOptional,
                             paramInfo.DefaultValue,
+                            IsBoolean = paramInfo.ParameterType == typeof(Boolean),
                             IsCancellationToken = false,
                         })
                         .Concat(new[]{new
@@ -161,6 +164,7 @@
                             ParameterType = typeof(CancellationToken),
                             IsOptional = true,
                             DefaultValue = (object)default(CancellationToken),
+                            IsBoolean = false,
                             IsCancellationToken = true,
                         }})
                         .ToArray();
@@ -561,7 +565,7 @@ namespace <#= namespaceName #> {
 <# if(operation.Parameters.Any(x => !x.IsCancellationToken)) { #>
             var data = {
 <# foreach(var parameter in operation.Parameters.Where(x => !x.IsCancellationToken)) { #>
-                "<#= ToLowerCamelCase(parameter.Name) #>": <#= ToLowerCamelCase(parameter.Name) #><#= operation.Parameters.Where(x => !x.IsCancellationToken).Last() == parameter ? "" : "," #>
+                "<#= ToLowerCamelCase(parameter.Name) #>": <#= parameter.IsBoolean ? "!!" : "" #><#= ToLowerCamelCase(parameter.Name) #><#= operation.Parameters.Where(x => !x.IsCancellationToken).Last() == parameter ? "" : "," #>
 <# } #>
             };
 <# } else { #>
