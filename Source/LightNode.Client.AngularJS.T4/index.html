@@ -8,6 +8,8 @@
 </head>
 <body>
     <div main>
+        <button type="button" ng-click="main.voidMethod()">voidMethod</button><br />
+        <button type="button" ng-click="main.download()">download</button><br />
         <button type="button" ng-click="main.random()">random</button><br />
         <button type="button" ng-click="main.city()">city</button>
         <form name="myForm" novalidate>
@@ -17,7 +19,7 @@
             </label>
         </form>
         <ul>
-            <li ng-repeat="log in main.logs">
+            <li ng-repeat="log in main.logs track by $index">
                 {{log}}
             </li>
         </ul>

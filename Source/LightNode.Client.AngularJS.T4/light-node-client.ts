@@ -111,7 +111,8 @@ namespace LightNode {
             data?: any,
             timeout?: number | ng.IPromise<any>,
             requestHeaders?: ng.IHttpRequestConfigHeaders,
-            transformResponse?: IHttpResponseTransformer<T>): ng.IPromise<T> {
+            transformResponse?: IHttpResponseTransformer<T>,
+            responseType?: string): ng.IPromise<T> {
 
             if (!url) {
                 throw new ArgumentNullError("url");
@@ -120,7 +121,7 @@ namespace LightNode {
             let config = <ng.IRequestShortcutConfig>{
                 timeout: timeout,
                 headers: requestHeaders,
-                responseType: "json",
+                responseType: responseType || "json",
                 transformResponse: transformResponse
             };
 
@@ -200,7 +201,8 @@ namespace LightNode {
             method: string,
             data?: any,
             cancellationToken?: ng.IPromise<any>,
-            transformResponse?: IHttpResponseTransformer<T>): ng.IPromise<T> {
+            transformResponse?: IHttpResponseTransformer<T>,
+            responseType?: string): ng.IPromise<T> {
 
             if (!method) {
                 throw new ArgumentNullError("method");
@@ -211,7 +213,8 @@ namespace LightNode {
                 data,
                 cancellationToken || this.timeout,
                 this.defaultRequestHeaders,
-                transformResponse)
+                transformResponse,
+                responseType)
                 .then((x: any) => x.data);
 
         }
@@ -285,6 +288,11 @@ namespace LightNode {
         public people: Person[];
     }
 
+    export interface _IFoo {
+        voidMethod(cancellationToken?: ng.IPromise<any>): ng.IPromise<void>;
+        echoByte(bar: string, cancellationToken?: ng.IPromise<any>): ng.IPromise<ArrayBuffer>;
+    }
+
     export interface _IMember {
         random(seed: number, cancellationToken?: ng.IPromise<any>): ng.IPromise<Person>;
         city(isBoolTest: Boolean, cancellationToken?: ng.IPromise<any>): ng.IPromise<City>;
@@ -297,6 +305,17 @@ namespace LightNode {
             super($q, rootEndPoint, innerHandler);
         }
 
+        private _foo: _IFoo;
+        public get foo(): _IFoo {
+            if (!this._foo) {
+                this._foo = {
+                    voidMethod: this.fooVoidMethod.bind(this),
+                    echoByte: this.fooEchoByte.bind(this)
+                };
+            }
+            return this._foo;
+        }
+
         private _member: _IMember;
         public get member(): _IMember {
             if (!this._member) {
@@ -307,6 +326,27 @@ namespace LightNode {
                 };
             }
             return this._member;
+        }
+
+        protected fooVoidMethod(cancellationToken?: ng.IPromise<any>): ng.IPromise<void> {
+
+            var data = {};
+
+            return this.post<void>("/Foo/VoidMethod", data, cancellationToken);
+
+        }
+
+        protected fooEchoByte(bar: string, cancellationToken?: ng.IPromise<any>): ng.IPromise<ArrayBuffer> {
+
+            var data = {
+                "bar": bar
+            };
+
+            return this.post<ArrayBuffer>("/Foo/EchoByte", data, cancellationToken,
+                (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
+                    return data;
+                }, "arraybuffer");
+
         }
 
         protected memberRandom(seed: number, cancellationToken?: ng.IPromise<any>): ng.IPromise<Person> {

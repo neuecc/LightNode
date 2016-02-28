@@ -4,6 +4,7 @@ using Microsoft.Owin.Hosting;
 using Owin;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,6 +37,27 @@ namespace LightNode.Sample.Server.ForAngularClient
                 });
             });
         }
+    }
+
+    public class Foo : LightNodeContract
+    {
+        public void VoidMethod()
+        {
+        }
+
+        [OperationOption(AcceptVerbs.Post, typeof(RawOctetStreamContentFormatterFactory))]
+        public byte[] EchoByte(string bar)
+        {
+            var body = this.Environment["owin.RequestBody"] as Stream;
+            byte[] bodyBytes;
+            using (var ms = new MemoryStream())
+            {
+                body.CopyTo(ms);
+                bodyBytes = ms.ToArray();
+            }
+            return bodyBytes;
+        }
+
     }
 
     public class Member : LightNodeContract
