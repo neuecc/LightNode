@@ -26,6 +26,14 @@ namespace LightNode {
             return this.mainService.logs;
         }
 
+        public voidMethod() {
+            this.mainService.voidMethod();
+        }
+
+        public download() {
+            this.mainService.download();
+        }
+
         public random() {
             this.mainService.random();
         }
@@ -45,6 +53,44 @@ namespace LightNode {
         public logs: any[] = [];
 
         private cancellationTokenSource: LightNode.CancellationTokenSource;
+
+        public voidMethod() {
+
+            this.lightNodeClient.foo.voidMethod()
+                .then((x: void) => this.logs.unshift(x));
+
+        }
+
+        public download() {
+
+            this.lightNodeClient.foo.echoByte("FooBar")
+                .then((x: ArrayBuffer) => {
+
+                    let blob = new Blob([x], { type: "text/plain" });
+
+                    if (navigator.msSaveBlob) {
+                        navigator.msSaveOrOpenBlob(blob, "FooBar.txt");
+                    } else {
+                        let reader = new FileReader();
+                        let link = document.createElement("a");
+                        let click = (element: HTMLElement) => {
+                            let evt = document.createEvent("MouseEvents");
+                            evt.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                            element.dispatchEvent(evt);
+                        };
+                        reader.onload = () => {
+                            (<any>link).download = "FooBar.txt";
+                            link.href = reader.result;
+                            link.target = "_blank";
+                            click(link);
+                            link = null;
+                        };
+                        reader.readAsDataURL(blob);
+                    }
+
+                });
+
+        }
 
         public random() {
 

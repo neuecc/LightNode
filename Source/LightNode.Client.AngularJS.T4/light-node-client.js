@@ -83,14 +83,14 @@ var LightNode;
             })
                 .join("&");
         };
-        LightNodeClientHandler.prototype.post = function (url, data, timeout, requestHeaders, transformResponse) {
+        LightNodeClientHandler.prototype.post = function (url, data, timeout, requestHeaders, transformResponse, responseType) {
             if (!url) {
                 throw new ArgumentNullError("url");
             }
             var config = {
                 timeout: timeout,
                 headers: requestHeaders,
-                responseType: "json",
+                responseType: responseType || "json",
                 transformResponse: transformResponse
             };
             return this.$http.post(url, this.serializeToFormData(data), config);
@@ -164,11 +164,11 @@ var LightNode;
             configurable: true
         });
         ;
-        LightNodeClientBase.prototype.post = function (method, data, cancellationToken, transformResponse) {
+        LightNodeClientBase.prototype.post = function (method, data, cancellationToken, transformResponse, responseType) {
             if (!method) {
                 throw new ArgumentNullError("method");
             }
-            return this.innerHandler.post(this.rootEndPoint + method, data, cancellationToken || this.timeout, this.defaultRequestHeaders, transformResponse)
+            return this.innerHandler.post(this.rootEndPoint + method, data, cancellationToken || this.timeout, this.defaultRequestHeaders, transformResponse, responseType)
                 .then(function (x) { return x.data; });
         };
         LightNodeClientBase.prototype.createCancellationTokenSource = function () {
@@ -228,6 +228,19 @@ var LightNode;
         function LightNodeClient($q, rootEndPoint, innerHandler) {
             _super.call(this, $q, rootEndPoint, innerHandler);
         }
+        Object.defineProperty(LightNodeClient.prototype, "foo", {
+            get: function () {
+                if (!this._foo) {
+                    this._foo = {
+                        voidMethod: this.fooVoidMethod.bind(this),
+                        echoByte: this.fooEchoByte.bind(this)
+                    };
+                }
+                return this._foo;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(LightNodeClient.prototype, "member", {
             get: function () {
                 if (!this._member) {
@@ -242,6 +255,18 @@ var LightNode;
             enumerable: true,
             configurable: true
         });
+        LightNodeClient.prototype.fooVoidMethod = function (cancellationToken) {
+            var data = {};
+            return this.post("/Foo/VoidMethod", data, cancellationToken);
+        };
+        LightNodeClient.prototype.fooEchoByte = function (bar, cancellationToken) {
+            var data = {
+                "bar": bar
+            };
+            return this.post("/Foo/EchoByte", data, cancellationToken, function (data, headersGetter, status) {
+                return data;
+            }, "arraybuffer");
+        };
         LightNodeClient.prototype.memberRandom = function (seed, cancellationToken) {
             var _this = this;
             var data = {

@@ -50,6 +50,7 @@
         {"Single", "number"},
         {"Double", "number"},
         {"Decimal", "number"},
+        {"Void", "void"},
         {"CancellationToken", "ng.IPromise<any>"}
     };
 
@@ -73,7 +74,7 @@
     Func<Type, string> BeautifyType = null;
     BeautifyType = (Type t) =>
     {
-        if (t.IsArray) return BeautifyType(t.GetElementType()) + "[]";
+        if (t.IsArray) return t.GetElementType() == typeof(byte) ? "ArrayBuffer" : BeautifyType(t.GetElementType()) + "[]";
 
         if (!t.IsGenericType) return SwapType(t.Name);
 
@@ -197,6 +198,7 @@
                     {
                         OperationName = methodInfo.Name,
                         ReturnType = returnType,
+                        IsReturnBinary = returnType == typeof(byte[]),
                         Parameters = parameter,
                         ParameterString = parameterString,
                         ParameterStringWithOptional = parameterStringWithOptional,
@@ -372,7 +374,8 @@ namespace <#= namespaceName #> {
             data?: any,
             timeout?: number | ng.IPromise<any>,
             requestHeaders?: ng.IHttpRequestConfigHeaders,
-            transformResponse?: IHttpResponseTransformer<T>): ng.IPromise<T> {
+            transformResponse?: IHttpResponseTransformer<T>,
+            responseType?: string): ng.IPromise<T> {
 
             if (!url) {
                 throw new ArgumentNullError("url");
@@ -381,7 +384,7 @@ namespace <#= namespaceName #> {
             let config = <ng.IRequestShortcutConfig>{
                 timeout: timeout,
                 headers: requestHeaders,
-                responseType: "json",
+                responseType: responseType || "json",
                 transformResponse: transformResponse
             };
 
@@ -461,7 +464,8 @@ namespace <#= namespaceName #> {
             method: string,
             data?: any,
             cancellationToken?: ng.IPromise<any>,
-            transformResponse?: IHttpResponseTransformer<T>): ng.IPromise<T> {
+            transformResponse?: IHttpResponseTransformer<T>,
+            responseType?: string): ng.IPromise<T> {
 
             if (!method) {
                 throw new ArgumentNullError("method");
@@ -472,7 +476,8 @@ namespace <#= namespaceName #> {
                 data,
                 cancellationToken || this.timeout,
                 this.defaultRequestHeaders,
-                transformResponse)
+                transformResponse,
+                responseType)
                 .then((x: any) => x.data);
 
         }
@@ -572,6 +577,9 @@ namespace <#= namespaceName #> {
             var data = {};
 <# } #>
 
+<# if(operation.ReturnType == typeof(void) ) { #>
+            return this.post<<#= BeautifyType(operation.ReturnType) #>>("/<#= contract.RootName #>/<#= operation.OperationName #>", data, cancellationToken);
+<# } else { #>
             return this.post<<#= BeautifyType(operation.ReturnType) #>>("/<#= contract.RootName #>/<#= operation.OperationName #>", data, cancellationToken,
                 (data: any, headersGetter: ng.IHttpHeadersGetter, status: number) => {
 <# if(ShouldCreateInstance(operation.ReturnType)) { #>
@@ -585,9 +593,10 @@ namespace <#= namespaceName #> {
                     return json ? new <#= BeautifyType(operation.ReturnType) #>(json) : null;
 <# } #>
 <# } else { #>
-                    return this.parseJSON(data);
+                    return <#= operation.IsReturnBinary ? "" : "this.parseJSON(" #>data<#= operation.IsReturnBinary ? "" : ")" #>;
 <# } #>
-                });
+                }<#= operation.IsReturnBinary ? @", ""arraybuffer""" : "" #>);
+<# } #>
 
         }
 
