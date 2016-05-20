@@ -37,7 +37,7 @@ namespace LightNode.Formatter
         {
             using (var sw = new StreamWriter(stream, Encoding ?? new UTF8Encoding(false)))
             {
-                JSON.Serialize(obj, sw);
+                JSON.Serialize(obj, sw, options);
             }
         }
 
