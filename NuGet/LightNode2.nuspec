@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<package>
+    <metadata>
+        <id>LightNode</id>
+        <version>2.0.0-beta</version>
+        <title>LightNode</title>
+        <authors>neuecc</authors>
+        <owners>neuecc</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>LightNode(Micro REST/RPC Framework) for ASP.NET Core.</description>
+        <language>en-US</language>
+        <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+        <projectUrl>https://github.com/neuecc/LightNode</projectUrl>
+        <tags>ASPNETCore Rest RPC</tags>
+        <dependencies>
+            <group targetFramework="netstandard1.6">
+                <dependency id="System.Threading.Tasks.Parallel" version="4.0.1" />
+                <dependency id="Microsoft.AspNetCore.Http.Abstractions" version="1.0.0" />
+                <dependency id="Microsoft.AspNetCore.Http.Features" version="1.0.0" />
+                <dependency id="Newtonsoft.Json" version="9.0.1" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\Source\LightNode2\bin\Release\netstandard1.6\LightNode2.dll" target="lib\netstandard1.6" />
+        <file src="..\Source\LightNode2\bin\Release\netstandard1.6\LightNode2.xml" target="lib\netstandard1.6" />
+    </files>
+</package>
