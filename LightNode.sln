@@ -61,8 +61,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{52DEAA6E-C
 		NuGet\LightNode.Formatter.ProtoBuf.nuspec = NuGet\LightNode.Formatter.ProtoBuf.nuspec
 		NuGet\LightNode.Server.nuspec = NuGet\LightNode.Server.nuspec
 		NuGet\LightNode.Swagger.nuspec = NuGet\LightNode.Swagger.nuspec
+		NuGet\LightNode2.nuspec = NuGet\LightNode2.nuspec
 		NuGet\pack.bat = NuGet\pack.bat
+		NuGet\pack_LightNode2.bat = NuGet\pack_LightNode2.bat
 		NuGet\push.bat = NuGet\push.bat
+		NuGet\push_LightNode2.bat = NuGet\push_LightNode2.bat
 		README.md = README.md
 		NuGet\ReadMe.txt = NuGet\ReadMe.txt
 	EndProjectSection
@@ -97,12 +100,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".NET Core", ".NET Core", "{
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "LightNode2", "Source\LightNode2\LightNode2.xproj", "{AAFA9D36-DB57-4CA2-9137-05CC4B9EC4D1}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "WebApplicationCore1", "WebApplicationCore1\WebApplicationCore1.xproj", "{0EA8F2C9-A92C-4EE3-B43B-9A96498B6800}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2E1B3D87-7088-484B-A8DA-C7C10A07D94F}"
 	ProjectSection(SolutionItems) = preProject
 		global.json = global.json
 	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNetCoreSample", "Sample\AspNetCoreSample\AspNetCoreSample.xproj", "{0EA8F2C9-A92C-4EE3-B43B-9A96498B6800}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

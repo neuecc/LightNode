@@ -2,6 +2,55 @@ LightNode
 =========
 LightNode is a Micro RPC/REST Framework built on OWIN. LightNode is a good alternative to the ASP.NET Web API and Nancy if you make a simple API. It is like Ruby's [Grape](https://github.com/intridea/grape) framework, [Slack API](https://api.slack.com/web)'s HTTP RPC-style methods. Implementation of the API is lightweight, powerful debugging supports with [Glimpse](http://getglimpse.com/), client code generation by T4 for PCL(HttpClient) and Unity3D.  
 
+Update(2016-07-28), for ASP.NET Core
+---
+LightNode 2 has been started. You can install from `-Pre` packages.
+
+```
+PM> Install-Package LightNode -Pre
+```
+
+Simple ASP.NET Core Startup
+
+```csharp
+using LightNode;
+
+public class Startup
+{
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+    {
+        app.UseLightNode(typeof(Startup));
+    }
+}
+```
+
+LightNode 2 includes swagger package. You can map for Swagger.
+
+```csharp
+public class Startup
+{
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+    {
+        app.Map("/api", builder =>
+        {
+            builder.UseLightNode(typeof(Startup));
+        });
+
+        app.Map("/swagger", builder =>
+        {
+            var xmlName = "AspNetCoreSample.xml";
+            var xmlPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), xmlName);
+
+            builder.UseLightNodeSwagger(new LightNode.Swagger.SwaggerOptions("AspNetCoreSample", "/api")
+            {
+                XmlDocumentPath = xmlPath,
+                IsEmitEnumAsString = true
+            });
+        });
+    }
+}
+```
+
 Installation
 ---
 binary from NuGet, [LightNode.Server](https://nuget.org/packages/LightNode.Server/)

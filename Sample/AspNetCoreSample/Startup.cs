@@ -10,32 +10,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Glimpse;
 using System.IO;
 
-namespace WebApplicationCore1
+namespace AspNetCoreSample
 {
     public class Startup
     {
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddGlimpse();
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            app.UseGlimpse();
-
-            loggerFactory.AddConsole();
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
             app.Map("/api", builder =>
             {
                 builder.UseLightNode(typeof(Startup));
@@ -43,18 +25,26 @@ namespace WebApplicationCore1
 
             app.Map("/swagger", builder =>
             {
-                var xmlName = "WebApplicationCore1.xml";
+                var xmlName = "AspNetCoreSample.xml";
                 var xmlPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), xmlName);
 
-                builder.UseLightNodeSwagger(new LightNode.Swagger.SwaggerOptions("WebApplicationCore1", "/api") // baseApi is LightNode's root
+                builder.UseLightNodeSwagger(new LightNode.Swagger.SwaggerOptions("AspNetCoreSample", "/api")
                 {
                     XmlDocumentPath = xmlPath,
                     IsEmitEnumAsString = true
                 });
             });
-
         }
     }
+
+    public class Toriaezu : LightNodeContract
+    {
+        public string Echo(string x)
+        {
+            return x;
+        }
+    }
+
 
     /// <summary>
     /// aaa

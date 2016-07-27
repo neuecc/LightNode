@@ -12,8 +12,9 @@
 	"buildOptions": {
 			"embed": [
 				"Swagger/SwaggerUI/**"
-				
-			]
+
+			],
+			"xmlDoc": true
 	},
 
 	"frameworks": {
