@@ -568,6 +568,9 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+2.0.0-beta - 2016-07/28
+* ASP.NET Core support
+
 1.6.4 - 2015-11-27
 * Only LightNode.Swagger, fix doesn't show swagger when with selfhost
 
