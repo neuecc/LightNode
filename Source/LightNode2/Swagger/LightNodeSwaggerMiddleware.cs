@@ -47,6 +47,7 @@ namespace LightNode.Swagger
             var path = httpContext.Request.Path.Value.Trim('/');
             if (path == "") path = "index.html";
             var filePath = prefix + path.Replace("/", ".");
+            var mediaType = GetMediaType(filePath);
 
             if (path.Split('.').Last() == "json")
             {
@@ -71,6 +72,8 @@ namespace LightNode.Swagger
                 {
                     if (stream == null) return next(httpContext);
 
+                    httpContext.Response.Headers["Content-Type"] = new[] { mediaType };
+                    httpContext.Response.StatusCode = 200;
                     var response = httpContext.Response.Body;
                     stream.CopyTo(response);
                 }
@@ -91,15 +94,13 @@ namespace LightNode.Swagger
                     }
 
                     if (bytes == null) return next(httpContext);
-
+                    httpContext.Response.Headers["Content-Type"] = new[] { mediaType };
+                    httpContext.Response.StatusCode = 200;
                     var response = httpContext.Response.Body;
                     response.Write(bytes, 0, bytes.Length);
                 }
             }
 
-            var mediaType = GetMediaType(filePath);
-            httpContext.Response.Headers["Content-Type"] = new[] { mediaType };
-            httpContext.Response.StatusCode = 200;
 
             return Task.FromResult(0);
         }
