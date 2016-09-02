@@ -19,7 +19,7 @@ namespace LightNode.Server
         LightNode.Core.IContentFormatter[] SpecifiedFormatters { get; }
         StreamWriteOption StreamWriteOption { get; }
         bool UseOtherMiddleware { get; }
-        public int[] PassThroughWhenStatusCodesAre { get; }
+        int[] PassThroughWhenStatusCodesAre { get; }
         ILightNodeLogger Logger { get; }
     }
 
@@ -60,7 +60,7 @@ namespace LightNode.Server
             DefaultFormatter = defaultFormatter;
             SpecifiedFormatters = specifiedFormatters;
             UseOtherMiddleware = false;
-            PassThroughWhenStatusCodesAre = new int[0];
+            PassThroughWhenStatusCodesAre = null;
             ParameterStringImplicitNullAsDefault = false;
             ParameterEnumAllowsFieldNameParse = false;
             StreamWriteOption = Server.StreamWriteOption.BufferAndWrite;

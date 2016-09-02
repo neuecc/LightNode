@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>LightNode.Diagnostics.EventSource</id>
-        <version>1.6.5</version>
+        <version>1.6.5.1</version>
         <title>LightNode.Diagnostics.EventSource</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -13,7 +13,7 @@
         <projectUrl>https://github.com/neuecc/LightNode</projectUrl>
         <tags>Owin Rest RPC</tags>
         <dependencies>
-            <dependency id="LightNode.Server" version="1.6.5" />
+            <dependency id="LightNode.Server" version="1.6.5.1" />
         </dependencies>
     </metadata>
     <files>

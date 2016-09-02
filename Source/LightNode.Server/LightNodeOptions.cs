@@ -15,7 +15,7 @@ namespace LightNode.Server
         IOperationCoordinatorFactory OperationCoordinatorFactory { get; }
         OperationMissingHandlingPolicy OperationMissingHandlingPolicy { get; }
 
-        int[] PassThroughWhenStatusCodesAre { get; }
+        int[] PassThroughWhenStatusCodesAre { get; } // null is passthrough all
 
         bool ParameterEnumAllowsFieldNameParse { get; }
         bool ParameterStringImplicitNullAsDefault { get; }
@@ -63,7 +63,7 @@ namespace LightNode.Server
             DefaultFormatter = defaultFormatter;
             SpecifiedFormatters = specifiedFormatters;
             UseOtherMiddleware = false;
-            PassThroughWhenStatusCodesAre = new int[0];
+            PassThroughWhenStatusCodesAre = null;
             ParameterStringImplicitNullAsDefault = false;
             ParameterEnumAllowsFieldNameParse = false;
             StreamWriteOption = Server.StreamWriteOption.BufferAndWrite;

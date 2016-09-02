@@ -199,7 +199,7 @@ namespace LightNode.Server
         }
 
         // Routing -> ParameterBinding -> Execute
-        public async Task ProcessRequest(HttpContext httpContext)
+        public async Task<bool> ProcessRequest(HttpContext httpContext)
         {
             options.Logger.ProcessRequestStart(httpContext.Request.Path);
 
@@ -224,24 +224,24 @@ namespace LightNode.Server
                 var coordinator = options.OperationCoordinatorFactory.Create();
                 if (!coordinator.OnStartProcessRequest(options, httpContext))
                 {
-                    return;
+                    return ReturnNextMiddleware(httpContext);
                 }
 
                 AcceptVerbs verb;
                 string ext;
                 var handler = SelectHandler(httpContext, coordinator, out verb, out ext);
-                if (handler == null) return;
+                if (handler == null) return ReturnNextMiddleware(httpContext);
 
                 // Parameter binding
                 var valueProvider = new ValueProvider(httpContext, verb);
                 var methodParameters = ParameterBinder.BindParameter(httpContext, options, coordinator, valueProvider, handler.Arguments);
-                if (methodParameters == null) return;
+                if (methodParameters == null) return ReturnNextMiddleware(httpContext);
 
                 // select formatter
                 var formatter = handler.NegotiateFormat(httpContext, ext, options, coordinator);
                 if (formatter == null)
                 {
-                    if (formatter == null) return;
+                    if (formatter == null) return ReturnNextMiddleware(httpContext);
                 }
 
                 try
@@ -272,19 +272,22 @@ namespace LightNode.Server
                         sw.Stop();
                         options.Logger.ExecuteFinished(executionPath, interrupted, sw.Elapsed.TotalMilliseconds);
                     }
-                    return;
+                    return ReturnNextMiddleware(httpContext);
                 }
                 catch (ReturnStatusCodeException statusException)
                 {
                     try
                     {
-                        var code = (int)statusException.StatusCode;
-                        for (int i = 0; i < options.PassThroughWhenStatusCodesAre.Length; i++)
+                        if (options.UseOtherMiddleware && options.PassThroughWhenStatusCodesAre != null)
                         {
-                            if (code == (int)options.PassThroughWhenStatusCodesAre[i])
+                            var code = (int)statusException.StatusCode;
+                            for (int i = 0; i < options.PassThroughWhenStatusCodesAre.Length; i++)
                             {
-                                httpContext.Response.StatusCode = code;
-                                return;
+                                if (code == (int)options.PassThroughWhenStatusCodesAre[i])
+                                {
+                                    httpContext.Response.StatusCode = code;
+                                    return ReturnNextMiddleware(httpContext);
+                                }
                             }
                         }
 
@@ -313,6 +316,29 @@ namespace LightNode.Server
                     bufferedRequestStream.Dispose();
                 }
                 httpContext.Request.Body = originalRequestStream;
+            }
+
+            return ReturnNextMiddleware(httpContext);
+        }
+
+        bool ReturnNextMiddleware(HttpContext httpContext)
+        {
+            if (options.UseOtherMiddleware && options.PassThroughWhenStatusCodesAre != null)
+            {
+                var code = httpContext.Response.StatusCode;
+                for (int i = 0; i < options.PassThroughWhenStatusCodesAre.Length; i++)
+                {
+                    if (code == options.PassThroughWhenStatusCodesAre[i])
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            else
+            {
+                return options.UseOtherMiddleware;
             }
         }
 

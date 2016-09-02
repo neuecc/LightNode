@@ -198,7 +198,7 @@ namespace LightNode.Server
         }
 
         // Routing -> ParameterBinding -> Execute
-        public async Task ProcessRequest(IDictionary<string, object> environment)
+        public async Task<bool> ProcessRequest(IDictionary<string, object> environment)
         {
             options.Logger.ProcessRequestStart(environment.AsRequestPath());
 
@@ -223,24 +223,24 @@ namespace LightNode.Server
                 var coordinator = options.OperationCoordinatorFactory.Create();
                 if (!coordinator.OnStartProcessRequest(options, environment))
                 {
-                    return;
+                    return ReturnNextMiddleware(environment);
                 }
 
                 AcceptVerbs verb;
                 string ext;
                 var handler = SelectHandler(environment, coordinator, out verb, out ext);
-                if (handler == null) return;
+                if (handler == null) return ReturnNextMiddleware(environment);
 
                 // Parameter binding
                 var valueProvider = new ValueProvider(environment, verb);
                 var methodParameters = ParameterBinder.BindParameter(environment, options, coordinator, valueProvider, handler.Arguments);
-                if (methodParameters == null) return;
+                if (methodParameters == null) return ReturnNextMiddleware(environment);
 
                 // select formatter
                 var formatter = handler.NegotiateFormat(environment, ext, options, coordinator);
                 if (formatter == null)
                 {
-                    if (formatter == null) return;
+                    if (formatter == null) return ReturnNextMiddleware(environment);
                 }
 
                 try
@@ -271,19 +271,22 @@ namespace LightNode.Server
                         sw.Stop();
                         options.Logger.ExecuteFinished(executionPath, interrupted, sw.Elapsed.TotalMilliseconds);
                     }
-                    return;
+                    return ReturnNextMiddleware(environment);
                 }
                 catch (ReturnStatusCodeException statusException)
                 {
                     try
                     {
-                        var code = (int)statusException.StatusCode;
-                        for (int i = 0; i < options.PassThroughWhenStatusCodesAre.Length; i++)
+                        if (options.UseOtherMiddleware && options.PassThroughWhenStatusCodesAre != null)
                         {
-                            if (code == options.PassThroughWhenStatusCodesAre[i])
+                            var code = (int)statusException.StatusCode;
+                            for (int i = 0; i < options.PassThroughWhenStatusCodesAre.Length; i++)
                             {
-                                environment[OwinConstants.ResponseStatusCode] = code; // emit only code.
-                                return;
+                                if (code == options.PassThroughWhenStatusCodesAre[i])
+                                {
+                                    environment[OwinConstants.ResponseStatusCode] = code; // emit only code.
+                                    return ReturnNextMiddleware(environment);
+                                }
                             }
                         }
 
@@ -312,6 +315,29 @@ namespace LightNode.Server
                     bufferedRequestStream.Dispose();
                 }
                 environment[OwinConstants.RequestBody] = originalRequestStream;
+            }
+
+            return ReturnNextMiddleware(environment);
+        }
+
+        bool ReturnNextMiddleware(IDictionary<string, object> environment)
+        {
+            if (options.UseOtherMiddleware && options.PassThroughWhenStatusCodesAre != null)
+            {
+                var code = (int)environment[OwinConstants.ResponseStatusCode];
+                for (int i = 0; i < options.PassThroughWhenStatusCodesAre.Length; i++)
+                {
+                    if (code == options.PassThroughWhenStatusCodesAre[i])
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            else
+            {
+                return options.UseOtherMiddleware;
             }
         }
 

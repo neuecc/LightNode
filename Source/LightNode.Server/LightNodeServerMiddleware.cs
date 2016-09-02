@@ -40,7 +40,6 @@ namespace LightNode.Server
         }
 
         readonly LightNodeServer engine;
-        readonly bool useOtherMiddleware;
         readonly AppFunc next;
 
         public LightNodeServerMiddleware(AppFunc next, ILightNodeOptions options)
@@ -51,7 +50,6 @@ namespace LightNode.Server
         public LightNodeServerMiddleware(AppFunc next, ILightNodeOptions options, Assembly[] hostAssemblies)
         {
             this.next = next;
-            this.useOtherMiddleware = options.UseOtherMiddleware;
             this.engine = new LightNodeServer(options);
 
             var sw = Stopwatch.StartNew();
@@ -68,14 +66,10 @@ namespace LightNode.Server
 
         public async Task Invoke(IDictionary<string, object> environment)
         {
+            var useOtherMiddleware = await engine.ProcessRequest(environment).ConfigureAwait(true); // keep context
             if (useOtherMiddleware)
             {
-                await engine.ProcessRequest(environment).ConfigureAwait(true); // keep context
                 await next(environment).ConfigureAwait(false);
-            }
-            else
-            {
-                await engine.ProcessRequest(environment).ConfigureAwait(false);
             }
         }
     }

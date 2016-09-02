@@ -83,14 +83,10 @@ namespace LightNode.Server
 
         public async Task Invoke(HttpContext context)
         {
+            var useOtherMiddleware = await engine.ProcessRequest(context).ConfigureAwait(true); // keep context
             if (useOtherMiddleware)
             {
-                await engine.ProcessRequest(context).ConfigureAwait(true); // keep context
                 await next(context).ConfigureAwait(false);
-            }
-            else
-            {
-                await engine.ProcessRequest(context).ConfigureAwait(false);
             }
         }
     }
