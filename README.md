@@ -568,6 +568,9 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.6.5, 2.0.2-beta
+* Add PassThroughWhenStatusCodesAre option
+
 2.0.0-beta - 2016-07/28
 * ASP.NET Core support
 

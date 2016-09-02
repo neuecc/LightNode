@@ -277,7 +277,7 @@ namespace LightNode.Server
                 {
                     try
                     {
-                        var code = statusException.StatusCode;
+                        var code = (int)statusException.StatusCode;
                         for (int i = 0; i < options.PassThroughWhenStatusCodesAre.Length; i++)
                         {
                             if (code == options.PassThroughWhenStatusCodesAre[i])
