@@ -278,6 +278,16 @@ namespace LightNode.Server
                 {
                     try
                     {
+                        var code = (int)statusException.StatusCode;
+                        for (int i = 0; i < options.PassThroughWhenStatusCodesAre.Length; i++)
+                        {
+                            if (code == (int)options.PassThroughWhenStatusCodesAre[i])
+                            {
+                                httpContext.Response.StatusCode = code;
+                                return;
+                            }
+                        }
+
                         statusException.EmitCode(options, httpContext);
                     }
                     catch (Exception ex)

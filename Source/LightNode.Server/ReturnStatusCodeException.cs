@@ -8,17 +8,25 @@ namespace LightNode.Server
 {
     public class ReturnStatusCodeException : Exception
     {
-        public HttpStatusCode StatusCode { get; private set; }
+        public int StatusCode { get; private set; }
         public string ReasonPhrase { get; private set; }
-
 
         object content;
         IContentFormatter contentFormatter;
         Action<IDictionary<string, object>> environmentEmitter;
 
-        public ReturnStatusCodeException(HttpStatusCode statusCode, string reasonPhrase = null, object content = null, IContentFormatter contentFormatter = null, Action<IDictionary<string, object>> environmentEmitter = null)
+        public ReturnStatusCodeException(int statusCode, string reasonPhrase = null, object content = null, IContentFormatter contentFormatter = null, Action<IDictionary<string, object>> environmentEmitter = null)
         {
             this.StatusCode = statusCode;
+            this.ReasonPhrase = reasonPhrase;
+            this.content = content;
+            this.contentFormatter = contentFormatter;
+            this.environmentEmitter = environmentEmitter;
+        }
+
+        public ReturnStatusCodeException(HttpStatusCode statusCode, string reasonPhrase = null, object content = null, IContentFormatter contentFormatter = null, Action<IDictionary<string, object>> environmentEmitter = null)
+        {
+            this.StatusCode = (int)statusCode;
             this.ReasonPhrase = reasonPhrase;
             this.content = content;
             this.contentFormatter = contentFormatter;

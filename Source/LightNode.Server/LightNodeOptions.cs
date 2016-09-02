@@ -1,7 +1,6 @@
 ﻿using LightNode.Core;
 using LightNode.Formatter;
 using System;
-using System.Collections.Generic;
 using LightNode.Diagnostics;
 
 namespace LightNode.Server
@@ -15,6 +14,9 @@ namespace LightNode.Server
         LightNodeFilterCollection Filters { get; }
         IOperationCoordinatorFactory OperationCoordinatorFactory { get; }
         OperationMissingHandlingPolicy OperationMissingHandlingPolicy { get; }
+
+        int[] PassThroughWhenStatusCodesAre { get; }
+
         bool ParameterEnumAllowsFieldNameParse { get; }
         bool ParameterStringImplicitNullAsDefault { get; }
         LightNode.Core.IContentFormatter[] SpecifiedFormatters { get; }
@@ -47,6 +49,8 @@ namespace LightNode.Server
 
         public LightNodeFilterCollection Filters { get; private set; }
 
+        public int[] PassThroughWhenStatusCodesAre { get; set; }
+
         public LightNodeOptions()
             : this(AcceptVerbs.Get | AcceptVerbs.Post, new JavaScriptContentFormatter())
         {
@@ -59,6 +63,7 @@ namespace LightNode.Server
             DefaultFormatter = defaultFormatter;
             SpecifiedFormatters = specifiedFormatters;
             UseOtherMiddleware = false;
+            PassThroughWhenStatusCodesAre = new int[0];
             ParameterStringImplicitNullAsDefault = false;
             ParameterEnumAllowsFieldNameParse = false;
             StreamWriteOption = Server.StreamWriteOption.BufferAndWrite;
@@ -67,7 +72,7 @@ namespace LightNode.Server
             Filters = new LightNodeFilterCollection();
             OperationCoordinatorFactory = new DefaultOperationCoordinatorFactory();
             ServerEngineId = Guid.NewGuid().ToString();
-            Logger = NullLightNodeLogger.Instance; 
+            Logger = NullLightNodeLogger.Instance;
         }
 
         public LightNodeOptions ConfigureWith(Action<LightNodeOptions> @this)

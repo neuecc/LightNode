@@ -1,7 +1,6 @@
 ﻿using LightNode.Core;
 using LightNode.Formatter;
 using System;
-using System.Collections.Generic;
 using LightNode.Diagnostics;
 
 namespace LightNode.Server
@@ -20,6 +19,7 @@ namespace LightNode.Server
         LightNode.Core.IContentFormatter[] SpecifiedFormatters { get; }
         StreamWriteOption StreamWriteOption { get; }
         bool UseOtherMiddleware { get; }
+        public int[] PassThroughWhenStatusCodesAre { get; }
         ILightNodeLogger Logger { get; }
     }
 
@@ -31,6 +31,7 @@ namespace LightNode.Server
 
         public string ServerEngineId { get; private set; }
         public bool UseOtherMiddleware { get; set; }
+        public int[] PassThroughWhenStatusCodesAre { get; set; }
         public ILightNodeLogger Logger { get; set; }
         public bool ParameterStringImplicitNullAsDefault { get; set; }
         public bool ParameterEnumAllowsFieldNameParse { get; set; }
@@ -59,6 +60,7 @@ namespace LightNode.Server
             DefaultFormatter = defaultFormatter;
             SpecifiedFormatters = specifiedFormatters;
             UseOtherMiddleware = false;
+            PassThroughWhenStatusCodesAre = new int[0];
             ParameterStringImplicitNullAsDefault = false;
             ParameterEnumAllowsFieldNameParse = false;
             StreamWriteOption = Server.StreamWriteOption.BufferAndWrite;

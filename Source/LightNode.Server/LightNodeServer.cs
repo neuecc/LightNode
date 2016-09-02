@@ -162,7 +162,7 @@ namespace LightNode.Server
                 goto NOT_FOUND;
             }
 
-        VERB_MISSING:
+            VERB_MISSING:
             coorinator.OnProcessInterrupt(options, environment, InterruptReason.MethodNotAllowed, "MethodName:" + method);
             options.Logger.MethodNotAllowed(OperationMissingKind.MethodNotAllowed, path, method);
             if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
@@ -179,7 +179,7 @@ namespace LightNode.Server
                 return null;
             }
 
-        NOT_FOUND:
+            NOT_FOUND:
             coorinator.OnProcessInterrupt(options, environment, InterruptReason.OperationNotFound, "SearchedPath:" + path);
             options.Logger.OperationNotFound(OperationMissingKind.OperationNotFound, path);
             if (options.OperationMissingHandlingPolicy == OperationMissingHandlingPolicy.ThrowException)
@@ -277,6 +277,16 @@ namespace LightNode.Server
                 {
                     try
                     {
+                        var code = statusException.StatusCode;
+                        for (int i = 0; i < options.PassThroughWhenStatusCodesAre.Length; i++)
+                        {
+                            if (code == options.PassThroughWhenStatusCodesAre[i])
+                            {
+                                environment[OwinConstants.ResponseStatusCode] = code; // emit only code.
+                                return;
+                            }
+                        }
+
                         statusException.EmitCode(options, environment);
                     }
                     catch (Exception ex)

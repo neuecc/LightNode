@@ -10,11 +10,11 @@
 	},
 
 	"buildOptions": {
-			"embed": [
-				"Swagger/SwaggerUI/**"
+		"embed": [
+			"Swagger/SwaggerUI/**"
 
-			],
-			"xmlDoc": true
+		],
+		"xmlDoc": true
 	},
 
 	"frameworks": {
