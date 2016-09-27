@@ -10,7 +10,7 @@ namespace LightNode.Server
 {
     internal static class ParameterBinder
     {
-        internal static object[] BindParameter(IDictionary<string, object> environment, ILightNodeOptions options,IOperationCoordinator coordinator,  ValueProvider valueProvider, ParameterInfoSlim[] arguments)
+        internal static object[] BindParameter(IDictionary<string, object> environment, ILightNodeOptions options, IOperationCoordinator coordinator, ValueProvider valueProvider, ParameterInfoSlim[] arguments)
         {
             var methodParameters = new object[arguments.Length];
             for (int i = 0; i < arguments.Length; i++)
@@ -21,6 +21,14 @@ namespace LightNode.Server
                 var value = _values as string;
                 var values = _values as List<string>;
                 var isEmpty = _values == null;
+                var byteArray = _values as byte[];
+
+                // TODO:Experimental support
+                if (byteArray != null && item.ParameterTypeIsArray && item.ParameterType == typeof(byte[]))
+                {
+                    methodParameters[i] = byteArray;
+                    continue;
+                }
 
                 if (isEmpty && !item.ParameterTypeIsArray)
                 {

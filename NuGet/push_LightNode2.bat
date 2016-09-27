@@ -1,1 +1,1 @@
-nuget push LightNode.2.0.3-beta.nupkg -Source https://www.nuget.org/api/v2/package
+nuget push LightNode.2.0.4-beta.nupkg -Source https://www.nuget.org/api/v2/package

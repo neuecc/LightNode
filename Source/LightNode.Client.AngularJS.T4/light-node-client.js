@@ -43,7 +43,7 @@ var LightNode;
             this.message = message + (paramName ? ": " + paramName : "");
         }
         return ArgumentError;
-    })(Error);
+    }(Error));
     LightNode.ArgumentError = ArgumentError;
     var ArgumentNullError = (function (_super) {
         __extends(ArgumentNullError, _super);
@@ -53,7 +53,7 @@ var LightNode;
             this.name = "ArgumentNullError";
         }
         return ArgumentNullError;
-    })(ArgumentError);
+    }(ArgumentError));
     LightNode.ArgumentNullError = ArgumentNullError;
     var ArgumentOutOfRangeError = (function (_super) {
         __extends(ArgumentOutOfRangeError, _super);
@@ -63,7 +63,7 @@ var LightNode;
             this.name = "ArgumentOutOfRangeError";
         }
         return ArgumentOutOfRangeError;
-    })(ArgumentError);
+    }(ArgumentError));
     LightNode.ArgumentOutOfRangeError = ArgumentOutOfRangeError;
     var LightNodeClientHandler = (function () {
         function LightNodeClientHandler($http) {
@@ -96,7 +96,7 @@ var LightNode;
             return this.$http.post(url, this.serializeToFormData(data), config);
         };
         return LightNodeClientHandler;
-    })();
+    }());
     LightNode.LightNodeClientHandler = LightNodeClientHandler;
     var CancellationTokenSource = (function () {
         function CancellationTokenSource(deferred) {
@@ -116,7 +116,7 @@ var LightNode;
             this.deferred.resolve();
         };
         return CancellationTokenSource;
-    })();
+    }());
     LightNode.CancellationTokenSource = CancellationTokenSource;
     var LightNodeClientBase = (function () {
         function LightNodeClientBase($q, rootEndPoint, innerHandler) {
@@ -184,7 +184,7 @@ var LightNode;
                 : json;
         };
         return LightNodeClientBase;
-    })();
+    }());
     LightNode.LightNodeClientBase = LightNodeClientBase;
     //#endregion
     (function (Gender) {
@@ -202,7 +202,7 @@ var LightNode;
             this.foo = json.Foo;
         }
         return NoReferenceClass;
-    })();
+    }());
     LightNode.NoReferenceClass = NoReferenceClass;
     var Person = (function () {
         function Person(json) {
@@ -213,7 +213,7 @@ var LightNode;
             this.lastName = json.LastName;
         }
         return Person;
-    })();
+    }());
     LightNode.Person = Person;
     var City = (function () {
         function City(json) {
@@ -221,7 +221,7 @@ var LightNode;
             this.people = (json.People || []).map(function (x) { return x ? new Person(x) : null; });
         }
         return City;
-    })();
+    }());
     LightNode.City = City;
     var LightNodeClient = (function (_super) {
         __extends(LightNodeClient, _super);
@@ -303,7 +303,7 @@ var LightNode;
             });
         };
         return LightNodeClient;
-    })(LightNodeClientBase);
+    }(LightNodeClientBase));
     LightNode.LightNodeClient = LightNodeClient;
 })(LightNode || (LightNode = {}));
 /* tslint:enable */

@@ -73,13 +73,21 @@ namespace LightNode.Sample.Server.SelfHost
             return new Person { Age = rand.Next(10, 40), FirstName = f.ToString(), LastName = l.ToString() };
         }
 
+        /// <param name="x"></param>
+        /// <param name="name"></param>
+        /// <param name="bytes"></param>
+        public Task ByteArrayReceive(int x, byte[] bytes, string name)
+        {
+            return Task.FromResult(0);
+        }
+
         [Get, Post, Put]
         public void Hoge(string p)
         {
             var hoge = LightNodeServerMiddleware.GetRegisteredHandlersInfo();
-            
 
-            
+
+
         }
     }
 

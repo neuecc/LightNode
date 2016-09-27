@@ -41,6 +41,21 @@ namespace LightNode.Performance
         {
         }
 
+        [Post]
+        public void ByteArrayCheck1(int x, string y, byte[] byteArray)
+        {
+        }
+
+        [Post]
+        public void ByteArrayCheck2(string[] array, int[] array2, MyEnum[] array3, byte[] byteArray)
+        {
+        }
+
+        [Post]
+        public void ByteArrayCheck3(int x, string y, byte[] byteArray, string a = null, int? xxx = null, MyEnum2? z = null)
+        {
+        }
+
         public string Te4(string xs)
         {
             return xs;

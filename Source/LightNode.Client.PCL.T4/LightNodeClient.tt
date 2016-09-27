@@ -223,13 +223,13 @@ namespace <#= namespaceName #>
             OnAfterInitialized();
         }
 
-        protected virtual async Task PostAsync(string method, FormUrlEncodedContent content, CancellationToken cancellationToken)
+        protected virtual async Task PostAsync(string method, HttpContent content, CancellationToken cancellationToken)
         {
             var response = await httpClient.PostAsync(rootEndPoint + method, content, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
         }
 
-        protected virtual async Task<T> PostAsync<T>(string method, FormUrlEncodedContent content, CancellationToken cancellationToken)
+        protected virtual async Task<T> PostAsync<T>(string method, HttpContent content, CancellationToken cancellationToken)
         {
             var response = await httpClient.PostAsync(rootEndPoint + method, content, cancellationToken).ConfigureAwait(false);
             using (var stream = await response.EnsureSuccessStatusCode().Content.ReadAsStreamAsync().ConfigureAwait(false))
@@ -252,6 +252,23 @@ namespace <#= namespaceName #>
 
         <#= BeautifyType(operation.ReturnType) #> <#= contract.InterfaceName #>.<#= operation.OperationName + ((addAsyncSuffix) ? "Async" : "") #>(<#= operation.ParameterString #>)
         {
+            HttpContent __content = null;
+<# if(operation.Parameters.Any(x => x.ParameterType == typeof(byte[]))) { #>
+            var __multi = new MultipartFormDataContent();
+<# foreach(var parameter in operation.Parameters.Where(x => x.Name != "cancellationToken")) { #>
+<# if(parameter.ParameterType == typeof(byte[])) { #>
+            __multi.Add(new ByteArrayContent(<#= parameter.Name #>), "<#= parameter.Name #>");
+<# } else if (parameter.ParameterType.IsArray) { #>
+            if (<#= parameter.Name #> != null) foreach(var __x in <#= parameter.Name #>) { __multi.Add(new StringContent(<# WriteParameter(parameter.ParameterType.GetElementType(), "__x"); #>), "<#= parameter.Name #>"); }
+<# } else if(parameter.ParameterType.IsClass || (parameter.ParameterType.IsGenericType && parameter.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>))) { #>
+            if (<#= parameter.Name #> != null) __multi.Add(new StringContent(<# WriteParameter(parameter.ParameterType, parameter.Name); #>), "<#= parameter.Name #>");
+<# } else { #>
+            __multi.Add(new StringContent(<# WriteParameter(parameter.ParameterType, parameter.Name); #>), "<#= parameter.Name #>");
+<# } #>
+<# } #>
+            __content = __multi;
+<# } #>
+<# else { #>
             var list = new List<KeyValuePair<string, string>>(<#= operation.Parameters.Length - 1 #>);
 <# foreach(var parameter in operation.Parameters.Where(x => x.Name != "cancellationToken")) { #>
 <# if (parameter.ParameterType.IsArray) { #>
@@ -262,8 +279,9 @@ namespace <#= namespaceName #>
             list.Add(new KeyValuePair<string, string>("<#= parameter.Name #>", <# WriteParameter(parameter.ParameterType, parameter.Name); #>));
 <# } #>
 <# } #>
-
-            return PostAsync<#= operation.ReturnType == typeof(Task) ? "" : "<" + UnwrapTask(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", new FormUrlEncodedContent(list), cancellationToken);
+            __content = new FormUrlEncodedContent(list);
+<# } #>
+            return PostAsync<#= operation.ReturnType == typeof(Task) ? "" : "<" + UnwrapTask(operation.ReturnType) + ">" #>("/<#= contract.RootName #>/<#= operation.OperationName #>", __content, cancellationToken);
         }
 <# if(operation.IsDebugOnly) { #>
 #endif

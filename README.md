@@ -568,6 +568,9 @@ LightNode is using [AppVeyor](http://www.appveyor.com/) CI. You can check unit t
 
 ReleaseNote
 ---
+1.6.6.1, 2.0.4-beta
+* Add byte[] support with MultiPartContent
+
 1.6.5.1, 2.0.3-beta
 * Add PassThroughWhenStatusCodesAre option
 

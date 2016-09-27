@@ -42,7 +42,7 @@ var LightNode;
             this.mainService.city();
         };
         return MainController;
-    })();
+    }());
     var MainService = (function () {
         function MainService(lightNodeClient) {
             this.lightNodeClient = lightNodeClient;
@@ -61,21 +61,21 @@ var LightNode;
                     navigator.msSaveOrOpenBlob(blob, "FooBar.txt");
                 }
                 else {
-                    var reader = new FileReader();
-                    var link = document.createElement("a");
-                    var click = function (element) {
+                    var reader_1 = new FileReader();
+                    var link_1 = document.createElement("a");
+                    var click_1 = function (element) {
                         var evt = document.createEvent("MouseEvents");
                         evt.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
                         element.dispatchEvent(evt);
                     };
-                    reader.onload = function () {
-                        link.download = "FooBar.txt";
-                        link.href = reader.result;
-                        link.target = "_blank";
-                        click(link);
-                        link = null;
+                    reader_1.onload = function () {
+                        link_1.download = "FooBar.txt";
+                        link_1.href = reader_1.result;
+                        link_1.target = "_blank";
+                        click_1(link_1);
+                        link_1 = null;
                     };
-                    reader.readAsDataURL(blob);
+                    reader_1.readAsDataURL(blob);
                 }
             });
         };
@@ -111,7 +111,7 @@ var LightNode;
             });
         };
         return MainService;
-    })();
+    }());
     angular.module("app")
         .service("mainService", MainService)
         .directive("main", [function () {

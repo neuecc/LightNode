@@ -52,7 +52,7 @@ namespace LightNode.Server
 
         static readonly Dictionary<Type, Func<IList<string>, object>> convertArrayTypeDictionary = new Dictionary<Type, Func<IList<string>, object>>(16)
         {
-            // NOTE:unsupport byte[] because request message will be very large. use Base64 instead of byte[].
+            // Note:byte[] is experimental supports but that serialization is does not pass string
             {typeof(string[]), (IList<string> xs) => (object)xs.ToArray()},
             {typeof(DateTime[]), (IList<string> xs) =>
             {
@@ -224,7 +224,8 @@ namespace LightNode.Server
         internal static bool IsAllowType(Type targetType)
         {
             return GetConverter(targetType, false) != null
-                || GetArrayConverter(targetType, false) != null;
+                || GetArrayConverter(targetType, false) != null
+                || targetType == typeof(byte[]);
         }
 
         internal static TryParse GetConverter(Type targetType, bool enumStrictParse)
